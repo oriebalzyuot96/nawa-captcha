@@ -1,7 +1,7 @@
 {
   "name": "@nawa-guard/vue",
   "version": "0.1.0",
-  "description": "Vue 3 component (v-model) for the Nawa Guard CAPTCHA widget.",
+  "description": "Nawa Guard for Vue 3: accessible, self-hosted puzzle CAPTCHA component with v-model — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -27,5 +28,38 @@
   },
   "devDependencies": {
     "vue": "^3.5.0"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "vue-component",
+    "captcha",
+    "recaptcha-alternative",
+    "hcaptcha-alternative",
+    "turnstile-alternative",
+    "self-hosted-captcha",
+    "accessible-captcha",
+    "puzzle-captcha",
+    "slider-captcha",
+    "privacy",
+    "gdpr",
+    "bot-protection",
+    "anti-spam",
+    "proof-of-work",
+    "nawa-guard",
+    "nawa-ui",
+    "arabic",
+    "rtl"
+  ],
+  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "directory": "packages/vue"
+  },
+  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "author": "oriebalzyuot96",
+  "publishConfig": {
+    "access": "public"
   }
 }

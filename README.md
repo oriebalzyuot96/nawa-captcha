@@ -1,5 +1,13 @@
 # Nawa Guard
 
+[![CI](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-5b34d6.svg)](LICENSE)
+
+**Self-hosted, accessible puzzle CAPTCHA — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.** 🌐 [Website](https://oriebalzyuot96.github.io/nawa-guard/)
+
+```bash
+npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
+```
+
 **Nawa Guard** is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Nawa UI component library). It's designed around three ideas:
 
 1. **The client is never trusted.** Puzzles are rendered on the server as pixels. The solution is sealed inside the challenge token with AES-256-GCM and never reaches the browser in a form it can read.

@@ -12,11 +12,20 @@
     <Version>0.1.0</Version>
     <Description>Server-side verification of Nawa Guard pass tokens for ASP.NET Core: INawaGuardVerifier, [RequireNawaGuard] and minimal-API endpoint filters.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>captcha;bot-protection;aspnetcore</PackageTags>
+    <PackageTags>captcha;recaptcha-alternative;hcaptcha-alternative;self-hosted;accessible;puzzle-captcha;bot-protection;anti-spam;aspnetcore;dotnet</PackageTags>
+    <Authors>oriebalzyuot96</Authors>
+    <PackageProjectUrl>https://oriebalzyuot96.github.io/nawa-guard/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oriebalzyuot96/nawa-guard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

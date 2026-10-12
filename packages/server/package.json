@@ -1,7 +1,7 @@
 {
   "name": "@nawa-guard/server",
   "version": "0.1.0",
-  "description": "Nawa Guard server core: sealed puzzle challenges, verification, single-use pass tokens. Zero runtime dependencies.",
+  "description": "Nawa Guard server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 8 challenge types, sealed answers, single-use pass tokens, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,10 +29,39 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [
+    "nodejs",
+    "express",
+    "middleware",
+    "server",
+    "verification",
     "captcha",
+    "recaptcha-alternative",
+    "hcaptcha-alternative",
+    "turnstile-alternative",
+    "self-hosted-captcha",
+    "accessible-captcha",
+    "puzzle-captcha",
+    "slider-captcha",
+    "privacy",
+    "gdpr",
     "bot-protection",
+    "anti-spam",
     "proof-of-work",
-    "accessibility",
-    "arabic"
-  ]
+    "nawa-guard",
+    "nawa-ui",
+    "arabic",
+    "rtl",
+    "accessibility"
+  ],
+  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "directory": "packages/server"
+  },
+  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "author": "oriebalzyuot96",
+  "publishConfig": {
+    "access": "public"
+  }
 }

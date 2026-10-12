@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nawa Guard — Self-hosted, accessible puzzle CAPTCHA (reCAPTCHA alternative)</title>
+  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
+  <link rel="canonical" href="https://oriebalzyuot96.github.io/nawa-guard/" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#5b34d6" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate" type="text/plain" href="llms.txt" title="LLM summary" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Nawa Guard — self-hosted, accessible puzzle CAPTCHA" />
+  <meta property="og:description" content="Open-source reCAPTCHA alternative: 8 puzzle types, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Node.js and ASP.NET Core." />
+  <meta property="og:url" content="https://oriebalzyuot96.github.io/nawa-guard/" />
+  <meta name="twitter:card" content="summary" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Nawa Guard",
+    "alternateName": ["nawa-guard", "@nawa-guard/server"],
+    "description": "Open-source, self-hosted, accessible puzzle CAPTCHA. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
+    "url": "https://oriebalzyuot96.github.io/nawa-guard/",
+    "codeRepository": "https://github.com/oriebalzyuot96/nawa-guard",
+    "programmingLanguage": ["TypeScript", "C#"],
+    "runtimePlatform": ["Node.js", "ASP.NET Core", "React", "Vue", "Svelte", "Angular"],
+    "license": "https://opensource.org/licenses/MIT",
+    "keywords": "captcha, recaptcha alternative, hcaptcha alternative, turnstile alternative, self-hosted captcha, accessible captcha, puzzle captcha, slider captcha, bot protection, anti-spam, proof of work, aspnetcore, nodejs"
+  }
+  </script>
+  <style>
+    :root { color-scheme: light dark; --bg: #ffffff; --fg: #16262d; --muted: #4b6873; --line: #dbe5e8; --card: #f4f8f9; --primary: #5b34d6; --primary-ink: #5230cc; --on-primary: #fff; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #10161b; --fg: #e7eef1; --muted: #a1b4bc; --line: #283640; --card: #172028; --primary: #b9a5ff; --primary-ink: #c4b5fd; --on-primary: #1d0f4a; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: var(--primary-ink); }
+    a:focus-visible, summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+    .wrap { width: min(100% - 2rem, 64rem); margin-inline: auto; }
+    .skip { position: absolute; top: -100px; left: 1rem; background: var(--primary); color: var(--on-primary); padding: .5rem 1rem; border-radius: 8px; }
+    .skip:focus { top: 1rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; flex-wrap: wrap; }
+    .brand { font-weight: 800; font-size: 1.15rem; color: var(--fg); text-decoration: none; display: inline-flex; gap: .5rem; align-items: center; }
+    nav a { margin-inline-start: 1rem; font-weight: 600; }
+    .hero { padding: 4rem 0 2.5rem; }
+    h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; margin: 0 0 1rem; letter-spacing: -.02em; }
+    h2 { font-size: 1.6rem; margin: 0 0 1rem; }
+    .lead { font-size: 1.15rem; color: var(--muted); max-width: 46rem; }
+    .btns { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .btn { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.25rem; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); color: var(--fg); background: var(--card); }
+    .btn--primary { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+    section { padding: 2.5rem 0; border-top: 1px solid var(--line); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+    .card { padding: 1.25rem; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+    .card h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); }
+    pre { margin: .75rem 0 0; padding: 1rem; border-radius: 12px; background: #0f172a; color: #e2e8f0; overflow-x: auto; font-size: .9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    th, td { padding: .6rem .75rem; border-bottom: 1px solid var(--line); text-align: start; }
+    th { color: var(--muted); }
+    footer { padding: 2rem 0; color: var(--muted); border-top: 1px solid var(--line); font-size: .9rem; }
+    [dir="rtl"] { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header>
+    <div class="wrap">
+      <a class="brand" href="./"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5b34d6"/><path d="M16 7l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9v-6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nawa Guard</a>
+      <nav aria-label="Main"><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap hero">
+      <h1>Nawa Guard — the self-hosted, accessible puzzle CAPTCHA</h1>
+      <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
+      <div class="btns">
+        <a class="btn btn--primary" href="https://github.com/oriebalzyuot96/nawa-guard#readme">Get started</a>
+        <a class="btn" href="https://github.com/oriebalzyuot96/nawa-guard">Star on GitHub</a>
+      </div>
+    </div>
+
+    <section aria-labelledby="why">
+      <div class="wrap">
+        <h2 id="why">Why Nawa Guard</h2>
+        <div class="grid">
+          <div class="card"><h3>🔒 The client is never trusted</h3><p>Puzzles are rendered on the server. The answer is sealed with AES-256-GCM inside the challenge and never reaches the browser.</p></div>
+          <div class="card"><h3>✅ Verify on your backend</h3><p>A solved puzzle yields a short-lived, single-use, signed pass token. Your route verifies it locally — like reCAPTCHA's siteverify, without the third party.</p></div>
+          <div class="card"><h3>♿ Everyone can pass it</h3><p>Mouse, touch and full keyboard for every puzzle, plus a text alternative for screen-reader users (WCAG 1.1.1, 2.1.1). Arabic and English, RTL.</p></div>
+          <div class="card"><h3>🧩 8 challenge types</h3><p>Slider jigsaw, rotate, pick icons, math image, drag to order, connect the dots, invisible proof-of-work and an accessible question. Difficulty adapts after failures.</p></div>
+          <div class="card"><h3>🛡️ Replay & tamper proof</h3><p>Single-use tokens, expiry, IP/UA binding, key rotation with key IDs, pointer-trajectory heuristics and rate-limit hooks.</p></div>
+          <div class="card"><h3>📦 Zero dependencies</h3><p>The Node server uses only node:crypto and node:zlib. The widget is a dependency-free Web Component that runs under a strict CSP.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="install" id="install">
+      <div class="wrap">
+        <h2>Install</h2>
+        <p>npm, yarn, pnpm and bun all work:</p>
+        <pre><code>npm i @nawa-guard/server @nawa-guard/widget
+yarn add @nawa-guard/react      # or @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular
+dotnet add package NawaGuard.AspNetCore</code></pre>
+        <p style="margin-top:1rem">Server (Express):</p>
+        <pre><code>import { createNawaGuard } from '@nawa-guard/server';
+import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
+
+const guard = createNawaGuard({ secret: process.env.NAWA_GUARD_SECRET, siteKeys: ['main'], actions: ['login'] });
+app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
+app.post('/login', requireCaptcha(guard, { expectedAction: 'login', maxAgeSec: 300 }), handler);</code></pre>
+        <p style="margin-top:1rem">Browser (any framework):</p>
+        <pre><code>&lt;nawa-guard site-key="main" endpoint="/captcha" action="login" lang="en"&gt;&lt;/nawa-guard&gt;</code></pre>
+        <p style="margin-top:1rem">ASP.NET Core:</p>
+        <pre><code>builder.Services.AddNawaGuard(builder.Configuration.GetSection("NawaGuard"));
+app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
+      </div>
+    </section>
+
+    <section aria-labelledby="compare" id="compare">
+      <div class="wrap">
+        <h2>Nawa Guard vs reCAPTCHA, hCaptcha and Turnstile</h2>
+        <table>
+          <caption style="text-align:start;color:var(--muted);padding-bottom:.5rem">Feature comparison</caption>
+          <thead><tr><th scope="col">Feature</th><th scope="col">Nawa Guard</th><th scope="col">reCAPTCHA</th><th scope="col">hCaptcha</th><th scope="col">Turnstile</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Self-hosted, no third-party calls</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><th scope="row">No user tracking / cookies</th><td>Yes</td><td>No</td><td>Partial</td><td>Partial</td></tr>
+            <tr><th scope="row">Open source (MIT)</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><th scope="row">Keyboard + screen-reader alternative</th><td>Yes</td><td>Audio</td><td>Accessibility cookie</td><td>Mostly invisible</td></tr>
+            <tr><th scope="row">Arabic / RTL built in</th><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+            <tr><th scope="row">ASP.NET Core verifier included</th><td>Yes</td><td>Community</td><td>Community</td><td>Community</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="ar" lang="ar" dir="rtl">
+      <div class="wrap">
+        <h2 id="ar">نواة جارد — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
+        <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. ثمانية أنواع من الألغاز، دعم كامل للوحة المفاتيح وقارئات الشاشة، والعربية والإنجليزية مع RTL. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Nawa UI</a> · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></div>
+  </footer>
+</body>
+</html>

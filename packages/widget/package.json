@@ -1,7 +1,7 @@
 {
   "name": "@nawa-guard/widget",
   "version": "0.1.0",
-  "description": "Nawa Guard <nawa-guard> Web Component: accessible, RTL-ready puzzle CAPTCHA widget with no dependencies.",
+  "description": "Nawa Guard widget: accessible <nawa-guard> web component (keyboard, touch, screen-reader alternative, RTL, themes) for the self-hosted Nawa Guard CAPTCHA.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "sideEffects": true,
   "scripts": {
@@ -21,10 +22,38 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [
-    "captcha",
     "web-component",
-    "accessibility",
+    "custom-element",
+    "vanilla-js",
+    "framework-agnostic",
+    "captcha",
+    "recaptcha-alternative",
+    "hcaptcha-alternative",
+    "turnstile-alternative",
+    "self-hosted-captcha",
+    "accessible-captcha",
+    "puzzle-captcha",
+    "slider-captcha",
+    "privacy",
+    "gdpr",
+    "bot-protection",
+    "anti-spam",
+    "proof-of-work",
+    "nawa-guard",
+    "nawa-ui",
+    "arabic",
     "rtl",
-    "arabic"
-  ]
+    "accessibility"
+  ],
+  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "directory": "packages/widget"
+  },
+  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "author": "oriebalzyuot96",
+  "publishConfig": {
+    "access": "public"
+  }
 }

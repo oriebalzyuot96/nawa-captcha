@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://oriebalzyuot96.github.io/nawa-guard/sitemap.xml

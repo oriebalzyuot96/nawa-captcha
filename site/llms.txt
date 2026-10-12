@@ -1,0 +1,18 @@
+# Nawa Guard
+
+> Open-source, self-hosted, accessible puzzle CAPTCHA. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile. Your server issues challenges and verifies pass tokens; nothing is sent to a third party.
+
+- Source: https://github.com/oriebalzyuot96/nawa-guard
+- License: MIT
+
+## Packages
+- @nawa-guard/server: Node.js (≥18) challenge engine, verification, single-use pass tokens, Express middleware (`nawaGuardExpress`, `requireCaptcha`). Zero runtime dependencies.
+- @nawa-guard/widget: `<nawa-guard>` Web Component (keyboard, touch, screen-reader alternative, Arabic/English, RTL, themes).
+- @nawa-guard/react, @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular: framework wrappers.
+- NawaGuard.AspNetCore (NuGet): `AddNawaGuard()`, `[RequireNawaGuard]`, `.RequireNawaGuard()` to verify pass tokens in ASP.NET Core.
+
+## Challenge types
+Slider jigsaw, rotate to upright, select matching icons, math image, drag to order, connect the dots, invisible proof-of-work, accessible text question.
+
+## Security model
+Answers sealed with AES-256-GCM inside the challenge token; HMAC-signed, short-lived, single-use pass tokens; expiry, IP/UA binding, key rotation, replay store (memory or Redis), pointer-trajectory heuristics, rate-limit hooks.
