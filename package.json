@@ -16,10 +16,11 @@
   ],
   "scripts": {
     "build": "npm run build -w @nawa-guard/server -w @nawa-guard/widget -w @nawa-guard/react -w @nawa-guard/vue -w @nawa-guard/angular",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build -w @nawa-guard/widget && npm run typecheck --workspaces --if-present && tsc -p tsconfig.test.json",
     "test": "vitest run",
-    "demo": "npm run build && node demo/server.mjs",
-    "fixture:dotnet": "node scripts/make-dotnet-fixture.mjs"
+    "test:dotnet": "dotnet test dotnet/NawaGuard.sln",
+    "demo": "npm run build -w @nawa-guard/server -w @nawa-guard/widget && node demo/server.mjs",
+    "fixture:dotnet": "npm run build -w @nawa-guard/server && node scripts/make-dotnet-fixture.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false,
+    "useDefineForClassFields": false,
+    "experimentalDecorators": true
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "strictInjectionParameters": true,
+    "compilationMode": "partial"
+  },
+  "include": ["src"]
+}

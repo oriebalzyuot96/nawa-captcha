@@ -86,7 +86,7 @@ describe('math image', () => {
   it('renders the expression as paths, never as text', async () => {
     const { guard } = setup();
     const { challenge } = await issue(guard, 'math');
-    const svg = Buffer.from(String((challenge.data as any).image).split(',')[1], 'base64').toString('utf8');
+    const svg = Buffer.from(String((challenge.data as any).image).split(',')[1] ?? '', 'base64').toString('utf8');
     expect(svg).not.toMatch(/<text|<script|on\w+=/i);
   });
 });
