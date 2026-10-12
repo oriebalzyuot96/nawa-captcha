@@ -46,7 +46,9 @@ export async function handleVerify(guard: NawaGuard, req: GuardHttpRequest): Pro
   const body = record(req.body);
   if (!body) return json(400, { success: false, error: 'invalid-input', retry: false });
   const result = await guard.verify({ token: body['token'], answer: body['answer'], client: req.client });
-  if (result.ok) return json(200, { success: true, token: result.passToken, expiresAt: result.expiresAt, type: result.type });
+  if (result.ok) {
+    return json(200, { success: true, token: result.passToken, expiresAt: result.expiresAt, expiresInMs: result.expiresInMs, type: result.type });
+  }
   // `reason`/`detail` stay server-side (onEvent); the browser only learns the coarse outcome.
   const status = result.error === 'rate-limited' ? 429 : result.error === 'invalid-input' ? 400 : 403;
   return json(status, { success: false, error: result.error, retry: result.retry });

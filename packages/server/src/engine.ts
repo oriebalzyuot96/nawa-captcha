@@ -79,6 +79,8 @@ export interface ChallengeResponse {
   readonly level: number;
   /** Unix ms. */
   readonly expiresAt: number;
+  /** Lifetime in ms (relative, so browsers with a skewed clock still refresh on time). */
+  readonly expiresInMs: number;
 }
 
 export type ChallengeError = 'invalid-input' | 'rate-limited';
@@ -98,7 +100,7 @@ export type VerifyFailure =
 export type PublicVerifyError = 'invalid-input' | 'invalid-token' | 'expired' | 'failed' | 'rate-limited';
 
 export type VerifyResult =
-  | { ok: true; passToken: string; expiresAt: number; type: ChallengeType }
+  | { ok: true; passToken: string; expiresAt: number; expiresInMs: number; type: ChallengeType }
   | { ok: false; error: PublicVerifyError; reason: VerifyFailure; detail?: string; retry: boolean };
 
 export interface VerifyRequest {
@@ -276,7 +278,7 @@ export class NawaGuard {
     this.emit({ type: 'challenge-issued', challengeType: type, level, clientKey: ck, action });
     return {
       ok: true,
-      challenge: { token: sealChallenge(this.keys, claims), type, lang, prompt: generated.prompt, data: generated.publicData, level, expiresAt: exp },
+      challenge: { token: sealChallenge(this.keys, claims), type, lang, prompt: generated.prompt, data: generated.publicData, level, expiresAt: exp, expiresInMs: exp - iat },
     };
   }
 
@@ -344,7 +346,7 @@ export class NawaGuard {
       ...(cb ? { cb } : {}),
     });
     this.emit({ type: 'verify-success', challengeType: claims.typ, level: claims.lvl, clientKey: ck, action: claims.act, solveMs });
-    return { ok: true, passToken, expiresAt: exp * 1000, type: claims.typ };
+    return { ok: true, passToken, expiresAt: exp * 1000, expiresInMs: (exp - iat) * 1000, type: claims.typ };
   }
 
   /** Server-side pass-token check using this instance's secrets and store. */

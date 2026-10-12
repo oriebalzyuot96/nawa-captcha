@@ -1,0 +1,57 @@
+/* Demo page only. The widget itself reads the Nawa UI tokens below (--nw-*). */
+:root {
+  --nw-primary: #0f766e;
+  --nw-primary-hover: #115e59;
+  --nw-primary-soft: rgb(15 118 110 / 0.12);
+  --nw-on-primary: #ffffff;
+  --nw-surface: #ffffff;
+  --nw-surface-alt: #f2f5f7;
+  --nw-text: #18222c;
+  --nw-text-muted: #55606b;
+  --nw-border: #d3dae0;
+  --nw-focus: #2563eb;
+  --nw-radius: 12px;
+  --nw-font: system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+  color-scheme: light;
+}
+:root.dark {
+  --nw-primary: #2dd4bf;
+  --nw-primary-hover: #5eead4;
+  --nw-primary-soft: rgb(45 212 191 / 0.16);
+  --nw-on-primary: #04201d;
+  --nw-surface: #141b22;
+  --nw-surface-alt: #1d2630;
+  --nw-text: #e6edf3;
+  --nw-text-muted: #9aa7b4;
+  --nw-border: #2c3742;
+  --nw-control-border: #5b6875;
+  --nw-focus: #93c5fd;
+  --nw-success: #4ade80;
+  --nw-success-soft: rgb(74 222 128 / 0.12);
+  --nw-danger: #f87171;
+  --nw-danger-soft: rgb(248 113 113 / 0.12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--nw-font); background: var(--nw-surface-alt); color: var(--nw-text); }
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 24px; }
+.top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { margin: 0 0 6px; font-size: 1.15rem; }
+h3 { margin: 0 0 10px; font-size: 1rem; }
+.lead, .muted { margin: 0 0 12px; color: var(--nw-text-muted); }
+.tag { font-size: 0.7rem; vertical-align: middle; padding: 2px 8px; border-radius: 99px; background: var(--nw-primary-soft); color: var(--nw-primary); }
+.card { background: var(--nw-surface); border: 1px solid var(--nw-border); border-radius: 14px; padding: 16px; }
+.gallery { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+.form { display: grid; gap: 10px; max-width: 380px; }
+label { font-weight: 600; }
+input[type="email"] { font: inherit; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--nw-border); background: var(--nw-surface); color: var(--nw-text); }
+button.primary, .chip { font: inherit; min-height: 44px; padding: 0 18px; border-radius: 8px; cursor: pointer; }
+button.primary { border: 0; background: var(--nw-primary); color: var(--nw-on-primary); font-weight: 600; justify-self: start; }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.chip { background: var(--nw-surface); color: var(--nw-text); border: 1px solid var(--nw-border); }
+.chip[aria-pressed="true"] { border-color: var(--nw-primary); color: var(--nw-primary); }
+.switches { display: flex; gap: 8px; }
+.token { font-family: ui-monospace, monospace; font-size: 0.75rem; color: var(--nw-text-muted); word-break: break-all; margin: 8px 0 0; min-height: 1em; }
+:focus-visible { outline: 3px solid var(--nw-focus); outline-offset: 2px; }
+code { font-size: 0.9em; }

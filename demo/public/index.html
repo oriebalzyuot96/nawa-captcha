@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nawa Guard demo</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script type="module" src="/widget/index.js"></script>
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="top">
+        <div>
+          <h1>Nawa Guard <span class="tag">demo</span></h1>
+          <p class="lead">Puzzle CAPTCHA with server-sealed solutions, single-use pass tokens, and an accessible text mode.</p>
+        </div>
+        <div class="switches" role="group" aria-label="Display options">
+          <button type="button" id="lang-toggle" class="chip">العربية</button>
+          <button type="button" id="theme-toggle" class="chip" aria-pressed="false">Dark theme</button>
+        </div>
+      </header>
+
+      <section aria-labelledby="login-h" class="card">
+        <h2 id="login-h">Protected login form</h2>
+        <p class="muted">The server picks the puzzle (adaptive ladder). The pass token is posted in a hidden field and verified by <code>requireCaptcha()</code>.</p>
+        <form method="post" action="/login" class="form">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="username" required />
+          <nawa-guard site-key="demo" endpoint="/captcha" action="login"></nawa-guard>
+          <button type="submit" class="primary" id="login-submit" disabled>Sign in</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="api-h" class="card">
+        <h2 id="api-h">Protected JSON API</h2>
+        <p class="muted">The token is sent in the <code>X-Nawa-Guard-Token</code> header.</p>
+        <nawa-guard id="api-guard" site-key="demo" endpoint="/captcha" action="contact" type="pow"></nawa-guard>
+        <button type="button" class="primary" id="api-send" disabled>Send message</button>
+        <p id="api-result" class="muted" role="status"></p>
+      </section>
+
+      <section aria-labelledby="gallery-h">
+        <h2 id="gallery-h">All puzzle types</h2>
+        <div class="gallery" id="gallery"></div>
+      </section>
+    </main>
+  </body>
+</html>
