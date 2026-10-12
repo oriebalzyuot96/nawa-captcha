@@ -5,20 +5,20 @@
  */
 export const STYLES = /* css */ `
 :host {
-  --_primary: var(--nawa-guard-primary, var(--nw-primary, #0f766e));
-  --_primary-hover: var(--nawa-guard-primary-hover, var(--nw-primary-hover, #115e59));
-  --_primary-soft: var(--nawa-guard-primary-soft, var(--nw-primary-soft, rgb(15 118 110 / 0.12)));
+  --_primary: var(--nawa-guard-primary, var(--nw-primary, #5b34d6));
+  --_primary-hover: var(--nawa-guard-primary-hover, var(--nw-primary-hover, #4925b8));
+  --_primary-soft: var(--nawa-guard-primary-soft, var(--nw-primary-soft, rgb(91 52 214 / 0.12)));
   --_on-primary: var(--nawa-guard-on-primary, var(--nw-on-primary, #ffffff));
   --_surface: var(--nawa-guard-surface, var(--nw-surface, #ffffff));
-  --_surface-alt: var(--nawa-guard-surface-alt, var(--nw-surface-alt, #f3f5f7));
-  --_text: var(--nawa-guard-text, var(--nw-text, #1d2731));
-  --_muted: var(--nawa-guard-text-muted, var(--nw-text-muted, #56616d));
-  --_border: var(--nawa-guard-border, var(--nw-border, #cfd6dd));
-  --_control-border: var(--nawa-guard-control-border, var(--nw-control-border, #8a96a3));
-  --_focus: var(--nawa-guard-focus, var(--nw-focus, #2563eb));
-  --_danger: var(--nawa-guard-danger, var(--nw-danger, #b42318));
+  --_surface-alt: var(--nawa-guard-surface-alt, var(--nw-surface-alt, #f4f8f9));
+  --_text: var(--nawa-guard-text, var(--nw-text, #16262d));
+  --_muted: var(--nawa-guard-text-muted, var(--nw-text-muted, #4b6873));
+  --_border: var(--nawa-guard-border, var(--nw-border, #dbe5e8));
+  --_control-border: var(--nawa-guard-control-border, var(--nw-control-border, #768c95));
+  --_focus: var(--nawa-guard-focus, var(--nw-focus, #5b34d6));
+  --_danger: var(--nawa-guard-danger, var(--nw-danger, #c0262d));
   --_danger-soft: var(--nawa-guard-danger-soft, var(--nw-danger-soft, #fdecea));
-  --_success: var(--nawa-guard-success, var(--nw-success, #157f3b));
+  --_success: var(--nawa-guard-success, var(--nw-success, #0f6b33));
   --_success-soft: var(--nawa-guard-success-soft, var(--nw-success-soft, #e7f6ec));
   --_radius: var(--nawa-guard-radius, var(--nw-radius, 12px));
   --_radius-sm: var(--nawa-guard-radius-sm, var(--nw-radius-sm, 8px));
@@ -75,7 +75,7 @@ button { font: inherit; }
   position: relative; inline-size: 100%; border-radius: var(--_radius-sm); overflow: hidden;
   background: var(--_surface-alt); touch-action: none; user-select: none; -webkit-user-select: none;
 }
-.stage > img, .fill-img { display: block; inline-size: 100%; block-size: auto; pointer-events: none; }
+.stage > img:not(.piece), .fill-img { display: block; inline-size: 100%; block-size: auto; pointer-events: none; }
 .piece { position: absolute; cursor: grab; touch-action: none; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.45)); }
 .piece:active { cursor: grabbing; }
 .track {
@@ -136,6 +136,35 @@ label { font-weight: 600; font-size: 0.9em; }
 .done { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--_radius-sm); background: var(--_success-soft); color: var(--_success); font-weight: 600; }
 .done svg { inline-size: 24px; block-size: 24px; flex: none; }
 .error-box { display: grid; gap: 8px; padding: 10px 12px; border-radius: var(--_radius-sm); background: var(--_danger-soft); color: var(--_danger); }
+.step { font-size: 0.78em; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--_primary-soft); color: var(--_primary); white-space: nowrap; }
+.rot-stage.framed { inline-size: min(100%, 200px); border-radius: var(--_radius-sm); box-shadow: inset 0 0 0 1px var(--_border); }
+.rot-stage .rot-base { position: absolute; inset: 0; }
+.rot-stage.framed > img:last-child { position: relative; }
+.drag-piece { position: absolute; cursor: grab; touch-action: none; border-radius: var(--_radius-sm); filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.35)); }
+.drag-piece img { inline-size: 100%; block-size: 100%; display: block; pointer-events: none; }
+.drag-piece.dragging { cursor: grabbing; filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.4)); }
+.swap { display: grid; gap: 3px; inline-size: 100%; padding: 3px; border-radius: var(--_radius-sm); background: var(--_border); }
+.swap-tile { padding: 0; border: 0; border-radius: 4px; overflow: hidden; cursor: pointer; background: var(--_surface-alt); position: relative; touch-action: none; }
+.swap-tile img { inline-size: 100%; block-size: 100%; display: block; object-fit: cover; pointer-events: none; }
+.swap-tile[aria-pressed="true"] { outline: 3px solid var(--_primary); outline-offset: -3px; }
+.swap-tile[aria-pressed="true"]::after { content: ""; position: absolute; inset: 0; background: color-mix(in srgb, var(--_primary) 22%, transparent); }
+.hold-stage { position: relative; inline-size: min(100%, 200px); aspect-ratio: 1; margin-inline: auto; border-radius: 50%; overflow: hidden; }
+.hold-stage > img { inline-size: 100%; block-size: 100%; display: block; pointer-events: none; }
+.hold-arc { fill: none; stroke: var(--_primary); stroke-linecap: round; opacity: 0.9; }
+.hold-btn {
+  position: absolute; inset: 31%; border-radius: 50%; border: 0; cursor: pointer; font-weight: 700; font-size: 0.8em; line-height: 1.1;
+  background: var(--_primary); color: var(--_on-primary); box-shadow: 0 4px 12px rgb(0 0 0 / 0.25); touch-action: none; user-select: none; -webkit-user-select: none;
+  transition: transform 0.12s var(--_ease);
+}
+.hold-btn.holding { transform: scale(0.92); background: var(--_primary-hover); }
+.cell.locked { pointer-events: none; }
+.cell .badge {
+  position: absolute; inset-block-start: 5px; inset-inline-start: 5px; z-index: 1; min-inline-size: 22px; block-size: 22px; border-radius: 11px;
+  background: var(--_primary); color: var(--_on-primary); font-size: 13px; font-weight: 700; line-height: 22px; text-align: center;
+}
+.cell[data-pair]:not([data-pair=""])::before { content: none; }
+.draw .tap circle { fill: var(--_primary); stroke: #fff; stroke-width: 2; }
+.draw .tap text { fill: var(--_on-primary); font: 700 11px var(--_font); }
 .sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .shake { animation: ng-shake 0.32s linear; }
 @keyframes ng-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -150,7 +179,10 @@ label { font-weight: 600; font-size: 0.9em; }
   .cell[aria-pressed="true"]::after, .tile[aria-pressed="true"] { border-color: Highlight; background: transparent; }
   .cell[aria-pressed="true"]::before { forced-color-adjust: none; background: Highlight; color: HighlightText; }
   .draw polyline, .draw .cross { stroke: Highlight; }
-  .draw .kpt { fill: Highlight; }
+  .draw .kpt, .draw .tap circle { fill: Highlight; }
+  .hold-arc { stroke: Highlight; }
+  .hold-btn, .step, .cell .badge { forced-color-adjust: none; background: ButtonText; color: ButtonFace; }
+  .swap-tile[aria-pressed="true"] { outline-color: Highlight; }
   .progress > div { background: Highlight; }
   :focus-visible { outline-color: Highlight; }
 }

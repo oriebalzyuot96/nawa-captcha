@@ -7,3 +7,5 @@ dotnet/**/obj/
 .vs/
 *.user
 .env
+# built by npm run build:site (the Pages workflow builds it)
+site/assets/

@@ -1,8 +1,9 @@
 # Nawa Guard
 
-> Open-source, self-hosted, accessible puzzle CAPTCHA. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile. Your server issues challenges and verifies pass tokens; nothing is sent to a third party.
+> Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile. Your server issues challenges and verifies pass tokens; nothing is sent to a third party.
 
 - Source: https://github.com/oriebalzyuot96/nawa-guard
+- Live playground (runs the real engine in the browser, demo mode): https://oriebalzyuot96.github.io/nawa-guard/#playground
 - License: MIT
 
 ## Packages
@@ -10,9 +11,51 @@
 - @nawa-guard/widget: `<nawa-guard>` Web Component (keyboard, touch, screen-reader alternative, Arabic/English, RTL, themes).
 - @nawa-guard/react, @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular: framework wrappers.
 - NawaGuard.AspNetCore (NuGet): `AddNawaGuard()`, `[RequireNawaGuard]`, `.RequireNawaGuard()` to verify pass tokens in ASP.NET Core.
+- Packages are coming to npm (@nawa-guard scope) and NuGet; until then build from source (`npm install && npm run build`).
+
+## Choosing puzzles
+`createNawaGuard({ types: [...], weights, mode: 'random' | 'sequence' | 'adaptive', steps: 1-3, perAction: { login: ['pow', 'slider'] } })`. The widget's `types="a,b"` attribute (and the wrappers' `types` prop) can only narrow the server's allow-list. Multi-step pass tokens list every solved type in the `stp` claim; verifiers accept `allowedTypes` (at least one solved step must match) and `minSteps`.
 
 ## Challenge types
-Slider jigsaw, rotate to upright, select matching icons, math image, drag to order, connect the dots, invisible proof-of-work, accessible text question.
+<!-- types:start -->
+- slider: Slider jigsaw (drag, slide, rotate, hold)
+- slide-unlock: Slide to the target (drag, slide, rotate, hold)
+- shadow-drag: Drag to the shadow (drag, slide, rotate, hold)
+- jigsaw: Jigsaw (4 pieces) (drag, slide, rotate, hold)
+- rotate: Rotate the scene (drag, slide, rotate, hold)
+- rotate-object: Rotate the object (drag, slide, rotate, hold)
+- rotate-match: Align the inner circle (drag, slide, rotate, hold)
+- hold: Hold and release (drag, slide, rotate, hold)
+- icons: Select matching shapes (select in a picture)
+- icons-weather: Select weather icons (select in a picture)
+- icons-objects: Select everyday objects (select in a picture)
+- odd-one-out: Odd one out (select in a picture)
+- odd-rotation: Find the mirrored letter (select in a picture)
+- color-name: Colour by name + pattern (select in a picture)
+- biggest: Largest / smallest (select in a picture)
+- find-shape: Find the shape (select in a picture)
+- shadow-pick: Pick the shadow (select in a picture)
+- pattern: What comes next (select in a picture)
+- clock: Read the clock (select in a picture)
+- math-compare: Compare sums (select in a picture)
+- symmetry: Complete the mirror (select in a picture)
+- pairs: Match pairs (select in a picture)
+- tap-order: Tap numbers in order (tap in order)
+- spell: Spell the word (tap in order)
+- order: Order dots / bars (put in order)
+- order-size: Order by size (put in order)
+- order-numbers: Order numbers (put in order)
+- order-time: Order clock times (put in order)
+- story: Picture story (put in order)
+- trace: Connect the dots (draw a path)
+- trace-letters: Connect A–E (draw a path)
+- maze: Maze (draw a path)
+- math: Math image (type the answer)
+- count: Count the objects (type the answer)
+- dice: Dice total (type the answer)
+- pow: Invisible proof-of-work (invisible / text alternative)
+- accessible: Accessible text question (invisible / text alternative)
+<!-- types:end -->
 
 ## Security model
 Answers sealed with AES-256-GCM inside the challenge token; HMAC-signed, short-lived, single-use pass tokens; expiry, IP/UA binding, key rotation, replay store (memory or Redis), pointer-trajectory heuristics, rate-limit hooks.

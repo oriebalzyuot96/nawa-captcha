@@ -1,7 +1,7 @@
 {
   "name": "@nawa-guard/server",
   "version": "0.1.0",
-  "description": "Nawa Guard server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 8 challenge types, sealed answers, single-use pass tokens, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
+  "description": "Nawa Guard server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 37 challenge types you choose from, sealed answers, single-use pass tokens, multi-step chains, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -63,5 +63,8 @@
   "author": "oriebalzyuot96",
   "publishConfig": {
     "access": "public"
+  },
+  "browser": {
+    "./dist/primitives.js": "./dist/primitives.browser.js"
   }
 }

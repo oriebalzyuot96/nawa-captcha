@@ -1,35 +1,36 @@
 /* Demo page only. The widget itself reads the Nawa UI tokens below (--nw-*). */
 :root {
-  --nw-primary: #0f766e;
-  --nw-primary-hover: #115e59;
-  --nw-primary-soft: rgb(15 118 110 / 0.12);
+  --nw-primary: #5b34d6;
+  --nw-primary-hover: #4925b8;
+  --nw-primary-soft: rgb(91 52 214 / 0.12);
   --nw-on-primary: #ffffff;
   --nw-surface: #ffffff;
-  --nw-surface-alt: #f2f5f7;
-  --nw-text: #18222c;
-  --nw-text-muted: #55606b;
-  --nw-border: #d3dae0;
-  --nw-focus: #2563eb;
+  --nw-surface-alt: #f4f8f9;
+  --nw-text: #16262d;
+  --nw-text-muted: #4b6873;
+  --nw-border: #dbe5e8;
+  --nw-control-border: #768c95;
+  --nw-focus: #5b34d6;
   --nw-radius: 12px;
   --nw-font: system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
   color-scheme: light;
 }
 :root.dark {
-  --nw-primary: #2dd4bf;
-  --nw-primary-hover: #5eead4;
-  --nw-primary-soft: rgb(45 212 191 / 0.16);
-  --nw-on-primary: #04201d;
-  --nw-surface: #141b22;
-  --nw-surface-alt: #1d2630;
-  --nw-text: #e6edf3;
-  --nw-text-muted: #9aa7b4;
-  --nw-border: #2c3742;
-  --nw-control-border: #5b6875;
-  --nw-focus: #93c5fd;
-  --nw-success: #4ade80;
-  --nw-success-soft: rgb(74 222 128 / 0.12);
-  --nw-danger: #f87171;
-  --nw-danger-soft: rgb(248 113 113 / 0.12);
+  --nw-primary: #b9a5ff;
+  --nw-primary-hover: #d3c7ff;
+  --nw-primary-soft: rgb(185 165 255 / 0.16);
+  --nw-on-primary: #1d0f4a;
+  --nw-surface: #10161b;
+  --nw-surface-alt: #172028;
+  --nw-text: #e7eef1;
+  --nw-text-muted: #a1b4bc;
+  --nw-border: #283640;
+  --nw-control-border: #6d838e;
+  --nw-focus: #b9a5ff;
+  --nw-success: #4cd987;
+  --nw-success-soft: rgb(76 217 135 / 0.12);
+  --nw-danger: #ff8a8a;
+  --nw-danger-soft: rgb(255 138 138 / 0.12);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -55,3 +56,7 @@ button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .token { font-family: ui-monospace, monospace; font-size: 0.75rem; color: var(--nw-text-muted); word-break: break-all; margin: 8px 0 0; min-height: 1em; }
 :focus-visible { outline: 3px solid var(--nw-focus); outline-offset: 2px; }
 code { font-size: 0.9em; }
+.two { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); align-items: start; }
+.family { margin: 18px 0 10px; font-size: 1.05rem; color: var(--nw-text-muted); }
+h4 { margin: 0 0 10px; font-size: 0.95rem; }
+h4 code { font-weight: 400; color: var(--nw-text-muted); }

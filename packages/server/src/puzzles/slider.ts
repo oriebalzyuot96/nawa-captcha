@@ -1,7 +1,6 @@
-import { randInt } from '../crypto.js';
 import { prompt } from '../i18n.js';
 import { pngDataUrl } from '../render/png.js';
-import { jigsawMask, onRim } from '../render/shapes.js';
+import { PIECE_SHAPES, onRim, pieceMask } from '../render/shapes.js';
 import { invalid, ok, wrong, type PuzzleDefinition } from '../types.js';
 import { checkDrag, darken, finiteIn, isRecord, lighten, scenicBackground } from './common.js';
 
@@ -9,6 +8,7 @@ export interface SliderSolution {
   readonly x: number;
 }
 
+/** View `slide`: a piece image dragged horizontally over a background image. */
 export interface SliderPublic {
   readonly width: number;
   readonly height: number;
@@ -25,20 +25,25 @@ export interface SliderPublic {
 const W = 300;
 const H = 150;
 const BODY = 42;
-const KNOB = BODY * 0.2;
+const MARGIN = Math.ceil(BODY * 0.25) + 6;
 const START_X = 2;
 
+/**
+ * Slider jigsaw. The piece outline varies (jigsaw tab, jigsaw notch, circle, star, shield, heart,
+ * hexagon); level ≥ 1 adds a decoy hole with a different outline.
+ */
 export const slider: PuzzleDefinition<SliderSolution, SliderPublic> = {
   type: 'slider',
+  view: 'slide',
   minSolveMs: 450,
   maxAttempts: 2,
-  generate({ level, lang }) {
-    const gapX = randInt(BODY + 40, Math.floor(W - BODY - KNOB - 8));
-    const gapY = randInt(Math.ceil(KNOB + 6), H - BODY - 6);
-    const variant = randInt(0, 2);
-    const gap = jigsawMask(gapX, gapY, BODY, variant);
+  generate({ level, lang, rng }) {
+    const shape = rng.pick(PIECE_SHAPES);
+    const gapX = rng.int(BODY + 40, W - BODY - MARGIN);
+    const gapY = rng.int(MARGIN, H - BODY - MARGIN + 4);
+    const gap = pieceMask(shape, gapX, gapY, BODY);
 
-    const scene = scenicBackground(W, H).finish().noise(10);
+    const scene = scenicBackground(rng, W, H).finish().noise(10, rng);
     const [bx, by, bx2, by2] = gap.bbox;
     const pieceW = Math.ceil(bx2 - bx);
     const pieceH = Math.ceil(by2 - by);
@@ -48,17 +53,17 @@ export const slider: PuzzleDefinition<SliderSolution, SliderPublic> = {
     // The piece is cut from the clean scene, then both images get independent noise so pixel
     // ratios between "piece" and "gap" are not an exact template match.
     const piece = scene.crop(left, top, pieceW, pieceH, gap.inside);
-    piece.shade((px, py) => onRim((x, y) => gap.inside(x + left, y + top), px, py), lighten(0.65)).noise(6);
+    piece.shade((px, py) => onRim((x, y) => gap.inside(x + left, y + top), px, py), lighten(0.65)).noise(6, rng);
 
     scene.shade(gap.inside, darken(0.42), gap.bbox).shade((px, py) => onRim(gap.inside, px, py), lighten(0.5), gap.bbox);
     if (level >= 1) {
       // A decoy hole of a different outline: easy for a person to dismiss, noise for a naive edge detector.
-      let dx = randInt(BODY + 20, W - BODY - KNOB - 8);
-      if (Math.abs(dx - gapX) < BODY + 16) dx = gapX > W / 2 ? BODY + 22 : W - BODY - KNOB - 10;
-      const decoy = jigsawMask(dx, randInt(Math.ceil(KNOB + 6), H - BODY - 6), BODY * 0.9, variant + 1);
+      let dx = rng.int(BODY + 20, W - BODY - MARGIN);
+      if (Math.abs(dx - gapX) < BODY + 16) dx = gapX > W / 2 ? BODY + 22 : W - BODY - MARGIN - 2;
+      const decoy = pieceMask(rng.pick(PIECE_SHAPES.filter((s) => s !== shape)), dx, rng.int(MARGIN, H - BODY - MARGIN + 4), BODY * 0.9);
       scene.shade(decoy.inside, darken(0.7), decoy.bbox);
     }
-    scene.noise(6);
+    scene.noise(6, rng);
 
     return {
       solution: { x: left },

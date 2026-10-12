@@ -9,6 +9,7 @@ declare module 'svelte/elements' {
       action?: string | undefined;
       name?: string | undefined;
       type?: string | undefined;
+      types?: string | undefined;
     };
   }
 }

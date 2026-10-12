@@ -2,11 +2,15 @@
 
 [![CI](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-5b34d6.svg)](LICENSE)
 
-**Self-hosted, accessible puzzle CAPTCHA — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.** 🌐 [Website](https://oriebalzyuot96.github.io/nawa-guard/)
+**Self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.**
+
+🌐 [Website](https://oriebalzyuot96.github.io/nawa-guard/) · 🧩 [Live playground](https://oriebalzyuot96.github.io/nawa-guard/#playground) (runs in your browser) · ⚡ [Open the Node demo in StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard)
 
 ```bash
 npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
 ```
+
+> **Coming to npm.** The packages will be published under the `@nawa-guard` scope (and `NawaGuard.AspNetCore` on NuGet) once the organisation exists; `npm view @nawa-guard/server` does not find them yet. Until then, build from source: `git clone https://github.com/oriebalzyuot96/nawa-guard.git && cd nawa-guard && npm install && npm run build`, then `npm pack -w @nawa-guard/server -w @nawa-guard/widget` and install the `.tgz` files (or use a workspace / `file:` dependency).
 
 **Nawa Guard** is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Nawa UI component library). It's designed around three ideas:
 
@@ -27,18 +31,134 @@ npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
 
 ## Puzzle types
 
-| Type | What the user does | Tolerance / rule | Min. solve time | Attempts |
-|---|---|---|---|---|
-| `slider` | Drags a jigsaw piece into its gap. The background and piece arrive as two PNGs. The gap's x position is the secret. Level ≥ 1 adds a decoy hole. | ±6 px (±5 at level ≥ 2), plus trajectory checks | 450 ms | 2 |
-| `rotate` | Rotates a picture until it is upright. | ±12° (±9° at level ≥ 2), with wrap-around, plus trajectory checks | 500 ms | 2 |
-| `icons` | Selects every cell showing the named icon in a 3×3 PNG grid. | Must match the exact set | 1200 ms | 1 |
-| `math` | Types the result of a sum drawn as a noisy SVG made of jittered stroke glyphs (no `<text>`) with decoy digits. | Exact integer. Arabic-Indic digits are accepted | 1500 ms | 1 |
-| `order` | Reorders 4–5 tiles by dot count or bar height. Tiles carry random IDs. | Must match the exact order | 1500 ms | 1 |
-| `trace` | Connects numbered dots in order. Unnumbered decoys are present. | Each dot must be hit within 20 px in order. Path length must be ≤ 2.2 × the optimal path + 160 px | 900 ms | 2 |
-| `pow` | Nothing: an invisible hashcash proof of work. The goal is SHA-256(`salt:nonce`) with `bits` leading zero bits. | Default 16 bits, plus 2 bits per level | none | 1 |
-| `accessible` | Answers a plain-text logic question in Arabic or English, such as "Which day comes after Monday?" | Answer is normalized: case, diacritics, alef/ta-marbuta variants, Arabic-Indic digits, words or digits. Includes a silent PoW tax | 2000 ms | 2 |
+37 challenge types, each in its own module under [`packages/server/src/puzzles`](packages/server/src/puzzles) with tests. Every type renders as pixels (PNG) or path-only SVG on the server; the answer stays in the sealed token. Each works with mouse, touch **and** keyboard, and the text alternative (`accessible`) is always one click away. Try them all in the [playground](https://oriebalzyuot96.github.io/nawa-guard/#playground).
 
-All of the above can be overridden per type (`maxAttempts`, `minSolveMs`). The server chooses the type from an **adaptive ladder**: failures from the same client raise the level, which switches to harder pools and tightens tolerances. `assessRisk()` can add levels from your own signals.
+"Blind guess" is the chance that a random answer (with a fake but plausible gesture) passes a single attempt. Types with a high blind-guess rate are fine as friction on low-risk forms, or combined with others via `steps`; don't rely on them alone for sensitive actions.
+
+**Drag, slide, rotate, hold** (answer is continuous; pointer trails are checked by the heuristics)
+
+| Type | What the user does | Keyboard | Rule | Blind guess |
+|---|---|---|---|---|
+| `slider` | Drags a puzzle piece into its gap. Piece outlines vary: jigsaw tab, jigsaw notch, circle, star, shield, heart, hexagon. Level ≥ 1 adds a decoy hole. | Slider thumb: arrows (Shift = ×5), Enter | ±6 px (±5 at level ≥ 2), trail must match | ≈ 8% |
+| `slide-unlock` | Slides a handle until its arrow points at a ring placed at a random spot among decoy outlines. | as `slider` | ±6 px | ≈ 7% |
+| `shadow-drag` | Drags a coloured pictogram onto the silhouette with the same outline (3–4 shadows). | Piece: arrows move it (Shift = ×4), Enter drops | within 13 px (10 at level ≥ 2) | < 2% |
+| `jigsaw` | Swaps four picture quarters until the scene is whole. | Arrow keys between pieces, Space selects / swaps | exact order | 1 in 23 |
+| `rotate` | Rotates an outdoor scene (sky, ground, house, tree) upright. | Slider thumb: arrows (3°, Shift = 15°) | ±12° (±9° at level ≥ 2), wrap-around | ≈ 8% |
+| `rotate-object` | Rotates one object (house, tree, bell, cup, umbrella, flag, apple, car) upright. | as `rotate` | as `rotate` | ≈ 8% |
+| `rotate-match` | Turns an inner disc until the picture lines up with the fixed outer ring. | as `rotate` | as `rotate` | ≈ 8% |
+| `hold` | Presses and holds, releasing while the sweeping ring is in a green zone drawn at a random position. | Hold Space, **or** Enter to start and Enter to stop | zone ± 70 ms; the server must have seen at least the claimed hold time | ≈ 1 in 4 |
+
+**Select in a picture** (one PNG with a cell grid; answer is a cell set)
+
+| Type | What the user does | Rule | Blind guess |
+|---|---|---|---|
+| `icons` | Selects every named geometric shape in a 3×3 grid. | exact set | < 1% |
+| `icons-weather` | Same, with weather pictograms (sun, cloud, raindrop, lightning, snowflake, umbrella, moon, star). | exact set | < 1% |
+| `icons-objects` | Same, with everyday objects (key, cup, bell, leaf, fish, house, tree, car, flag, apple). | exact set | < 1% |
+| `odd-one-out` | Selects the one picture that differs (colours, sizes and angles never give it away). 4×4 at level ≥ 2. | one cell | 1 in 9 (1 in 16) |
+| `odd-rotation` | Finds the mirrored ("backwards") letter among rotated copies. | one cell | 1 in 6 (1 in 9) |
+| `color-name` | Selects every swatch of a named colour. Each colour also carries its own pattern (dots, stripes, cross, ring, zigzag), named in the prompt, so it does not rely on colour vision (WCAG 1.4.1). | exact set | < 1% |
+| `biggest` | Selects the largest (or smallest) of nine copies of a pictogram. | one cell | 1 in 9 |
+| `find-shape` | Selects every cell showing the shape in the reference box (no words needed). | exact set | < 1% |
+| `shadow-pick` | Selects the silhouette matching the coloured picture. | one cell | 1 in 6 |
+| `pattern` | Picks what comes next in a row (AB, ABC, AAB or a quarter turn per step). | one cell | 1 in 6 |
+| `clock` | Selects the analogue clock that shows the time in the prompt (decoys are the usual misreadings). | one cell | 1 in 6 |
+| `math-compare` | Selects every card whose sum or difference is more than N (drawn as strokes). | exact set | 1 in 62 |
+| `symmetry` | Fills the right half of a pixel picture so it mirrors the given left half. | exact set | < 0.1% |
+| `pairs` | Links the eight (twelve) pictures into matching pairs. | exact pairing | 1 in 105 |
+
+**Tap in order**, **put in order**, **draw a path**
+
+| Type | What the user does | Keyboard | Blind guess |
+|---|---|---|---|
+| `tap-order` | Taps 4–5 numbers from smallest to largest. | Crosshair: arrows, Space taps, Backspace undoes | < 0.1% |
+| `spell` | Taps letters to spell the word shown at the top (decoy letters mixed in; all drawn as strokes). | as `tap-order` | < 0.1% |
+| `order` | Orders tiles by dot count or bar height. | Space picks up, arrows move (RTL-aware), Space drops | 1 in 24 (1 in 120) |
+| `order-size` | Orders one pictogram at clearly different sizes. | as `order` | 1 in 24 |
+| `order-numbers` | Orders numbers (drawn as strokes) ascending or descending. | as `order` | 1 in 24 |
+| `order-time` | Orders analogue clocks from earliest to latest. | as `order` | 1 in 24 |
+| `story` | Puts a short picture story in order: seed → flower, candle burning down, glass filling, egg hatching, battery charging. | as `order` | 1 in 6 – 1 in 24 |
+| `trace` | Connects numbered dots in order (decoys present). | Crosshair: arrows, Space adds a point | < 0.1% |
+| `trace-letters` | Connects dots labelled A, B, C… in alphabetical order. | as `trace` | < 0.1% |
+| `maze` | Draws a path from the start dot to the flag without crossing walls. | Arrows move one cell; Space starts drawing, Backspace undoes, Enter submits | < 0.1% |
+
+**Type the answer**, **invisible**, **text alternative**
+
+| Type | What the user does | Blind guess |
+|---|---|---|
+| `math` | Types the result of a sum drawn as a noisy SVG of jittered stroke glyphs (no `<text>`). Arabic-Indic digits accepted. | ≈ 10% (OCR-able: low assurance) |
+| `count` | Types how many of a named pictogram are in a busy picture. | ≈ 1 in 5 |
+| `dice` | Types the total of two (three) rotated dice. | ≈ 1 in 6 |
+| `pow` | Nothing: an invisible hashcash proof of work, SHA-256(`salt:nonce`) with `bits` leading zero bits. Default 16 bits, +2 per level; per-action `powBits`. | n/a (proves CPU, not humanity) |
+| `accessible` | Answers a plain-text question in Arabic or English: 50+ randomised templates (numbers, days, months, seasons, colours, categories, opposites, comparisons, letters…). Answers are normalised (case, diacritics, alef/ta-marbuta variants, Arabic-Indic digits, words or digits, either language) and carry a silent PoW tax. | machine-readable by design |
+
+Per type you can override `maxAttempts` and `minSolveMs`. `assessRisk()` and failed attempts raise the difficulty level, which tightens tolerances, adds decoys, tiles and PoW bits.
+
+---
+
+## Choosing puzzles (one, two or many)
+
+The server decides; the browser can only narrow its choice.
+
+```ts
+const guard = createNawaGuard({
+  secret: process.env.NAWA_GUARD_SECRET,
+  types: ['slider', 'rotate-object', 'pairs', 'maze', 'pow'],  // allow-list (default: all)
+  weights: { maze: 2, pow: 0 },                                // random weights; 0 disables
+  mode: 'random',                                              // 'random' | 'sequence' | 'adaptive' (default)
+  steps: 1,                                                    // puzzles in a row before a pass token (1-3)
+  perAction: {
+    login: ['pow', 'slider'],                                  // shorthand: just the types
+    signup: { types: ['maze', 'pairs', 'spell'], steps: 2 },   // two different puzzles in a row
+    reset: { types: ['accessible', 'slider'], mode: 'sequence', powBits: 20 },
+  },
+  // clientNarrowing: true,   // honour <nawa-guard types="…"> (never widens; default true)
+  // allowAccessible: true,   // the text alternative can always be requested (default true)
+});
+```
+
+- **`types`** is the allow-list. Unknown names throw at startup. Without it, `adaptive` uses all types (filtered by the ladder) and `random`/`sequence` use every visual type.
+- **`mode`**: `adaptive` walks the difficulty ladder (`ladder[level] ∩ types`, falling back to the nearest rung that has an allowed type); `random` is a weighted pick; `sequence` rotates through the allowed types per client and action.
+- **`perAction`** overrides `types`, `weights`, `mode`, `steps`, `ladder` and `powBits` for one action.
+- **`steps: 2 | 3`** chains puzzles: `POST /verify` answers `{ success: true, next: <challenge> }` until the last step, each step uses a different type when the pool allows it, and only then returns a pass token. The pass token lists every solved type in `stp` (see the token format). The widget shows "Step 1 of 2" and moves on automatically.
+- **The accessible alternative** stays reachable from every widget (`type: 'accessible'`) unless you set `allowAccessible: false`. It isn't drawn at random.
+
+In the browser, narrow the server's list with `types` (comma-separated). If none of the requested types is allowed, the server's own list is used:
+
+```html
+<nawa-guard site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"></nawa-guard>
+```
+
+The wrappers take a `types` prop (string or array): `<NawaGuard types={['slider', 'pairs']} />` (React), `:types="['slider']"` (Vue), `types={['slider']}` (Svelte), `[types]="['slider']"` (Angular).
+
+On the verifying side, restrict what a route accepts:
+
+```js
+await verifyPassToken(token, { secret, expectedAction: 'checkout', allowedTypes: ['slider', 'maze', 'pairs'], minSteps: 2, client });
+```
+
+```csharp
+// appsettings: "NawaGuard": { "AllowedTypes": ["slider", "maze"], "ActionAllowedTypes": { "login": ["pow", "slider"] }, "MinSteps": 1 }
+app.MapPost("/pay", Pay).RequireNawaGuard("checkout", new NawaGuardRequirements(AllowedTypes: ["slider", "maze"], MinSteps: 2));
+[HttpPost("signup"), RequireNawaGuard("signup", AllowedTypes = new[] { "maze", "pairs" }, MinSteps = 2)]
+```
+
+For a multi-step token, `allowedTypes` passes when **at least one** solved step is allowed (so `['pow', 'slider']` passes a route that excludes `pow`); `minSteps` counts the solved steps. A token for the wrong count fails with `too-few-steps`.
+
+---
+
+## Live demo and demo mode
+
+- **[Playground](https://oriebalzyuot96.github.io/nawa-guard/#playground)** on the static site: pick any type, mix several and watch `random` / `sequence` / `adaptive` and multi-step behaviour, switch Arabic/English (RTL) and light/dark (Nawa UI tokens), and read the decoded pass token and the sealed claims.
+- **[StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard)** runs the real Node demo server (`.stackblitzrc` starts `npm run demo`): a protected form, a two-step checkout, a protected JSON API and a gallery of every type.
+
+GitHub Pages has no server, so the site runs in **demo mode**: [`scripts/build-site.mjs`](scripts/build-site.mjs) bundles the real `@nawa-guard/server` engine with esbuild, swapping the Node platform layer ([`primitives.ts`](packages/server/src/primitives.ts): `node:crypto`, `node:zlib`) for [`primitives.browser.ts`](packages/server/src/primitives.browser.ts) (`crypto.getRandomValues`, small SHA-256/HMAC/HKDF/AES-256-GCM implementations tested byte-for-byte against Node, and stored-block deflate for PNGs). An in-page endpoint shim ([`site/src/demo-endpoint.ts`](site/src/demo-endpoint.ts)) answers the widget's `fetch()` calls. Limits, by design:
+
+- The secret is generated in the page, so anyone can read the sealed solutions there (the playground even shows them). Demo mode is for learning and trying puzzles, never for protecting anything.
+- PNGs are stored uncompressed (larger data URLs); generation runs on the main thread (tens of ms per puzzle).
+- No rate limits across tabs, no real client IP (a fixed demo IP plus your User-Agent).
+
+The `browser` field of `@nawa-guard/server` maps the platform layer for bundlers too, so the engine also runs in workers or edge runtimes; in production it belongs on a server that keeps the secret.
 
 ---
 
@@ -50,13 +170,13 @@ sequenceDiagram
     participant B as Browser (nawa-guard widget)
     participant C as Captcha endpoints (@nawa-guard/server)
     participant A as Your backend (protected route)
-    B->>C: POST /captcha/challenge { siteKey, action, lang }
-    C->>C: render puzzle as PNG/SVG, seal solution + expiry + client binding (AES-256-GCM)
-    C-->>B: { token: "ngc1…" (opaque), type, prompt, data: images, expiresInMs }
+    B->>C: POST /captcha/challenge { siteKey, action, lang, types? }
+    C->>C: pick a type (allow-list, mode, level), render it as PNG/SVG, seal solution + expiry + client binding (AES-256-GCM)
+    C-->>B: { token: "ngc1…" (opaque), type, view, prompt, data: images, step, steps, expiresInMs }
     Note over B: user solves with mouse / touch / keyboard<br/>widget records the gesture trail
     B->>C: POST /captcha/verify { token, answer }
     C->>C: open token, check expiry, client binding, rate limit, attempts,<br/>min solve time, tolerance, trajectory heuristics, one-time id
-    C-->>B: { token: "ngp1…" pass token (HMAC-signed, single use, ~120 s) }
+    C-->>B: { token: "ngp1…" pass token (HMAC-signed, single use, ~120 s) }<br/>or, with steps > 1, { next: <the next challenge> }
     B->>A: POST /login + hidden field "nawa-guard-token" or header X-Nawa-Guard-Token
     A->>A: verifyPassToken(): signature, kid, expiry, max age, action,<br/>site key, client binding, single-use redemption
     A-->>B: 200 OK, or 403 { error: "captcha-required", code }
@@ -121,11 +241,12 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 | `action` | `default` | Action name. The backend must expect the same action. |
 | `lang` | inherited `lang`, else `en` | `ar` or `en`. Arabic switches the widget to RTL. |
 | `name` | `nawa-guard-token` | Name of the hidden `<input>` (in light DOM) that is submitted with the form. |
-| `type` | (server decides) | Requested puzzle. Only honoured with `allowClientType: true`, except `accessible`, which is always allowed. |
+| `types` | (server decides) | Comma-separated types to **narrow** the server's allow-list, e.g. `slider,rotate`. Never widens it; ignored if none of them is allowed. |
+| `type` | (server decides) | One exact puzzle. Only honoured with `allowClientType: true` (galleries), except `accessible`, which is always allowed. |
 | `dir` | from `lang` | Forces `rtl` or `ltr`. |
 
 Events, all `bubbles` + `composed`:
-- `nawa-guard:verified` with `detail: { token, expiresInMs, type }`
+- `nawa-guard:verified` with `detail: { token, expiresInMs, type }` (after the last step of a multi-step chain)
 - `nawa-guard:expired` (the pass token lapsed and a new challenge loads)
 - `nawa-guard:error` with `detail: { error: 'network' | 'rate-limited' | 'config' }`
 
@@ -256,13 +377,13 @@ const result = await verifyPassToken(req.get('x-nawa-guard-token'), {
   maxAgeSec: 120,
   client: { ip: req.ip, userAgent: req.get('user-agent') }, // required for bound tokens
   store,                                     // shared store for single use (default: in-process)
-  // expectedSiteKey: 'main', allowedTypes: ['slider', 'icons', 'trace', 'accessible']
+  // expectedSiteKey: 'main', allowedTypes: ['slider', 'icons', 'trace', 'accessible'], minSteps: 2
 });
 if (!result.ok) return res.status(403).json({ error: result.error });
-// result.claims = { jti, sk, act, typ, lvl, iat, exp, cbm, cb }
+// result.claims = { jti, sk, act, typ, lvl, iat, exp, cbm, cb, stp? }
 ```
 
-Error codes: `missing-token`, `malformed`, `unknown-key`, `bad-signature`, `expired`, `not-yet-valid`, `too-old`, `action-mismatch`, `site-mismatch`, `type-not-allowed`, `client-mismatch`, `replayed`.
+Error codes: `missing-token`, `malformed`, `unknown-key`, `bad-signature`, `expired`, `not-yet-valid`, `too-old`, `action-mismatch`, `site-mismatch`, `type-not-allowed`, `too-few-steps`, `client-mismatch`, `replayed`.
 
 The framework-agnostic handlers are `handleChallenge(guard, { body, client })` and `handleVerify(guard, { body, client })`. They return `{ status, headers, body }`, so you can mount them in Fastify, Hono, Koa, Next route handlers and similar. `checkPassToken(guard, { headers, body, client }, opts)` covers protected routes.
 
@@ -318,14 +439,18 @@ b64url = base64url without padding.
 
 Challenge token (Node only, opaque to everyone else):
   "ngc1." kid "." b64url(iv[12]) "." b64url(AES-256-GCM(K_chal, iv, JSON claims, AAD = "ngc1." kid) || tag[16])
-  claims: { v:1, id, typ, sk, act, lang, iat(ms), exp(ms), lvl, cbm, cb?, sol }
+  claims: { v:1, id, typ, sk, act, lang, iat(ms), exp(ms), lvl, cbm, cb?, sol, stp?, of?, done?, pool? }
+  (stp/of/done/pool only for multi-step chains: this step, total, solved types, the pool to draw from)
 
 Pass token:
   payload = b64url(UTF8(JSON claims))
   sig     = b64url(HMAC-SHA256(K_pass, ASCII("ngp1." kid "." payload)))
   token   = "ngp1." kid "." payload "." sig
   claims: { v:1, jti (b64url 16 random bytes), sk (site key), act (action), typ (challenge type),
-            lvl (difficulty level), iat (unix s), exp (unix s), cbm ("none"|"ip"|"ua"|"ip+ua"), cb? }
+            lvl (difficulty level), iat (unix s), exp (unix s), cbm ("none"|"ip"|"ua"|"ip+ua"), cb?,
+            stp? (multi-step only: every solved type in order; typ is the last) }
+  stp is optional and additive: single-puzzle tokens are byte-for-byte the original v1 format, and
+  verifiers that ignore unknown claims keep working.
 
 Client binding (cb = b64url(HMAC-SHA256(K_bind, material))):
   ip    = trim, lower-case, strip "::ffff:" prefix from IPv4-mapped addresses
@@ -334,7 +459,8 @@ Client binding (cb = b64url(HMAC-SHA256(K_bind, material))):
   If the material is unavailable at issue time the token is issued with cbm = "none".
 
 Verification order: format → kid → constant-time signature check (before parsing JSON) → claims shape
-  → iat ≤ now + skew → now < exp → now − iat ≤ maxAge → action → site key → type → binding → redeem jti once.
+  → iat ≤ now + skew → now < exp → now − iat ≤ maxAge → action → site key
+  → type (any of stp, else typ, in allowedTypes) → steps (len(stp ?? [typ]) ≥ minSteps) → binding → redeem jti once.
 ```
 
 ---
@@ -348,16 +474,22 @@ createNawaGuard({
   store,                        // NawaGuardStore: MemoryStore (default), ioredisStore(client), nodeRedisStore(client)
   challengeTtlSec: 120, passTtlSec: 120,
   bind: 'ip+ua',                // 'none' | 'ip' | 'ua' | 'ip+ua'
-  types,                        // enabled challenge types (default: all)
-  ladder: [['slider','rotate'], ['icons','order','trace','slider'], ['icons','trace','math','order']],
+  types,                        // allow-list of challenge types (default: all) — see "Choosing puzzles"
+  weights: { maze: 2 },         // random-pick weights (0 disables a type)
+  mode: 'adaptive',             // 'random' | 'sequence' | 'adaptive'
+  steps: 1,                     // puzzles in a row before a pass token (1-3)
+  perAction: { login: ['pow', 'slider'], signup: { types: [...], steps: 2, mode: 'random', powBits: 18 } },
+  clientNarrowing: true,        // honour <nawa-guard types="…"> (narrows only)
+  allowAccessible: true,        // the text alternative can always be requested
+  ladder: DEFAULT_LADDER,       // adaptive rungs: [['slider','rotate'], [+ icons, order, trace, jigsaw, pairs…], [+ maze, spell, symmetry…]]
   invisibleFirst: false,        // true → level 0 is an invisible 'pow'; visible puzzles appear after failures
   powBits: 16,                  // +2 bits per level, max 26
-  allowClientType: false,       // demo/gallery only
+  allowClientType: false,       // let the browser pick one exact type from the allow-list (galleries only)
   maxAttempts: { slider: 3 }, minSolveMs: { icons: 1500 },
   rateLimit: { windowSec: 60, challenge: 30, verify: 60 } | false | ((ctx) => boolean | Promise<boolean>),
   adaptive: { windowSec: 900, failuresPerLevel: 2, maxLevel: 3 } | false,
   assessRisk: ({ client, action, clientKey }) => extraLevels,
-  onEvent: (e) => log(e),       // challenge-issued, verify-success, verify-failed (with internal reason), rate-limited
+  onEvent: (e) => log(e),       // challenge-issued, step-solved, verify-success, verify-failed (internal reason), rate-limited
   defaultLang: 'en',
 });
 ```
@@ -386,7 +518,9 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 
 **What the heuristics can and can't stop.** The pointer-trajectory checks look at sample count, duration, timing regularity, speed variation and entropy, off-axis wobble and the heading noise of freehand strokes. They also check that the trail's travel agrees with the submitted answer. They reliably reject cheap automation: synthetic straight-line, constant-speed or instant drags. In the demo, a scripted browser-automation drag was rejected as `too-few-samples`. They **can't** stop a determined attacker who replays recorded human trajectories, uses computer vision to find the gap or angle, or pays a human solving service. Keyboard input is deliberately judged leniently for accessibility, which also gives bots a weaker path. Treat Nawa Guard as **cost-raising friction**, layered with rate limits, account lockout, `assessRisk` and monitoring of `onEvent` solve rates. No CAPTCHA, including this one, is proof of humanity.
 
-**Type-specific strength.** `slider`, `rotate`, `icons`, `trace` and `order` are moderate (raster images, decoys, random styling). `math` is low assurance (OCR-able). `pow` proves CPU spent, not humanity. `accessible` is machine-readable by design, so it carries a PoW tax and is visible in the pass token (`typ`). Sensitive routes can restrict `allowedTypes`, or ask for a second factor when `typ` is `accessible` or `pow`.
+**Type-specific strength.** The drag, rotate, multi-select, tap, order and draw types are moderate (raster images, decoys, random styling, combinatorial or continuous answers). The single-choice types (`odd-one-out`, `odd-rotation`, `biggest`, `shadow-pick`, `pattern`, `clock`) and `hold`, `count`, `dice` have a blind-guess rate between 1 in 4 and 1 in 16 (see the tables), so they get one attempt and are not on the default ladder; use them for low-risk forms or inside a `steps: 2` chain. `math` is low assurance (OCR-able). `pow` proves CPU spent, not humanity. `accessible` is machine-readable by design, so it carries a PoW tax and is visible in the pass token (`typ`). Every type is a picture a computer-vision model could learn to read: that is a cost, not a wall. Sensitive routes can restrict `allowedTypes` (the .NET `NawaGuardChallengeTypes.LowAssurance` list helps), require `minSteps`, or ask for a second factor when `typ` is `accessible` or `pow`.
+
+**Selection is server-side.** The browser's `types` hint can only narrow the configured allow-list, so it can steer a visitor among the types you allowed but never to one you did not. If you don't want visitors to pick the easiest allowed type, set `clientNarrowing: false`.
 
 ---
 
@@ -394,11 +528,17 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 
 - **WCAG 1.1.1 (non-text content):** visual puzzles have a text alternative, the **accessible challenge** (toolbar button with `aria-pressed`). It is a plain-language question in Arabic or English with no image or audio, answerable in words or digits. Image `alt` text points users to it.
 - **WCAG 2.1.1 (keyboard):** every puzzle is fully operable without a pointer:
-  - slider and rotate: `role="slider"` with arrows (Shift for big steps), Home/End, Enter to submit
-  - icons: a grid of toggle buttons (`aria-pressed`) with arrow-key roving focus
-  - order: Space to pick up, arrows to move (RTL-aware), Space to drop, with each move announced
-  - trace: a crosshair moved with arrows, Space to add a point, Backspace to undo
-  - math and accessible: ordinary text inputs
+  - slide and rotate types: `role="slider"` with arrows (Shift for big steps), Home/End, Enter to submit
+  - shadow-drag: the piece is focusable; arrows move it in 2D, Enter drops it
+  - every picture grid (icons, odd-one-out, colour, clock, symmetry, pairs…): toggle buttons (`aria-pressed`) with arrow-key roving focus that skips given cells
+  - jigsaw: arrow keys between pieces, Space/Enter selects and swaps, each swap announced
+  - hold: hold Space, or press Enter to start and Enter to stop (no need to keep a key down)
+  - order types: Space to pick up, arrows to move (RTL-aware), Space to drop, with each move announced
+  - tap-order and spell: a crosshair moved with arrows, Space taps, Backspace undoes, the count is announced
+  - trace: a crosshair moved with arrows, Space to add a point, Backspace to undo; maze: arrows move one cell at a time after Space
+  - math, count, dice and accessible: ordinary text inputs
+- **Use of colour (1.4.1):** `color-name` pairs every colour with a named pattern.
+- **Multi-step:** the step ("Step 1 of 2") is shown and announced; the next puzzle gets focus.
 - **Status messages (4.1.3):** loading, wrong answer, expiry, success and reorder announcements go to a `role="status"` live region.
 - **Visible focus (2.4.7):** a 3 px `--nw-focus` outline, with `Highlight` in forced-colors mode.
 - **Target size:** controls are ≥ 44 px.
@@ -493,11 +633,14 @@ npm run build        # server, widget, react, vue (tsc) + angular (ng-packagr, p
 npm run typecheck    # every package (svelte via svelte-check) + test files
 npm test             # Vitest
 npm run test:dotnet  # xUnit (requires .NET 8 SDK/runtime)
-npm run demo         # http://localhost:5180
+npm run demo         # http://localhost:5180 (also what StackBlitz runs, via .stackblitzrc)
+npm run build:site   # bundles the playground into site/assets and regenerates the type tables
 npm run fixture:dotnet  # regenerate the Node→.NET interop fixture
 ```
 
-The demo serves the gallery (all eight types, with a language toggle and a dark theme), a protected HTML form (`requireCaptcha`, hidden field) and a protected JSON API (header). It runs under a strict CSP. Set `NAWA_GUARD_SECRET` to keep tokens valid across restarts.
+The demo serves a gallery of every type (grouped, with a language toggle and a dark theme), a protected HTML form (`perAction.login` picks one of three puzzles at random), a two-step checkout (`steps: 2`, verified with `minSteps: 2`) and a protected JSON API (header). It runs under a strict CSP. Set `NAWA_GUARD_SECRET` to keep tokens valid across restarts.
+
+To look at the site locally: `npm run build:site`, then serve `site/` with any static file server. Generated files (`site/assets/`) are not committed; the Pages workflow builds them.
 
 ## Background: what earlier implementations taught us
 
@@ -505,7 +648,7 @@ Nawa Guard comes from two in-house captchas (mashroo3hub, and a similar one in t
 
 - **The solution was computable from the payload.** Boards were sent as data (`cells`, `values`, `target`). An odd-one-out, biggest or arrow-odd answer is one line of script, and screen-reader labels named every shape. Nawa Guard sends only rendered pixels.
 - **The client picked the game,** so an attacker could always choose the easiest one. Here the server chooses through the adaptive ladder.
-- **A blind guess passed about 11% of the time** (9 cells, one tap). Here the answer spaces are continuous or combinatorial, with tolerances, attempt caps and trajectory checks.
+- **A blind guess passed about 11% of the time** (9 cells, one tap). The default ladder now uses continuous or combinatorial answers, with tolerances, attempt caps and trajectory checks. The few single-choice types that remain (opt-in) are documented with their guess rates and limited to one attempt.
 - **The sealing key was derived from the JWT signing key.** Nawa Guard uses a dedicated secret, purpose-separated HKDF keys and kid rotation.
 - **Puzzle logic lived on the client** (a local generator, `isCorrectCaptchaMove`). Here the client has no puzzle logic at all.
 - **Every board required server state.** Here challenges are stateless sealed tokens, and only one-time IDs and counters are stored.
@@ -513,7 +656,10 @@ Nawa Guard comes from two in-house captchas (mashroo3hub, and a similar one in t
 
 ## العربية: ملخص
 
-**Nawa Guard (نوى غارد)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Nawa UI. تعرض ألغازًا يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة حتى تعتدل، واختيار الأشكال المطابقة، وعملية حسابية مرسومة، وترتيب البطاقات، وتوصيل النقاط. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة.
+**Nawa Guard (نوى غارد)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Nawa UI. تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال.
+
+- **أنت تختار الألغاز:** لغز واحد أو اثنان أو عدة ألغاز عبر `types`، مع أوزان وطريقة اختيار (`random` أو `sequence` أو `adaptive`) وإعدادات لكل إجراء (`perAction`)، ويمكن طلب لغزين أو ثلاثة متتالية (`steps`). خاصية `types` في الأداة تضيّق القائمة فقط ولا توسّعها أبدًا. ويدعم ASP.NET Core ذلك عبر `AllowedTypes` و`ActionAllowedTypes` و`MinSteps`.
+- **عرض حي:** [الملعب التفاعلي](https://oriebalzyuot96.github.io/nawa-guard/#playground) يشغّل المحرك الحقيقي داخل المتصفح (وضع العرض فقط)، ويمكن تشغيل خادم Node التجريبي على [StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard).
 
 - **لا ثقة بالمتصفح:** الحل مختوم داخل الرمز بتشفير AES-256-GCM ولا يصل إلى العميل أبدًا، وكل التحقق يجري على الخادم.
 - **رمز عبور (Pass token)** موقّع بـ HMAC، قصير العمر، يُستخدم مرة واحدة فقط، ومقيّد بالإجراء (مثل `login`) ويمكن ربطه بعنوان IP والمتصفح. يتحقق منه الخادم الخلفي محليًا عبر `verifyPassToken` في Node أو `INawaGuardVerifier` و`[RequireNawaGuard]` في ASP.NET Core. التنسيق موثّق ومتوافق بين المنصتين ومختبر بينهما.

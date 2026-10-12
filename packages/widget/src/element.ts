@@ -1,7 +1,8 @@
 import { h, icon } from './dom.js';
 import { t, type Lang, type StringKey } from './strings.js';
 import { STYLES } from './styles.js';
-import { accessibleView, iconsView, mathView, orderView, powView, rotateView, sliderView, traceView, type PuzzleView, type ViewHost } from './views.js';
+import { accessibleView, gridView, mathView, orderView, pathView, powView, rotateView, sliderView, type PuzzleView, type ViewHost } from './views.js';
+import { dragView, holdView, pairsView, swapView, tapsView } from './views-extra.js';
 
 export interface NawaGuardVerifiedDetail {
   /** The pass token to send to your backend. */
@@ -18,10 +19,31 @@ export interface NawaGuardErrorDetail {
 interface Challenge {
   readonly token: string;
   readonly type: string;
+  readonly view: string;
+  readonly step: number;
+  readonly steps: number;
   readonly prompt: string;
   readonly data: Record<string, unknown>;
   readonly expiresInMs: number;
 }
+
+function parseChallenge(b: Record<string, unknown>): Challenge | undefined {
+  if (typeof b['token'] !== 'string' || typeof b['type'] !== 'string') return undefined;
+  const type = b['type'];
+  return {
+    token: b['token'],
+    type,
+    // Servers before 0.2 did not send a view; their types map 1:1.
+    view: typeof b['view'] === 'string' ? b['view'] : (LEGACY_VIEWS[type] ?? type),
+    step: Number(b['step']) || 1,
+    steps: Number(b['steps']) || 1,
+    prompt: typeof b['prompt'] === 'string' ? b['prompt'] : '',
+    data: b['data'] && typeof b['data'] === 'object' ? (b['data'] as Record<string, unknown>) : {},
+    expiresInMs: Number(b['expiresInMs']) || 120_000,
+  };
+}
+
+const LEGACY_VIEWS: Record<string, string> = { slider: 'slide', icons: 'grid', math: 'text', trace: 'path' };
 
 type ApiResult = { status: number; body: Record<string, unknown> } | { status: 0; body: null };
 
@@ -49,12 +71,13 @@ const DEFAULT_FIELD = 'nawa-guard-token';
  */
 export class NawaGuardElement extends Base {
   static get observedAttributes(): string[] {
-    return ['lang', 'site-key', 'endpoint', 'action', 'name', 'type'];
+    return ['lang', 'site-key', 'endpoint', 'action', 'name', 'type', 'types'];
   }
 
   #root: ShadowRoot;
   #box: HTMLDivElement;
   #title: HTMLParagraphElement;
+  #stepBadge: HTMLSpanElement;
   #prompt: HTMLParagraphElement;
   #body: HTMLDivElement;
   #status: HTMLParagraphElement;
@@ -82,6 +105,7 @@ export class NawaGuardElement extends Base {
       style.textContent = STYLES;
     }
     this.#title = h('p', { class: 'title', id: 'ng-title' });
+    this.#stepBadge = h('span', { class: 'step', hidden: true });
     this.#a11yBtn = h('button', { type: 'button', class: 'icon-btn', 'aria-pressed': 'false' }, icon('a11y'));
     this.#refreshBtn = h('button', { type: 'button', class: 'icon-btn' }, icon('refresh'));
     this.#prompt = h('p', { class: 'prompt', id: 'ng-prompt' });
@@ -90,7 +114,7 @@ export class NawaGuardElement extends Base {
     this.#box = h(
       'div',
       { class: 'ng', part: 'container', role: 'group', 'aria-labelledby': 'ng-title', 'aria-describedby': 'ng-prompt' },
-      h('div', { class: 'head' }, this.#title, h('div', { class: 'tools' }, this.#a11yBtn, this.#refreshBtn)),
+      h('div', { class: 'head' }, this.#title, this.#stepBadge, h('div', { class: 'tools' }, this.#a11yBtn, this.#refreshBtn)),
       this.#prompt,
       this.#body,
       this.#status,
@@ -251,29 +275,34 @@ export class NawaGuardElement extends Base {
     if (!message) this.#setStatus(this.#t('loading'));
 
     const type = this.#accessible ? 'accessible' : this.getAttribute('type') || undefined;
-    const res = await this.#api('/challenge', { siteKey: this.getAttribute('site-key') || undefined, action: this.getAttribute('action') || undefined, lang: this.#lang, type }, ctl.signal);
+    const types = (this.getAttribute('types') || '').split(',').map((t) => t.trim()).filter(Boolean);
+    const res = await this.#api(
+      '/challenge',
+      { siteKey: this.getAttribute('site-key') || undefined, action: this.getAttribute('action') || undefined, lang: this.#lang, type, ...(types.length && !this.#accessible ? { types } : {}) },
+      ctl.signal,
+    );
     if (seq !== this.#loadSeq) return;
     this.#box.removeAttribute('aria-busy');
 
     const b = res.body;
-    if (res.status === 200 && b && b['success'] === true && typeof b['token'] === 'string' && typeof b['type'] === 'string') {
-      const challenge: Challenge = {
-        token: b['token'],
-        type: b['type'],
-        prompt: typeof b['prompt'] === 'string' ? b['prompt'] : '',
-        data: b['data'] && typeof b['data'] === 'object' ? (b['data'] as Record<string, unknown>) : {},
-        expiresInMs: Number(b['expiresInMs']) || 120_000,
-      };
-      this.#challenge = challenge;
-      const view = this.#mount(challenge, ctl.signal);
-      if (!view) return;
-      this.#setStatus(message ?? (userInitiated ? this.#t('fresh') : ''), message ? 'error' : 'info');
-      // Refresh a little before the server-side expiry so the user never submits a dead challenge.
-      this.#timer = setTimeout(() => void this.#load(false, this.#t('expired')), Math.max(5_000, challenge.expiresInMs - 3_000));
-      if (userInitiated) view.focus();
+    const challenge = res.status === 200 && b && b['success'] === true ? parseChallenge(b) : undefined;
+    if (challenge) {
+      this.#show(challenge, ctl.signal, message ?? (userInitiated ? this.#t('fresh') : ''), message ? 'error' : 'info', userInitiated);
       return;
     }
     this.#fail(res.status === 0 ? 'network' : res.status === 429 ? 'rate-limited' : 'config');
+  }
+
+  /** Mounts a challenge, announces it, and schedules a refresh shortly before it expires. */
+  #show(challenge: Challenge, signal: AbortSignal, message: string, tone: 'info' | 'error' | 'success', focus: boolean): void {
+    this.#clearTimer();
+    this.#challenge = challenge;
+    const view = this.#mount(challenge, signal);
+    if (!view) return;
+    this.#setStatus(message, tone);
+    // Refresh a little before the server-side expiry so the user never submits a dead challenge.
+    this.#timer = setTimeout(() => void this.#load(false, this.#t('expired')), Math.max(5_000, challenge.expiresInMs - 3_000));
+    if (focus) view.focus();
   }
 
   #mount(c: Challenge, signal: AbortSignal): PuzzleView | undefined {
@@ -287,14 +316,19 @@ export class NawaGuardElement extends Base {
     };
     const d = c.data as Record<string, number | string>;
     const view =
-      c.type === 'slider' ? sliderView(host, d)
-      : c.type === 'rotate' ? rotateView(host, d)
-      : c.type === 'icons' ? iconsView(host, d)
-      : c.type === 'math' ? mathView(host, d)
-      : c.type === 'order' ? orderView(host, c.data as { tiles?: Array<{ id: string; image: string }> })
-      : c.type === 'trace' ? traceView(host, d)
-      : c.type === 'pow' ? powView(host, d)
-      : c.type === 'accessible' ? accessibleView(host, c.data)
+      c.view === 'slide' ? sliderView(host, d)
+      : c.view === 'rotate' ? rotateView(host, d)
+      : c.view === 'grid' ? gridView(host, c.data)
+      : c.view === 'text' ? mathView(host, d)
+      : c.view === 'order' ? orderView(host, c.data as { tiles?: Array<{ id: string; image: string }> })
+      : c.view === 'path' ? pathView(host, c.data)
+      : c.view === 'drag' ? dragView(host, c.data)
+      : c.view === 'swap' ? swapView(host, c.data)
+      : c.view === 'hold' ? holdView(host, c.data)
+      : c.view === 'pairs' ? pairsView(host, c.data)
+      : c.view === 'taps' ? tapsView(host, c.data)
+      : c.view === 'pow' ? powView(host, d)
+      : c.view === 'accessible' ? accessibleView(host, c.data)
       : undefined;
     if (!view) {
       this.#fail('config');
@@ -302,7 +336,9 @@ export class NawaGuardElement extends Base {
     }
     this.#view = view;
     this.#prompt.textContent = c.prompt;
-    this.#prompt.hidden = c.type === 'pow';
+    this.#prompt.hidden = c.view === 'pow';
+    this.#stepBadge.hidden = c.steps < 2;
+    this.#stepBadge.textContent = c.steps < 2 ? '' : this.#t('step', { i: c.step, n: c.steps });
     this.#body.replaceChildren(view.el);
     return view;
   }
@@ -320,6 +356,12 @@ export class NawaGuardElement extends Base {
     this.#body.inert = false;
     const b = res.body;
 
+    const next = res.status === 200 && b && b['success'] === true && b['next'] && typeof b['next'] === 'object' ? parseChallenge(b['next'] as Record<string, unknown>) : undefined;
+    if (next) {
+      // Multi-step: this puzzle was right; show the next one.
+      this.#show(next, ctl.signal, this.#t('nextStep', { i: next.step, n: next.steps }), 'success', true);
+      return;
+    }
     if (res.status === 200 && b && b['success'] === true && typeof b['token'] === 'string') {
       this.#succeed(b['token'], Number(b['expiresInMs']) || 120_000, c.type);
       return;

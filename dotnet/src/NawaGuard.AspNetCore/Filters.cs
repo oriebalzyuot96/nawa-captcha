@@ -20,9 +20,16 @@ public sealed class RequireNawaGuardAttribute : Attribute, IAsyncActionFilter
 
     public string Action { get; }
 
+    /// <summary>Acceptable challenge types for this endpoint (overrides the options). A multi-step token needs at least one.</summary>
+    public string[]? AllowedTypes { get; set; }
+
+    /// <summary>Minimum number of solved puzzles for this endpoint (0 = use the options).</summary>
+    public int MinSteps { get; set; }
+
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        var failure = await NawaGuardGate.CheckAsync(context.HttpContext, Action).ConfigureAwait(false);
+        var requirements = AllowedTypes is null && MinSteps == 0 ? null : new NawaGuardRequirements(AllowedTypes, MinSteps > 0 ? MinSteps : null);
+        var failure = await NawaGuardGate.CheckAsync(context.HttpContext, Action, requirements).ConfigureAwait(false);
         if (failure is not null)
         {
             context.Result = failure;
@@ -33,16 +40,21 @@ public sealed class RequireNawaGuardAttribute : Attribute, IAsyncActionFilter
     }
 }
 
-/// <summary>Minimal-API endpoint filter; add it with <see cref="NawaGuardEndpointExtensions.RequireNawaGuard{TBuilder}"/>.</summary>
+/// <summary>Minimal-API endpoint filter; add it with <c>.RequireNawaGuard(action)</c>.</summary>
 public sealed class NawaGuardEndpointFilter : IEndpointFilter
 {
     private readonly string _action;
+    private readonly NawaGuardRequirements? _requirements;
 
-    public NawaGuardEndpointFilter(string action) => _action = action;
+    public NawaGuardEndpointFilter(string action, NawaGuardRequirements? requirements = null)
+    {
+        _action = action;
+        _requirements = requirements;
+    }
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var failure = await NawaGuardGate.CheckAsync(context.HttpContext, _action).ConfigureAwait(false);
+        var failure = await NawaGuardGate.CheckAsync(context.HttpContext, _action, _requirements).ConfigureAwait(false);
         return failure is not null ? failure : await next(context).ConfigureAwait(false);
     }
 }
@@ -55,16 +67,23 @@ public static class NawaGuardEndpointExtensions
     {
         return builder.AddEndpointFilter(new NawaGuardEndpointFilter(action));
     }
+
+    /// <summary><c>app.MapPost("/pay", …).RequireNawaGuard("checkout", new(AllowedTypes: ["slider", "maze"], MinSteps: 2));</c></summary>
+    public static TBuilder RequireNawaGuard<TBuilder>(this TBuilder builder, string action, NawaGuardRequirements requirements)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        return builder.AddEndpointFilter(new NawaGuardEndpointFilter(action, requirements));
+    }
 }
 
 internal static class NawaGuardGate
 {
     /// <summary>Returns null when the request may proceed, or the rejection result.</summary>
-    public static async Task<ObjectResult?> CheckAsync(HttpContext http, string action)
+    public static async Task<ObjectResult?> CheckAsync(HttpContext http, string action, NawaGuardRequirements? requirements = null)
     {
         var verifier = http.RequestServices.GetRequiredService<INawaGuardVerifier>();
         var options = http.RequestServices.GetRequiredService<IOptions<NawaGuardOptions>>().Value;
-        var result = await verifier.VerifyAsync(http, action, http.RequestAborted).ConfigureAwait(false);
+        var result = await verifier.VerifyAsync(http, action, requirements, http.RequestAborted).ConfigureAwait(false);
         if (result.Success)
         {
             http.Items[NawaGuardVerifier.HttpContextItemKey] = result.Claims;
@@ -78,7 +97,7 @@ internal static class NawaGuardGate
         {
             Status = options.RejectStatusCode,
             Title = "Captcha verification required",
-            Type = "https://github.com/nawa-guard/nawa-guard#errors",
+            Type = "https://github.com/oriebalzyuot96/nawa-guard#backend-validation",
         };
         problem.Extensions["code"] = result.Error.ToCode();
         return new ObjectResult(problem) { StatusCode = options.RejectStatusCode };

@@ -37,6 +37,7 @@ import type { NawaGuardElement, NawaGuardErrorDetail, NawaGuardVerifiedDetail } 
     [attr.lang]="lang() ?? null"
     [attr.name]="name() ?? null"
     [attr.type]="type() ?? null"
+    [attr.types]="typesAttr()"
   ></nawa-guard>`,
   styles: [':host { display: block; } :host([aria-disabled="true"]) { opacity: 0.6; pointer-events: none; }'],
   providers: [
@@ -54,6 +55,13 @@ export class NawaGuardComponent implements ControlValueAccessor, Validator, Afte
   readonly name = input<string>();
   /** Requested puzzle type; honoured only if the server allows client choice. */
   readonly type = input<string>();
+  /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
+  readonly types = input<string | readonly string[]>();
+
+  protected typesAttr(): string | null {
+    const t = this.types();
+    return t === undefined ? null : typeof t === 'string' ? t : t.join(',');
+  }
 
   readonly verified = output<NawaGuardVerifiedDetail>();
   readonly expired = output<void>();

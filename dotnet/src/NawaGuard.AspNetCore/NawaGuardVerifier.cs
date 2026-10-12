@@ -20,6 +20,12 @@ public interface INawaGuardVerifier
 
     /// <summary>Reads the token from the configured header or form field and the client from the request, then verifies.</summary>
     Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default);
+
+    /// <summary>As above, with per-route <paramref name="requirements"/> (allowed types, minimum steps) overriding the options.</summary>
+    Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads token and client from the request, then verifies with per-route <paramref name="requirements"/>.</summary>
+    Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -54,6 +60,14 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
             throw new InvalidOperationException("NawaGuard: configure at least one secret (NawaGuardOptions.Secret or Secrets).");
         }
 
+        foreach (var name in (_options.AllowedTypes ?? new()).Concat(_options.ActionAllowedTypes.Values.SelectMany(l => l)))
+        {
+            if (!NawaGuardChallengeTypes.All.Contains(name, StringComparer.Ordinal))
+            {
+                throw new InvalidOperationException($"NawaGuard: unknown challenge type '{name}' in AllowedTypes. Known: {string.Join(", ", NawaGuardChallengeTypes.All)}.");
+            }
+        }
+
         foreach (var s in _options.Secrets)
         {
             if (!KidRegex().IsMatch(s.Kid))
@@ -73,10 +87,20 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
 
     public Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default)
     {
-        return VerifyAsync(ReadToken(httpContext), expectedAction, ClientOf(httpContext), cancellationToken);
+        return VerifyAsync(ReadToken(httpContext), expectedAction, ClientOf(httpContext), null, cancellationToken);
     }
 
-    public async Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, CancellationToken cancellationToken = default)
+    public Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default)
+    {
+        return VerifyAsync(ReadToken(httpContext), expectedAction, ClientOf(httpContext), requirements, cancellationToken);
+    }
+
+    public Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, CancellationToken cancellationToken = default)
+    {
+        return VerifyAsync(token, expectedAction, client, null, cancellationToken);
+    }
+
+    public async Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(token))
         {
@@ -128,7 +152,7 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
             return NawaGuardResult.Fail(NawaGuardError.Malformed);
         }
 
-        if (claims is null || claims.Version != 1 || claims.Jti.Length == 0 || Array.IndexOf(BindModes, claims.BindMode) < 0)
+        if (claims is null || claims.Version != 1 || claims.Jti.Length == 0 || Array.IndexOf(BindModes, claims.BindMode) < 0 || claims.Steps is { Count: 0 or > 5 })
         {
             return NawaGuardResult.Fail(NawaGuardError.Malformed);
         }
@@ -159,9 +183,19 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
             return NawaGuardResult.Fail(NawaGuardError.SiteMismatch);
         }
 
-        if (_options.AllowedTypes is { Count: > 0 } types && !types.Contains(claims.Type, StringComparer.Ordinal))
+        // Route requirement, then the per-action list, then the global list. For a multi-step token at
+        // least one solved step must be allowed (the same rule as the Node verifier).
+        IReadOnlyCollection<string>? allowed = requirements?.AllowedTypes
+            ?? (_options.ActionAllowedTypes.TryGetValue(expectedAction, out var perAction) ? perAction : null)
+            ?? _options.AllowedTypes;
+        if (allowed is { Count: > 0 } && !claims.SolvedTypes.Any(t => allowed.Contains(t, StringComparer.Ordinal)))
         {
             return NawaGuardResult.Fail(NawaGuardError.TypeNotAllowed);
+        }
+
+        if ((requirements?.MinSteps ?? _options.MinSteps) is { } minSteps && claims.SolvedTypes.Count < minSteps)
+        {
+            return NawaGuardResult.Fail(NawaGuardError.TooFewSteps);
         }
 
         if (claims.BindMode != "none")

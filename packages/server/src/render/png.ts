@@ -1,4 +1,4 @@
-import { deflateSync } from 'node:zlib';
+import { base64, deflate } from '../primitives.js';
 import type { Raster } from './raster.js';
 
 const CRC_TABLE = (() => {
@@ -17,20 +17,32 @@ function crc32(buf: Uint8Array): number {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-function chunk(type: string, data: Uint8Array): Buffer {
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(body));
-  return Buffer.concat([len, body, crc]);
+function chunk(type: string, data: Uint8Array): Uint8Array {
+  const out = new Uint8Array(12 + data.length);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, data.length);
+  for (let i = 0; i < 4; i += 1) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  dv.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+  return out;
+}
+
+function concat(parts: readonly Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
 }
 
 /**
- * Encodes a 1x raster as PNG (RGB when fully opaque, RGBA otherwise). Uses node:zlib, a Node
- * built-in; no third-party code. Per-row filter picked by the usual minimum-sum heuristic.
+ * Encodes a 1x raster as PNG (RGB when fully opaque, RGBA otherwise). Deflate comes from the
+ * platform layer (node:zlib on servers); no third-party code. Per-row filter picked by the usual
+ * minimum-sum heuristic.
  */
-export function encodePng(img: Raster): Buffer {
+export function encodePng(img: Raster): Uint8Array {
   if (img.ss !== 1) throw new Error('encodePng expects a finished (1x) raster');
   const { pw: w, ph: h, data } = img;
   let opaque = true;
@@ -42,7 +54,7 @@ export function encodePng(img: Raster): Buffer {
   }
   const bpp = opaque ? 3 : 4;
   const stride = w * bpp;
-  const raw = Buffer.alloc((stride + 1) * h);
+  const raw = new Uint8Array((stride + 1) * h);
   let prev = new Uint8Array(stride);
   const cur = new Uint8Array(stride);
   const candidates = [new Uint8Array(stride), new Uint8Array(stride), new Uint8Array(stride), new Uint8Array(stride)];
@@ -78,22 +90,20 @@ export function encodePng(img: Raster): Buffer {
     raw.set(candidates[best] as Uint8Array, y * (stride + 1) + 1);
     prev = Uint8Array.from(cur);
   }
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(w, 0);
-  ihdr.writeUInt32BE(h, 4);
+  const ihdr = new Uint8Array(13);
+  const dv = new DataView(ihdr.buffer);
+  dv.setUint32(0, w);
+  dv.setUint32(4, h);
   ihdr[8] = 8;
   ihdr[9] = opaque ? 2 : 6;
-  ihdr[10] = 0;
-  ihdr[11] = 0;
-  ihdr[12] = 0;
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk('IHDR', ihdr),
-    chunk('IDAT', deflateSync(raw, { level: 9 })),
-    chunk('IEND', new Uint8Array(0)),
-  ]);
+  return concat([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', deflate(raw)), chunk('IEND', new Uint8Array(0))]);
 }
 
 export function pngDataUrl(img: Raster): string {
-  return `data:image/png;base64,${encodePng(img).toString('base64')}`;
+  return `data:image/png;base64,${base64(encodePng(img))}`;
+}
+
+/** SVG markup as a data: URL (displayed via <img>, so it cannot run script). */
+export function svgDataUrl(svg: string): string {
+  return `data:image/svg+xml;base64,${base64(new TextEncoder().encode(svg))}`;
 }

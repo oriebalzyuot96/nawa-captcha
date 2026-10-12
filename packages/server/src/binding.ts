@@ -45,13 +45,13 @@ export function bindingMaterial(mode: BindMode, client: ClientInfo): string | un
 }
 
 /** Returns base64url(HMAC-SHA256(K_bind, material)), or undefined when the client info is missing. */
-export function bindingHash(key: Buffer, mode: BindMode, client: ClientInfo): string | undefined {
+export function bindingHash(key: Uint8Array, mode: BindMode, client: ClientInfo): string | undefined {
   const material = bindingMaterial(mode, client);
   return material === undefined ? undefined : b64url(hmac(key, material));
 }
 
 /** Pseudonymous per-client key for counters (rate limits, adaptive difficulty). Never stores raw IPs. */
-export function clientKey(key: Buffer, client: ClientInfo): string {
+export function clientKey(key: Uint8Array, client: ClientInfo): string {
   const ip = normalizeIp(client.ip);
   return b64url(hmac(key, `ck=${ip || 'unknown'}`)).slice(0, 22);
 }

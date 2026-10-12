@@ -32,22 +32,26 @@ function record(body: unknown): Record<string, unknown> | undefined {
   return body && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : undefined;
 }
 
-/** POST /challenge  body: { siteKey?, action?, lang?, type? } */
+/** POST /challenge  body: { siteKey?, action?, lang?, type?, types? } */
 export async function handleChallenge(guard: NawaGuard, req: GuardHttpRequest): Promise<GuardHttpResponse> {
   const body = record(req.body ?? {});
   if (!body) return json(400, { success: false, error: 'invalid-input' });
-  const result = await guard.createChallenge({ siteKey: body['siteKey'], action: body['action'], lang: body['lang'], type: body['type'], client: req.client });
+  const result = await guard.createChallenge({ siteKey: body['siteKey'], action: body['action'], lang: body['lang'], type: body['type'], types: body['types'], client: req.client });
   if (!result.ok) return json(result.error === 'rate-limited' ? 429 : 400, { success: false, error: result.error });
   return json(200, { success: true, ...result.challenge });
 }
 
-/** POST /verify  body: { token, answer } → { success, token (pass token), expiresAt } */
+/**
+ * POST /verify  body: { token, answer } → { success, token (pass token), expiresAt }, or for a
+ * multi-step policy { success, next: <the next challenge> } until the last step is solved.
+ */
 export async function handleVerify(guard: NawaGuard, req: GuardHttpRequest): Promise<GuardHttpResponse> {
   const body = record(req.body);
   if (!body) return json(400, { success: false, error: 'invalid-input', retry: false });
   const result = await guard.verify({ token: body['token'], answer: body['answer'], client: req.client });
+  if (result.ok && result.next) return json(200, { success: true, next: result.next });
   if (result.ok) {
-    return json(200, { success: true, token: result.passToken, expiresAt: result.expiresAt, expiresInMs: result.expiresInMs, type: result.type });
+    return json(200, { success: true, token: result.passToken, expiresAt: result.expiresAt, expiresInMs: result.expiresInMs, type: result.type, solvedTypes: result.solvedTypes });
   }
   // `reason`/`detail` stay server-side (onEvent); the browser only learns the coarse outcome.
   const status = result.error === 'rate-limited' ? 429 : result.error === 'invalid-input' ? 400 : 403;

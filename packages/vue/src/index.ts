@@ -20,6 +20,8 @@ export const NawaGuard = defineComponent({
     lang: { type: String as PropType<'ar' | 'en'>, default: undefined },
     name: { type: String, default: undefined },
     type: { type: String, default: undefined },
+    /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
+    types: { type: [String, Array] as PropType<string | readonly string[]>, default: undefined },
   },
   emits: {
     'update:modelValue': (token: string) => typeof token === 'string',
@@ -84,6 +86,7 @@ export const NawaGuard = defineComponent({
         lang: props.lang,
         name: props.name,
         type: props.type,
+        types: props.types === undefined ? undefined : typeof props.types === 'string' ? props.types : props.types.join(','),
       });
   },
 });

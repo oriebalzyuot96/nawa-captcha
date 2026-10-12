@@ -16,10 +16,20 @@ export interface NawaGuardProps {
   name?: string;
   /** Requested puzzle type (honoured only if the server allows client choice). */
   type?: string;
+  /**
+   * Narrows the server's allowed puzzle types for this widget, e.g. ['slider', 'rotate'] or "slider,rotate".
+   * It can never widen the server's allow-list (the server is authoritative).
+   */
+  types?: string | readonly string[];
   className?: string;
   onVerify?: (token: string, detail: NawaGuardVerifiedDetail) => void;
   onExpire?: () => void;
   onError?: (detail: NawaGuardErrorDetail) => void;
+}
+
+function typesAttr(types: string | readonly string[] | undefined): string | undefined {
+  if (types === undefined) return undefined;
+  return typeof types === 'string' ? types : types.join(',');
 }
 
 export interface NawaGuardHandle {
@@ -69,6 +79,7 @@ export const NawaGuard = forwardRef(function NawaGuard(props: NawaGuardProps, re
     lang: props.lang,
     name: props.name,
     type: props.type,
+    types: typesAttr(props.types),
     className: props.className,
   });
 });

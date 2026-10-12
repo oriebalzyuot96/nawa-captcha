@@ -4,12 +4,14 @@
 
 This package: React component and hook.
 
-- 🧩 8 challenge types: slider jigsaw, rotate, pick icons, math image, drag to order, connect the dots, invisible proof-of-work, and an accessible text question
+- 🧩 37 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work and an accessible text question — [see them live](https://oriebalzyuot96.github.io/nawa-guard/#playground)
 - 🔒 Answers are sealed (AES-256-GCM) and never reach the browser; pass tokens are signed and single-use
 - ♿ Keyboard, touch and screen-reader friendly; Arabic and English; RTL; themes
-- 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaGuard.AspNetCore` on NuGet)
+- 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaGuard.AspNetCore`, coming to NuGet)
 
 ## Install
+
+> **Coming to npm.** `@nawa-guard/react` is published once the `@nawa-guard` npm organisation exists. Until then, build it from the [repository](https://github.com/oriebalzyuot96/nawa-guard) (`npm install && npm run build`, then `npm pack -w @nawa-guard/react`).
 
 ```bash
 npm i @nawa-guard/react
@@ -39,7 +41,9 @@ function Login() {
 }
 ```
 
-Then verify on your backend before trusting the request — see the full guide.
+`types` narrows the server's allowed puzzles: `<NawaGuard action="login" types={['slider', 'pairs']} />` (never widens them).
+
+Then verify on your backend before trusting the request — see the [full guide](https://github.com/oriebalzyuot96/nawa-guard#readme).
 
 📖 Docs: https://oriebalzyuot96.github.io/nawa-guard/ · 💻 Source: https://github.com/oriebalzyuot96/nawa-guard
 

@@ -2,6 +2,7 @@ export {
   NawaGuard,
   createNawaGuard,
   verifyPassToken,
+  type ActionPolicy,
   type AdaptiveOptions,
   type ChallengeError,
   type ChallengeRequest,
@@ -13,6 +14,7 @@ export {
   type PublicVerifyError,
   type RateLimitHook,
   type RateLimitOptions,
+  type SelectionMode,
   type VerifyFailure,
   type VerifyPassTokenOptions,
   type VerifyRequest,
@@ -20,6 +22,10 @@ export {
 } from './engine.js';
 export { MemoryStore, ioredisStore, nodeRedisStore, type IoRedisLike, type MemoryStoreOptions, type NawaGuardStore, type NodeRedisLike } from './store.js';
 export { createKeyring, deriveKey, HKDF_SALT, type Keyring, type SecretEntry } from './crypto.js';
+export { cryptoRng, seededRng, type Rng } from './rng.js';
+export { DEFAULT_LADDER, DEFAULT_POOL, MAX_STEPS, parseClientTypes, type ResolvedPolicy } from './selection.js';
+export { PLATFORM } from './primitives.js';
+export { TYPE_INFO, type TypeFamily, type TypeInfo } from './catalog.js';
 export { bindingHash, bindingMaterial, normalizeIp, type BindMode, type ClientInfo } from './binding.js';
 export { openChallenge, parsePassToken, sealChallenge, signPassToken, type ChallengeClaims, type PassTokenClaims } from './tokens.js';
 export { analyzeTrajectory, entropy, type TrajectoryVerdict } from './heuristics.js';

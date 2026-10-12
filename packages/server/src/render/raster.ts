@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { cryptoRng, type Rng } from '../rng.js';
 
 export type RGB = readonly [r: number, g: number, b: number];
 export type Pt = readonly [x: number, y: number];
@@ -76,27 +76,34 @@ export class Raster {
 
   /** Even-odd scanline polygon fill. */
   polygon(points: readonly Pt[], c: RGB, alpha = 255): this {
-    if (points.length < 3) return this;
+    return this.rings([points], c, alpha);
+  }
+
+  /** Even-odd fill of several closed rings at once (a ring inside another becomes a hole). */
+  rings(rings: readonly (readonly Pt[])[], c: RGB, alpha = 255): this {
     const s = this.ss;
-    const pts = points.map(([x, y]) => [x * s, y * s] as const);
+    const edges: Array<readonly [number, number, number, number]> = [];
     let minY = Infinity;
     let maxY = -Infinity;
-    for (const [, y] of pts) {
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
+    for (const ring of rings) {
+      if (ring.length < 3) continue;
+      for (let i = 0; i < ring.length; i += 1) {
+        const a = ring[i]!;
+        const b = ring[(i + 1) % ring.length]!;
+        edges.push([a[0] * s, a[1] * s, b[0] * s, b[1] * s]);
+        minY = Math.min(minY, a[1] * s);
+        maxY = Math.max(maxY, a[1] * s);
+      }
     }
+    if (edges.length === 0) return this;
     const yStart = Math.max(0, Math.floor(minY));
     const yEnd = Math.min(this.ph - 1, Math.ceil(maxY));
     const xs: number[] = [];
     for (let y = yStart; y <= yEnd; y += 1) {
       const sy = y + 0.5;
       xs.length = 0;
-      for (let i = 0; i < pts.length; i += 1) {
-        const a = pts[i] as readonly [number, number];
-        const b = pts[(i + 1) % pts.length] as readonly [number, number];
-        if ((a[1] <= sy && b[1] > sy) || (b[1] <= sy && a[1] > sy)) {
-          xs.push(a[0] + ((sy - a[1]) / (b[1] - a[1])) * (b[0] - a[0]));
-        }
+      for (const [ax, ay, bx, by] of edges) {
+        if ((ay <= sy && by > sy) || (by <= sy && ay > sy)) xs.push(ax + ((sy - ay) / (by - ay)) * (bx - ax));
       }
       xs.sort((p, q) => p - q);
       for (let k = 0; k + 1 < xs.length; k += 2) this.span(y, xs[k] as number, xs[k + 1] as number, c, alpha);
@@ -195,8 +202,8 @@ export class Raster {
   // ---------------------------------------------------------------- 1x pixel effects
 
   /** Per-pixel luminance noise of ±amount, quantized to `step` so PNG compression stays reasonable. */
-  noise(amount: number, step = 4): this {
-    const rnd = randomBytes(this.pw * this.ph);
+  noise(amount: number, rng: Rng = cryptoRng, step = 4): this {
+    const rnd = rng.bytes(this.pw * this.ph);
     for (let p = 0; p < rnd.length; p += 1) {
       const i = p * 4;
       if ((this.data[i + 3] ?? 0) === 0) continue;

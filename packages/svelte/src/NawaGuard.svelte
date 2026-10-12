@@ -15,15 +15,18 @@
     lang?: 'ar' | 'en';
     name?: string;
     type?: string;
+    /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
+    types?: string | readonly string[];
     token?: string;
     onverified?: (detail: NawaGuardVerifiedDetail) => void;
     onexpired?: () => void;
     onerror?: (detail: NawaGuardErrorDetail) => void;
   }
 
-  let { siteKey, endpoint, action, lang, name, type, token = $bindable(''), onverified, onexpired, onerror }: Props = $props();
+  let { siteKey, endpoint, action, lang, name, type, types, token = $bindable(''), onverified, onexpired, onerror }: Props = $props();
 
   let el: NawaGuardElement | undefined = $state();
+  const typesAttr = $derived(types === undefined ? undefined : typeof types === 'string' ? types : types.join(','));
 
   $effect(() => {
     const node = el;
@@ -58,4 +61,4 @@
   }
 </script>
 
-<nawa-guard bind:this={el} site-key={siteKey} {endpoint} {action} {lang} {name} {type}></nawa-guard>
+<nawa-guard bind:this={el} site-key={siteKey} {endpoint} {action} {lang} {name} {type} types={typesAttr}></nawa-guard>

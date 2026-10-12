@@ -19,7 +19,7 @@ public sealed class PassTokenInteropTests
         public override DateTimeOffset GetUtcNow() => Now;
     }
 
-    private sealed record Fixture(long NowUnixMs, Dictionary<string, string> Secrets, FixtureClient Client, string SiteKey, Dictionary<string, string> Tokens);
+    private sealed record Fixture(long NowUnixMs, Dictionary<string, string> Secrets, FixtureClient Client, string SiteKey, Dictionary<string, string> Tokens, string[] ChallengeTypes);
 
     private sealed record FixtureClient(string Ip, string UserAgent);
 
@@ -162,6 +162,62 @@ public sealed class PassTokenInteropTests
         var rejected = Assert.IsType<ObjectResult>(replay);
         Assert.Equal(403, rejected.StatusCode);
         Assert.Equal("replayed", Assert.IsType<ProblemDetails>(rejected.Value).Extensions["code"]);
+    }
+
+    [Fact]
+    public void Knows_every_challenge_type_the_node_server_issues()
+    {
+        Assert.Equal(Data.ChallengeTypes, NawaGuardChallengeTypes.All);
+        Assert.Throws<InvalidOperationException>(() => Create(o => o.AllowedTypes = new() { "sliders" }));
+        Assert.Throws<InvalidOperationException>(() => Create(o => o.ActionAllowedTypes["login"] = new() { "nope" }));
+    }
+
+    [Fact]
+    public async Task Reads_multi_step_tokens_and_applies_allowed_types_to_any_solved_step()
+    {
+        var (verifier, _) = Create();
+        var result = await verifier.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null);
+        Assert.True(result.Success, result.Error.ToCode());
+        Assert.Equal("math", result.Claims!.Type);
+        Assert.Equal(new[] { "pow", "math" }, result.Claims.SolvedTypes);
+
+        // "math" was one of the solved steps, so a route that only accepts math passes.
+        var (mathOnly, _) = Create(o => o.AllowedTypes = new() { "math" });
+        Assert.True((await mathOnly.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Success);
+
+        var (sliderOnly, _) = Create(o => o.AllowedTypes = new() { "slider" });
+        Assert.Equal(NawaGuardError.TypeNotAllowed, (await sliderOnly.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
+
+        var (threeSteps, _) = Create(o => o.MinSteps = 3);
+        Assert.Equal(NawaGuardError.TooFewSteps, (await threeSteps.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
+    }
+
+    [Fact]
+    public async Task Per_action_and_per_route_requirements_override_the_global_list()
+    {
+        // Global list rejects pow, the checkout action allows it.
+        var (perAction, _) = Create(o =>
+        {
+            o.AllowedTypes = new() { "slider" };
+            o.ActionAllowedTypes["contact"] = new() { "pow" };
+        });
+        Assert.True((await perAction.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Success);
+
+        var (route, _) = Create();
+        var single = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaGuardRequirements(MinSteps: 2));
+        Assert.Equal(NawaGuardError.TooFewSteps, single.Error);
+        Assert.Equal("too-few-steps", single.Error.ToCode());
+        var typed = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaGuardRequirements(AllowedTypes: new[] { "maze" }));
+        Assert.Equal(NawaGuardError.TypeNotAllowed, typed.Error);
+        Assert.True((await route.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null, new NawaGuardRequirements(new[] { "pow" }, 2))).Success);
+    }
+
+    [Fact]
+    public void Single_step_tokens_have_no_steps_claim()
+    {
+        var payload = Data.Tokens["unboundContact"].Split('.')[2];
+        var json = Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(payload));
+        Assert.DoesNotContain("stp", json);
     }
 
     [Fact]

@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { createNawaGuard } from '@nawa-guard/server';
+import { createNawaGuard, TYPE_INFO } from '@nawa-guard/server';
 import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -15,11 +15,17 @@ if (!process.env.NAWA_GUARD_SECRET) console.warn('[demo] NAWA_GUARD_SECRET not s
 const guard = createNawaGuard({
   secret,
   siteKeys: ['demo'],
-  actions: ['login', 'gallery', 'contact'],
+  actions: ['login', 'gallery', 'contact', 'checkout'],
   // The gallery lets you pick each puzzle type; real deployments leave this off.
   allowClientType: true,
-  // The gallery loads 10 widgets at once; keep the limiter generous for the demo.
-  rateLimit: { windowSec: 60, challenge: 120, verify: 120 },
+  // Per-action selection: the login form gets one of three puzzles at random; checkout needs two
+  // different puzzles in a row before a pass token is issued.
+  perAction: {
+    login: { types: ['slider', 'rotate-object', 'pairs'], mode: 'random' },
+    checkout: { types: ['shadow-drag', 'icons-objects', 'tap-order', 'maze'], mode: 'random', steps: 2 },
+  },
+  // The gallery loads ~40 widgets at once; keep the limiter generous for the demo.
+  rateLimit: { windowSec: 60, challenge: 400, verify: 400 },
   onEvent: (e) => {
     if (e.type !== 'challenge-issued') console.log('[nawa-guard]', JSON.stringify(e));
   },
@@ -47,6 +53,13 @@ app.post('/login', express.urlencoded({ extended: false, limit: '8kb' }), requir
     `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/app.css"><main class="page"><h1>Signed in (demo)</h1><p>The server verified a single-use pass token for action <code>${escapeHtml(req.nawaGuard.act)}</code>, solved via <code>${escapeHtml(req.nawaGuard.typ)}</code>.</p><p>User: <code>${escapeHtml(user)}</code></p><p><a href="/">Back</a></p></main>`,
   );
 });
+
+app.post('/api/checkout', express.json({ limit: '8kb' }), requireCaptcha(guard, { expectedAction: 'checkout', minSteps: 2 }), (req, res) => {
+  res.json({ ok: true, solvedWith: req.nawaGuard.stp });
+});
+
+// The puzzle catalogue for the gallery.
+app.get('/types.json', (_req, res) => res.json(TYPE_INFO));
 
 // 3) A protected JSON API (token arrives in the X-Nawa-Guard-Token header).
 app.post('/api/contact', express.json({ limit: '8kb' }), requireCaptcha(guard, { expectedAction: 'contact' }), (req, res) => {

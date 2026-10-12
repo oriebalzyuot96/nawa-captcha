@@ -1,0 +1,5 @@
+{
+  "installDependencies": true,
+  "startCommand": "npm run demo",
+  "env": { "PORT": "5180" }
+}

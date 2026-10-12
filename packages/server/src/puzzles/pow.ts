@@ -1,4 +1,4 @@
-import { randomId, sha256 } from '../crypto.js';
+import { sha256 } from '../crypto.js';
 import { prompt } from '../i18n.js';
 import { invalid, ok, wrong, type PuzzleDefinition } from '../types.js';
 import { isRecord } from './common.js';
@@ -41,10 +41,11 @@ export function powBitsFor(base: number, level: number): number {
 export function createPow(baseBits: number): PuzzleDefinition<PowSolution, PowPublic> {
   return {
     type: 'pow',
+    view: 'pow',
     minSolveMs: 0,
     maxAttempts: 1,
-    generate({ level, lang }) {
-      const salt = randomId(16);
+    generate({ level, lang, rng }) {
+      const salt = rng.id(16);
       const bits = powBitsFor(baseBits, level);
       // Salt and difficulty are public by nature; they are also sealed so neither can be swapped.
       return { solution: { salt, bits }, prompt: prompt('pow', lang), publicData: { algorithm: 'SHA-256', salt, bits } };

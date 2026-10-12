@@ -1,38 +1,52 @@
-const TYPES = [
-  ['slider', 'Slider jigsaw', 'لغز السحب'],
-  ['rotate', 'Rotate to upright', 'تدوير الصورة'],
-  ['icons', 'Select matching icons', 'اختيار الأشكال'],
-  ['math', 'Math image', 'عملية حسابية'],
-  ['order', 'Drag to order', 'ترتيب البطاقات'],
-  ['trace', 'Connect the dots', 'توصيل النقاط'],
-  ['pow', 'Invisible proof-of-work', 'إثبات عمل غير مرئي'],
-  ['accessible', 'Accessible text', 'تحدٍّ نصي ميسّر'],
-];
+const FAMILIES = {
+  drag: ['Drag, slide, rotate, hold', 'سحب وتدوير وضغط'],
+  select: ['Select in a picture', 'اختيار من صورة'],
+  tap: ['Tap in order', 'النقر بالترتيب'],
+  order: ['Put in order', 'الترتيب'],
+  draw: ['Draw a path', 'رسم مسار'],
+  type: ['Type the answer', 'كتابة الإجابة'],
+  invisible: ['Invisible and text alternative', 'غير مرئي وبديل نصي'],
+};
 
 const gallery = document.getElementById('gallery');
 let lang = 'en';
+let types = {};
+
+function widget(attrs) {
+  const w = document.createElement('nawa-guard');
+  for (const [k, v] of Object.entries(attrs)) w.setAttribute(k, v);
+  return w;
+}
 
 function renderGallery() {
-  gallery.replaceChildren(
-    ...TYPES.map(([type, en, ar]) => {
+  const sections = Object.entries(FAMILIES).map(([family, [en, ar]]) => {
+    const section = document.createElement('section');
+    const h = document.createElement('h3');
+    h.className = 'family';
+    h.textContent = lang === 'ar' ? ar : en;
+    const grid = document.createElement('div');
+    grid.className = 'gallery';
+    for (const [type, info] of Object.entries(types)) {
+      if (info.family !== family) continue;
       const card = document.createElement('article');
       card.className = 'card';
-      const h = document.createElement('h3');
-      h.textContent = lang === 'ar' ? ar : en;
-      const w = document.createElement('nawa-guard');
-      w.setAttribute('site-key', 'demo');
-      w.setAttribute('endpoint', '/captcha');
-      w.setAttribute('action', 'gallery');
-      w.setAttribute('type', type);
-      w.setAttribute('lang', lang);
+      const title = document.createElement('h4');
+      title.textContent = `${lang === 'ar' ? info.ar : info.en}`;
+      const code = document.createElement('code');
+      code.textContent = type;
+      title.append(' ', code);
+      const w = widget({ 'site-key': 'demo', endpoint: '/captcha', action: 'gallery', type, lang });
       const out = document.createElement('p');
       out.className = 'token';
       w.addEventListener('nawa-guard:verified', (e) => (out.textContent = `pass token: ${e.detail.token.slice(0, 32)}…`));
       w.addEventListener('nawa-guard:expired', () => (out.textContent = ''));
-      card.append(h, w, out);
-      return card;
-    }),
-  );
+      card.append(title, w, out);
+      grid.append(card);
+    }
+    section.append(h, grid);
+    return section;
+  });
+  gallery.replaceChildren(...sections);
 }
 
 document.getElementById('lang-toggle').addEventListener('click', (e) => {
@@ -55,20 +69,30 @@ const loginSubmit = document.getElementById('login-submit');
 loginGuard.addEventListener('nawa-guard:verified', () => (loginSubmit.disabled = false));
 loginGuard.addEventListener('nawa-guard:expired', () => (loginSubmit.disabled = true));
 
-// JSON API: send the pass token in a header.
-const apiGuard = document.getElementById('api-guard');
-const apiSend = document.getElementById('api-send');
-const apiResult = document.getElementById('api-result');
-apiGuard.addEventListener('nawa-guard:verified', () => (apiSend.disabled = false));
-apiSend.addEventListener('click', async () => {
-  const res = await fetch('/api/contact', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Nawa-Guard-Token': apiGuard.token },
-    body: JSON.stringify({ message: 'hello' }),
+// JSON APIs: send the pass token in a header.
+function wireApi(guardId, buttonId, resultId, url) {
+  const guard = document.getElementById(guardId);
+  const send = document.getElementById(buttonId);
+  const result = document.getElementById(resultId);
+  guard.addEventListener('nawa-guard:verified', () => (send.disabled = false));
+  send.addEventListener('click', async () => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Nawa-Guard-Token': guard.token },
+      body: JSON.stringify({ message: 'hello' }),
+    });
+    result.textContent = `${res.status} ${JSON.stringify(await res.json())}`;
+    send.disabled = true;
+    guard.reset();
   });
-  apiResult.textContent = `${res.status} ${JSON.stringify(await res.json())}`;
-  apiSend.disabled = true;
-  apiGuard.reset();
-});
+}
+wireApi('api-guard', 'api-send', 'api-result', '/api/contact');
+wireApi('checkout-guard', 'checkout-send', 'checkout-result', '/api/checkout');
 
-renderGallery();
+fetch('/types.json')
+  .then((r) => r.json())
+  .then((t) => {
+    types = t;
+    document.getElementById('type-count').textContent = String(Object.keys(t).length);
+    renderGallery();
+  });

@@ -44,8 +44,20 @@ public sealed class NawaGuardOptions
     /// <summary>Tolerated clock difference between the Node server and this one.</summary>
     public int ClockSkewSeconds { get; set; } = 5;
 
-    /// <summary>Restrict which challenge types are acceptable (e.g. exclude "pow" for sensitive actions).</summary>
+    /// <summary>
+    /// Restrict which challenge types are acceptable (e.g. exclude "pow" for sensitive actions). For a multi-step
+    /// token at least one solved step must be in the list. Names are validated against <see cref="NawaGuardChallengeTypes.All"/>.
+    /// </summary>
     public List<string>? AllowedTypes { get; set; }
+
+    /// <summary>
+    /// Per-action allowed types, mirroring the Node server's <c>perAction</c> option, e.g.
+    /// <c>NawaGuard__ActionAllowedTypes__login__0=slider</c>. Overrides <see cref="AllowedTypes"/> for that action.
+    /// </summary>
+    public Dictionary<string, List<string>> ActionAllowedTypes { get; set; } = new(StringComparer.Ordinal);
+
+    /// <summary>Require at least this many solved puzzles (the Node server's <c>steps</c> option). Default: no requirement.</summary>
+    public int? MinSteps { get; set; }
 
     /// <summary>Header carrying the pass token for JSON APIs.</summary>
     public string HeaderName { get; set; } = "X-Nawa-Guard-Token";

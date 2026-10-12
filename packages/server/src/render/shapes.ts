@@ -100,3 +100,65 @@ export function onRim(inside: (x: number, y: number) => boolean, px: number, py:
   if (!inside(px, py)) return false;
   return !inside(px - w, py) || !inside(px + w, py) || !inside(px, py - w) || !inside(px, py + w);
 }
+
+export interface Mask {
+  readonly inside: (px: number, py: number) => boolean;
+  readonly bbox: [number, number, number, number];
+}
+
+/** Even-odd inside test for a closed polygon, with its bounding box (+1px). */
+export function polygonMask(points: readonly Pt[]): Mask {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const [x, y] of points) {
+    x0 = Math.min(x0, x);
+    y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x);
+    y1 = Math.max(y1, y);
+  }
+  const inside = (px: number, py: number): boolean => {
+    if (px < x0 || px > x1 || py < y0 || py > y1) return false;
+    let hit = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
+      const [xi, yi] = points[i]!;
+      const [xj, yj] = points[j]!;
+      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit;
+  };
+  return { inside, bbox: [x0 - 1, y0 - 1, x1 + 1, y1 + 1] };
+}
+
+export const PIECE_SHAPES = ['jigsaw', 'jigsaw-notch', 'circle', 'star', 'shield', 'heart', 'hexagon'] as const;
+export type PieceShape = (typeof PIECE_SHAPES)[number];
+
+/** Slider piece masks of several outlines; (x, y) is the top-left of a `body`-sized square. */
+export function pieceMask(shape: PieceShape, x: number, y: number, body: number): Mask {
+  const cx = x + body / 2;
+  const cy = y + body / 2;
+  switch (shape) {
+    case 'jigsaw':
+      return jigsawMask(x, y, body, 0);
+    case 'jigsaw-notch':
+      return jigsawMask(x, y, body, 1);
+    case 'circle':
+      return polygonMask(iconPolygon('circle', cx, cy, body * 1.15));
+    case 'star':
+      return polygonMask(iconPolygon('star', cx, cy, body * 1.25));
+    case 'heart':
+      return polygonMask(iconPolygon('heart', cx, cy, body * 1.25));
+    case 'hexagon':
+      return polygonMask(iconPolygon('hexagon', cx, cy, body * 1.2, 90));
+    case 'shield':
+      return polygonMask([
+        [x, y + body * 0.08],
+        [cx, y - body * 0.06],
+        [x + body, y + body * 0.08],
+        [x + body * 0.96, y + body * 0.6],
+        [cx, y + body * 1.08],
+        [x + body * 0.04, y + body * 0.6],
+      ]);
+  }
+}

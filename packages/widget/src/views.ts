@@ -25,7 +25,7 @@ export interface PuzzleView {
 const MAX_TRAIL = 800;
 
 /** Records the gesture the server's heuristics will look at (image coordinates, ms). */
-class Trail {
+export class Trail {
   private pts: Pt[] = [];
   private t0 = 0;
   mode: InputMode = 'mouse';
@@ -63,9 +63,9 @@ class Trail {
   }
 }
 
-const pointerMode = (e: PointerEvent): InputMode => (e.pointerType === 'touch' || e.pointerType === 'pen' ? e.pointerType : 'mouse');
+export const pointerMode = (e: PointerEvent): InputMode => (e.pointerType === 'touch' || e.pointerType === 'pen' ? e.pointerType : 'mouse');
 
-function verifyButton(host: ViewHost, onClick: () => void): HTMLButtonElement {
+export function verifyButton(host: ViewHost, onClick: () => void): HTMLButtonElement {
   const b = h('button', { type: 'button', class: 'btn' }, host.t('verify'));
   b.addEventListener('click', onClick);
   return b;
@@ -214,7 +214,12 @@ export function rotateView(host: ViewHost, data: Record<string, number | string>
   const trail = new Trail();
   const hintId = nextId('ng-hint');
   const img = safeImg(data['image'], host.t('imageAlt'));
-  const stage = h('div', { class: 'rot-stage' }, img);
+  const base = typeof data['base'] === 'string' ? safeImg(data['base'], '') : undefined;
+  if (base) {
+    base.className = 'rot-base';
+    base.setAttribute('aria-hidden', 'true');
+  }
+  const stage = h('div', { class: base ? 'rot-stage framed' : 'rot-stage' }, base ?? null, img);
   const { track, thumb, render: renderTrack } = sliderTrack(host.t('rotateLabel'), hintId, 360, (v) => host.t('rotateValue', { n: Math.round(v) }));
   const hint = h('p', { class: 'hint', id: hintId }, host.t('rotateHint'));
   const render = (): void => {
@@ -278,44 +283,88 @@ export function rotateView(host: ViewHost, data: Record<string, number | string>
   };
 }
 
-// ------------------------------------------------------------------------------- icons grid
+// ------------------------------------------------------------------------------- picture grid
 
-export function iconsView(host: ViewHost, data: Record<string, number | string>): PuzzleView {
+export interface CellGrid {
+  readonly stage: HTMLElement;
+  readonly cells: (HTMLButtonElement | undefined)[];
+  readonly hintId: string;
+  focus(): void;
+}
+
+/**
+ * A picture with transparent cell buttons laid over its grid area (below an optional header
+ * strip). Arrow keys move a roving focus between the selectable cells.
+ */
+export function cellGrid(host: ViewHost, data: Record<string, unknown>, onActivate: (i: number) => void): CellGrid {
   const rows = Number(data['rows']);
   const cols = Number(data['cols']);
+  const width = Number(data['width']) || cols * Number(data['cellSize']);
+  const height = Number(data['height']) || rows * Number(data['cellSize']);
+  const top = Number(data['gridTop']) || 0;
+  const locked = new Set(Array.isArray(data['locked']) ? (data['locked'] as unknown[]).filter((v): v is number => typeof v === 'number') : []);
   const hintId = nextId('ng-hint');
-  const grid = h('div', { class: 'grid', dir: 'ltr', role: 'group', 'aria-describedby': hintId, style: `grid-template:repeat(${rows},1fr)/repeat(${cols},1fr)` });
-  const cells: HTMLButtonElement[] = [];
+  const grid = h('div', { class: 'grid', dir: 'ltr', role: 'group', 'aria-describedby': hintId, style: `top:${pct(top / height)};height:${pct((height - top) / height)};grid-template:repeat(${rows},1fr)/repeat(${cols},1fr)` });
+  const cells: (HTMLButtonElement | undefined)[] = [];
+  const first = Array.from({ length: rows * cols }, (_, i) => i).find((i) => !locked.has(i)) ?? 0;
   for (let i = 0; i < rows * cols; i += 1) {
-    const cell = h('button', { type: 'button', class: 'cell', 'aria-pressed': 'false', tabindex: i === 0 ? 0 : -1, 'aria-label': host.t('cell', { r: Math.floor(i / cols) + 1, c: (i % cols) + 1 }) });
-    cell.addEventListener('click', () => cell.setAttribute('aria-pressed', String(cell.getAttribute('aria-pressed') !== 'true')));
+    if (locked.has(i)) {
+      grid.append(h('div', { class: 'cell locked', 'aria-hidden': 'true' }));
+      cells.push(undefined);
+      continue;
+    }
+    const cell = h('button', { type: 'button', class: 'cell', 'aria-pressed': 'false', tabindex: i === first ? 0 : -1, 'aria-label': host.t('cell', { r: Math.floor(i / cols) + 1, c: (i % cols) + 1 }) });
+    cell.addEventListener('click', () => onActivate(i));
     cell.addEventListener('keydown', (e) => {
-      const deltas: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols };
+      const deltas: Record<string, [number, number]> = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] };
       const d = deltas[e.key];
-      if (d === undefined) return;
+      if (!d) return;
       e.preventDefault();
-      const next = cells[i + d];
-      if (!next || (Math.abs(d) === 1 && Math.floor((i + d) / cols) !== Math.floor(i / cols))) return;
-      cell.tabIndex = -1;
-      next.tabIndex = 0;
-      next.focus();
+      let c = i % cols;
+      let r = Math.floor(i / cols);
+      // Skip over locked cells in the direction of travel.
+      for (;;) {
+        c += d[0];
+        r += d[1];
+        if (c < 0 || c >= cols || r < 0 || r >= rows) return;
+        const next = cells[r * cols + c];
+        if (next) {
+          cell.tabIndex = -1;
+          next.tabIndex = 0;
+          next.focus();
+          return;
+        }
+      }
     });
     cells.push(cell);
     grid.append(cell);
   }
-  const W = cols * Number(data['cellSize']);
-  const H = rows * Number(data['cellSize']);
-  const stage = h('div', { class: 'stage', style: `aspect-ratio:${W}/${H}` }, safeImg(data['image'], host.t('imageAlt')), grid);
-  const submit = (): void =>
-    host.submit({ selected: cells.flatMap((c, i) => (c.getAttribute('aria-pressed') === 'true' ? [i] : [])) });
+  const stage = h('div', { class: 'stage', style: `aspect-ratio:${width}/${height}` }, safeImg(data['image'], host.t('imageAlt')), grid);
+  return { stage, cells, hintId, focus: () => (cells.find((c) => c?.tabIndex === 0) ?? cells.find(Boolean))?.focus() };
+}
+
+/** View `grid`: select one or many cells, then Verify. */
+export function gridView(host: ViewHost, data: Record<string, unknown>): PuzzleView {
+  const single = data['select'] === 'one';
+  const g: CellGrid = cellGrid(host, data, (i) => {
+    const cell = g.cells[i]!;
+    const on = cell.getAttribute('aria-pressed') !== 'true';
+    if (single) for (const c of g.cells) c?.setAttribute('aria-pressed', 'false');
+    cell.setAttribute('aria-pressed', String(on));
+  });
+  const submit = (): void => host.submit({ selected: g.cells.flatMap((c, i) => (c?.getAttribute('aria-pressed') === 'true' ? [i] : [])) });
   return {
-    el: h('div', { class: 'row', style: 'display:grid' }, stage, h('p', { class: 'hint', id: hintId }, host.t('gridHint')), h('div', { class: 'row' }, verifyButton(host, submit))),
-    focus: () => (cells.find((c) => c.tabIndex === 0) ?? cells[0])?.focus(),
+    el: h('div', { class: 'row', style: 'display:grid' }, g.stage, h('p', { class: 'hint', id: g.hintId }, host.t('gridHint')), h('div', { class: 'row' }, verifyButton(host, submit))),
+    focus: g.focus,
     reset() {
-      for (const c of cells) c.setAttribute('aria-pressed', 'false');
+      for (const c of g.cells) c?.setAttribute('aria-pressed', 'false');
     },
   };
 }
+
+/** @deprecated the icons view is now the generic grid view. */
+export const iconsView = gridView;
+
 
 // ------------------------------------------------------------------------------- math
 
@@ -449,11 +498,17 @@ export function orderView(host: ViewHost, data: { tiles?: Array<{ id: string; im
   };
 }
 
-// ------------------------------------------------------------------------------- trace
+// ------------------------------------------------------------------------------- path (trace, maze)
 
-export function traceView(host: ViewHost, data: Record<string, number | string>): PuzzleView {
+export function pathView(host: ViewHost, data: Record<string, unknown>): PuzzleView {
   const W = Number(data['width']);
   const H = Number(data['height']);
+  const gridData = data['grid'] as { cols?: unknown; rows?: unknown } | undefined;
+  const gcols = Number(gridData?.cols) || 0;
+  const grows = Number(gridData?.rows) || 0;
+  const cellMode = gcols > 0 && grows > 0;
+  const cw = cellMode ? W / gcols : 0;
+  const ch = cellMode ? H / grows : 0;
   const trail = new Trail();
   const hintId = nextId('ng-hint');
   const svg = s('svg', { class: 'draw', viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none', 'aria-hidden': 'true' });
@@ -461,7 +516,8 @@ export function traceView(host: ViewHost, data: Record<string, number | string>)
   svg.append(cross);
   let stroke: SVGPolylineElement | undefined;
   let kbLine: SVGPolylineElement | undefined;
-  let cursor: [number, number] = [W / 2, H / 2];
+  let penDown = false;
+  let cursor: [number, number] = cellMode ? [cw / 2, Math.floor(grows / 2) * ch + ch / 2] : [W / 2, H / 2];
   const stage = h('div', { class: 'stage', dir: 'ltr', tabindex: 0, role: 'application', 'aria-label': host.t('traceLabel'), 'aria-describedby': hintId, style: `aspect-ratio:${W}/${H}` }, safeImg(data['image'], host.t('imageAlt')), svg);
   const verify = verifyButton(host, () => host.submit({ interaction: trail.export() }));
   const clear = h('button', { type: 'button', class: 'btn secondary' }, host.t('clear'));
@@ -480,6 +536,7 @@ export function traceView(host: ViewHost, data: Record<string, number | string>)
     for (const el of [...svg.querySelectorAll('polyline, .kpt')]) el.remove();
     stroke = undefined;
     kbLine = undefined;
+    penDown = false;
     sync();
   };
   clear.addEventListener('click', resetAll);
@@ -489,6 +546,7 @@ export function traceView(host: ViewHost, data: Record<string, number | string>)
   stage.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
+    if (cellMode && trail.length) resetAll(); // a maze is one continuous line
     active = e.pointerId;
     stage.setPointerCapture(e.pointerId);
     const [x, y] = toImage(e);
@@ -515,33 +573,52 @@ export function traceView(host: ViewHost, data: Record<string, number | string>)
   stage.addEventListener('pointercancel', end);
 
   const moveCross = (): void => cross.setAttribute('transform', `translate(${cursor[0].toFixed(1)} ${cursor[1].toFixed(1)})`);
+  const placePoint = (): void => {
+    if (!kbLine) {
+      kbLine = s('polyline');
+      svg.insertBefore(kbLine, cross);
+    }
+    append(kbLine, cursor[0], cursor[1]);
+    svg.insertBefore(s('circle', { class: 'kpt', cx: cursor[0].toFixed(1), cy: cursor[1].toFixed(1), r: 3.5 }), cross);
+    trail.add(cursor[0], cursor[1], 'keyboard');
+    sync();
+  };
   stage.addEventListener('focus', () => {
     cross.setAttribute('visibility', stage.matches(':focus-visible') ? 'visible' : 'hidden');
     moveCross();
   });
   stage.addEventListener('blur', () => cross.setAttribute('visibility', 'hidden'));
   stage.addEventListener('keydown', (e) => {
-    const step = e.shiftKey ? 16 : 4;
+    const step = cellMode ? 1 : e.shiftKey ? 16 : 4;
     const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
     const m = moves[e.key];
     if (m) {
       e.preventDefault();
-      cursor = [clamp(cursor[0] + m[0], 0, W), clamp(cursor[1] + m[1], 0, H)];
+      cursor = cellMode
+        ? [clamp(cursor[0] + m[0] * cw, cw / 2, W - cw / 2), clamp(cursor[1] + m[1] * ch, ch / 2, H - ch / 2)]
+        : [clamp(cursor[0] + m[0], 0, W), clamp(cursor[1] + m[1], 0, H)];
       cross.setAttribute('visibility', 'visible');
       moveCross();
+      if (cellMode && penDown) placePoint();
       return;
     }
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
-      if (!kbLine) {
-        kbLine = s('polyline');
-        svg.insertBefore(kbLine, cross);
+      if (cellMode) {
+        if (e.key === 'Enter' && trail.length >= 2) {
+          host.submit({ interaction: trail.export() });
+          return;
+        }
+        if (!penDown) {
+          resetAll();
+          penDown = true;
+          placePoint();
+          host.announce(host.t('mazePen'));
+        }
+        return;
       }
-      append(kbLine, cursor[0], cursor[1]);
-      svg.insertBefore(s('circle', { class: 'kpt', cx: cursor[0].toFixed(1), cy: cursor[1].toFixed(1), r: 3.5 }), cross);
-      trail.add(cursor[0], cursor[1], 'keyboard');
+      placePoint();
       host.announce(host.t('tracePoints', { n: trail.length }));
-      sync();
     } else if (e.key === 'Backspace' && kbLine) {
       e.preventDefault();
       const pts = (kbLine.getAttribute('points') ?? '').trim().split(/\s+/);
@@ -549,17 +626,27 @@ export function traceView(host: ViewHost, data: Record<string, number | string>)
       kbLine.setAttribute('points', pts.join(' '));
       svg.querySelectorAll('.kpt').item(svg.querySelectorAll('.kpt').length - 1)?.remove();
       trail.pop();
+      if (cellMode) {
+        const prev = trail.points()[trail.length - 1];
+        if (prev) cursor = [prev[0], prev[1]];
+        else penDown = false;
+        moveCross();
+      }
       host.announce(host.t('tracePoints', { n: trail.length }));
       sync();
     }
   });
   sync();
   return {
-    el: h('div', { class: 'row', style: 'display:grid' }, stage, h('p', { class: 'hint', id: hintId }, host.t('traceHint')), h('div', { class: 'row' }, verify, clear)),
+    el: h('div', { class: 'row', style: 'display:grid' }, stage, h('p', { class: 'hint', id: hintId }, host.t(cellMode ? 'mazeHint' : 'traceHint')), h('div', { class: 'row' }, verify, clear)),
     focus: () => stage.focus(),
     reset: resetAll,
   };
 }
+
+/** @deprecated use {@link pathView}. */
+export const traceView = pathView;
+
 
 // ------------------------------------------------------------------------------- proof of work
 

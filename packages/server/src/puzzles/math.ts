@@ -1,14 +1,16 @@
-import { pick, randFloat, randInt, shuffle } from '../crypto.js';
 import { prompt } from '../i18n.js';
 import { glyphStrokes } from '../render/glyphs.js';
+import { svgDataUrl } from '../render/png.js';
+import type { Rng } from '../rng.js';
 import { hsl, type Pt, type RGB } from '../render/raster.js';
-import { invalid, ok, wrong, type PuzzleDefinition } from '../types.js';
+import { invalid, ok, wrong, type CheckResult, type PuzzleDefinition } from '../types.js';
 import { isRecord } from './common.js';
 
 export interface MathSolution {
   readonly value: number;
 }
 
+/** View `text`: a picture plus a short text answer (digits). */
 export interface MathPublic {
   readonly image: string;
   readonly width: number;
@@ -25,21 +27,21 @@ function pathD(points: readonly Pt[]): string {
   return points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${f1(x)} ${f1(y)}`).join('');
 }
 
-function expression(level: number): { text: string; value: number } {
-  const op = level >= 2 ? pick(['+', '-', 'x'] as const) : level === 1 ? pick(['+', '-'] as const) : '+';
+function expression(rng: Rng, level: number): { text: string; value: number } {
+  const op = level >= 2 ? rng.pick(['+', '-', 'x'] as const) : level === 1 ? rng.pick(['+', '-'] as const) : '+';
   if (op === 'x') {
-    const a = randInt(2, 10);
-    const b = randInt(2, 10);
+    const a = rng.int(2, 10);
+    const b = rng.int(2, 10);
     return { text: `${a}x${b}`, value: a * b };
   }
   if (op === '-') {
-    const a = randInt(6, 20);
-    const b = randInt(1, a);
+    const a = rng.int(6, 20);
+    const b = rng.int(1, a);
     return { text: `${a}-${b}`, value: a - b };
   }
   const max = level >= 1 ? 20 : 10;
-  const a = randInt(1, max);
-  const b = randInt(1, max);
+  const a = rng.int(1, max);
+  const b = rng.int(1, max);
   return { text: `${a}+${b}`, value: a + b };
 }
 
@@ -54,64 +56,70 @@ export function normalizeDigits(text: string): string {
  * available as text, font codepoints, or document order. (A determined attacker can still
  * rasterize + OCR it, which is why math is a low-assurance type — see README.)
  */
-function renderSvg(text: string): string {
-  const ink = hsl(randInt(0, 360), 0.55, 0.32);
+function renderSvg(rng: Rng, text: string): string {
+  const ink = hsl(rng.int(0, 360), 0.55, 0.32);
   const paths: string[] = [];
   const glyphs = [...text, '=', '?'];
-  const size = randFloat(34, 42);
-  let x = randFloat(18, 34);
+  const size = rng.float(34, 42);
+  let x = rng.float(18, 34);
   for (const ch of glyphs) {
-    for (const stroke of glyphStrokes(ch, { x: x + size * 0.3, y: H / 2 + randFloat(-8, 8), size, rotateDeg: randFloat(-14, 14), jitter: 1.6 }, () => randFloat())) {
+    for (const stroke of glyphStrokes(ch, { x: x + size * 0.3, y: H / 2 + rng.float(-8, 8), size, rotateDeg: rng.float(-14, 14), jitter: 1.6 }, () => rng.next())) {
       // Split each stroke into overlapping pieces so the path list does not mirror the glyph list.
-      for (let i = 0; i + 1 < stroke.length; i += randInt(1, 3)) {
-        paths.push(`<path d="${pathD(stroke.slice(i, i + 3))}" stroke="${css(ink)}" stroke-width="${f1(randFloat(2.6, 3.6))}"/>`);
+      for (let i = 0; i + 1 < stroke.length; i += rng.int(1, 3)) {
+        paths.push(`<path d="${pathD(stroke.slice(i, i + 3))}" stroke="${css(ink)}" stroke-width="${f1(rng.float(2.6, 3.6))}"/>`);
       }
     }
-    x += size * randFloat(0.68, 0.82);
+    x += size * rng.float(0.68, 0.82);
   }
   for (let i = 0; i < 9; i += 1) {
     const pts: Pt[] = [];
-    let px = randFloat(0, W);
-    let py = randFloat(0, H);
+    let px = rng.float(0, W);
+    let py = rng.float(0, H);
     for (let k = 0; k < 3; k += 1) {
       pts.push([px, py]);
-      px += randFloat(-40, 40);
-      py += randFloat(-25, 25);
+      px += rng.float(-40, 40);
+      py += rng.float(-25, 25);
     }
-    paths.push(`<path d="${pathD(pts)}" stroke="${css(ink)}" stroke-width="${f1(randFloat(0.8, 1.6))}" opacity="${f1(randFloat(0.35, 0.7))}"/>`);
+    paths.push(`<path d="${pathD(pts)}" stroke="${css(ink)}" stroke-width="${f1(rng.float(0.8, 1.6))}" opacity="${f1(rng.float(0.35, 0.7))}"/>`);
   }
   // Faint decoy digits: visible to people as background, but same element type as real ink.
   for (let i = 0; i < 3; i += 1) {
-    for (const stroke of glyphStrokes(String(randInt(0, 10)), { x: randFloat(10, W - 10), y: randFloat(14, H - 14), size: randFloat(14, 20), rotateDeg: randFloat(-40, 40), jitter: 1 }, () => randFloat())) {
+    for (const stroke of glyphStrokes(String(rng.int(0, 10)), { x: rng.float(10, W - 10), y: rng.float(14, H - 14), size: rng.float(14, 20), rotateDeg: rng.float(-40, 40), jitter: 1 }, () => rng.next())) {
       paths.push(`<path d="${pathD(stroke)}" stroke="${css(ink)}" stroke-width="1.2" opacity="0.25"/>`);
     }
   }
-  const dots = Array.from({ length: 40 }, () => `<circle cx="${f1(randFloat(0, W))}" cy="${f1(randFloat(0, H))}" r="${f1(randFloat(0.6, 1.8))}" fill="${css(hsl(randInt(0, 360), 0.5, 0.5))}" opacity="0.5"/>`);
-  const bg = hsl(randInt(0, 360), 0.3, 0.93);
+  const dots = Array.from({ length: 40 }, () => `<circle cx="${f1(rng.float(0, W))}" cy="${f1(rng.float(0, H))}" r="${f1(rng.float(0.6, 1.8))}" fill="${css(hsl(rng.int(0, 360), 0.5, 0.5))}" opacity="0.5"/>`);
+  const bg = hsl(rng.int(0, 360), 0.3, 0.93);
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
     `<rect width="${W}" height="${H}" fill="${css(bg)}"/>` +
-    `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${shuffle([...paths, ...dots]).join('')}</g></svg>`
+    `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${rng.shuffle([...paths, ...dots]).join('')}</g></svg>`
   );
 }
 
 export const math: PuzzleDefinition<MathSolution, MathPublic> = {
   type: 'math',
+  view: 'text',
   minSolveMs: 1500,
   maxAttempts: 1,
-  generate({ level, lang }) {
-    const { text, value } = expression(level);
-    const svg = renderSvg(text);
+  generate({ level, lang, rng }) {
+    const { text, value } = expression(rng, level);
+    const svg = renderSvg(rng, text);
     return {
       solution: { value },
       prompt: prompt('math', lang),
-      publicData: { image: `data:image/svg+xml;base64,${Buffer.from(svg, 'utf8').toString('base64')}`, width: W, height: H },
+      publicData: { image: svgDataUrl(svg), width: W, height: H },
     };
   },
   check(solution, answer) {
-    if (!isRecord(answer) || typeof answer['value'] !== 'string' || answer['value'].length > 8) return invalid('value');
-    const text = normalizeDigits(answer['value'].trim());
-    if (!/^-?\d{1,4}$/.test(text)) return invalid('value');
-    return Number.parseInt(text, 10) === solution.value ? ok : wrong();
+    return checkInteger(solution.value, answer);
   },
 };
+
+/** Shared check for typed numeric answers: `{ value: string }`, ASCII or Arabic-Indic digits. */
+export function checkInteger(expected: number, answer: unknown): CheckResult {
+  if (!isRecord(answer) || typeof answer['value'] !== 'string' || answer['value'].length > 8) return invalid('value');
+  const text = normalizeDigits(answer['value'].trim());
+  if (!/^-?\d{1,4}$/.test(text)) return invalid('value');
+  return Number.parseInt(text, 10) === expected ? ok : wrong();
+}

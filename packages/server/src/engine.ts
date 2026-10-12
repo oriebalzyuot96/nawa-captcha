@@ -1,9 +1,29 @@
 import { bindingHash, clientKey as deriveClientKey, type BindMode, type ClientInfo, BIND_MODES } from './binding.js';
-import { createKeyring, pick, randomId, safeEqual, type Keyring, type SecretEntry } from './crypto.js';
+import { createKeyring, safeEqual, type Keyring, type SecretEntry } from './crypto.js';
+import { createAccessible } from './puzzles/accessible.js';
 import { createRegistry } from './puzzles/index.js';
+import { createPow } from './puzzles/pow.js';
+import { cryptoRng } from './rng.js';
+import {
+  checkSteps,
+  checkTypes,
+  DEFAULT_LADDER,
+  DEFAULT_POOL,
+  drawable,
+  effectivePool,
+  isChallengeType,
+  ladderPool,
+  parseClientTypes,
+  weightedPick,
+  type ActionPolicy,
+  type ResolvedPolicy,
+  type SelectionMode,
+} from './selection.js';
 import { MemoryStore, type NawaGuardStore } from './store.js';
 import { MAX_TOKEN_LENGTH, openChallenge, parsePassToken, sealChallenge, signPassToken, type ChallengeClaims, type PassTokenClaims } from './tokens.js';
-import { CHALLENGE_TYPES, LANGS, type ChallengeType, type CheckFailure, type Lang, type PuzzleDefinition } from './types.js';
+import { CHALLENGE_TYPES, LANGS, type ChallengeType, type CheckFailure, type Lang, type PuzzleDefinition, type ViewKind } from './types.js';
+
+export type { ActionPolicy, SelectionMode } from './selection.js';
 
 export type RateLimitHook = (ctx: { kind: 'challenge' | 'verify'; clientKey: string; client: ClientInfo }) => boolean | Promise<boolean>;
 
@@ -24,8 +44,9 @@ export interface AdaptiveOptions {
 }
 
 export type GuardEvent =
-  | { type: 'challenge-issued'; challengeType: ChallengeType; level: number; clientKey: string; action: string }
-  | { type: 'verify-success'; challengeType: ChallengeType; level: number; clientKey: string; action: string; solveMs: number }
+  | { type: 'challenge-issued'; challengeType: ChallengeType; level: number; clientKey: string; action: string; step?: number; steps?: number }
+  | { type: 'step-solved'; challengeType: ChallengeType; level: number; clientKey: string; action: string; step: number; steps: number; solveMs: number }
+  | { type: 'verify-success'; challengeType: ChallengeType; level: number; clientKey: string; action: string; solveMs: number; solvedTypes?: readonly ChallengeType[] }
   | { type: 'verify-failed'; challengeType?: ChallengeType; reason: VerifyFailure; detail?: string; clientKey: string }
   | { type: 'rate-limited'; kind: 'challenge' | 'verify'; clientKey: string };
 
@@ -41,16 +62,32 @@ export interface NawaGuardOptions {
   readonly passTtlSec?: number;
   /** Bind tokens to the client's IP and/or User-Agent. Default `ip+ua`. */
   readonly bind?: BindMode;
-  /** Enabled challenge types. Default: all. */
+  /**
+   * Allow-list of challenge types the server may issue (one, two or many). Default: all types for
+   * `adaptive` (filtered by the ladder), every visual type for `random`/`sequence`. The browser
+   * can only narrow this list, never widen it.
+   */
   readonly types?: readonly ChallengeType[];
-  /** Type pools by difficulty level (index = level). */
+  /** Relative weights for random picks (default 1 each; 0 disables a type). */
+  readonly weights?: Partial<Record<ChallengeType, number>>;
+  /** How a type is picked from the allowed ones. Default `adaptive`. */
+  readonly mode?: SelectionMode;
+  /** Puzzles to solve in a row (each a different type when possible) before a pass token. Default 1, max 3. */
+  readonly steps?: number;
+  /** Per-action overrides, e.g. `{ login: ['pow', 'slider'], signup: { types: [...], steps: 2 } }`. */
+  readonly perAction?: Readonly<Record<string, readonly ChallengeType[] | ActionPolicy>>;
+  /** Honour the browser's `types` narrowing hint (`<nawa-guard types="…">`). Default true. */
+  readonly clientNarrowing?: boolean;
+  /** Type pools by difficulty level (index = level), for `adaptive`. */
   readonly ladder?: readonly (readonly ChallengeType[])[];
   /** Start every client at an invisible proof-of-work; visible puzzles only after failures/risk. */
   readonly invisibleFirst?: boolean;
   /** Base proof-of-work difficulty in leading zero bits (each level adds 2). Default 16. */
   readonly powBits?: number;
-  /** Let the browser pick the puzzle type (demos). The accessible type is always selectable. */
+  /** Let the browser pick one exact puzzle type from the allow-list (demos, galleries). */
   readonly allowClientType?: boolean;
+  /** The accessible text alternative can always be requested, even when not in `types`. Default true. */
+  readonly allowAccessible?: boolean;
   readonly maxAttempts?: Partial<Record<ChallengeType, number>>;
   readonly minSolveMs?: Partial<Record<ChallengeType, number>>;
   readonly rateLimit?: false | RateLimitOptions | RateLimitHook;
@@ -66,17 +103,25 @@ export interface ChallengeRequest {
   readonly siteKey?: unknown;
   readonly action?: unknown;
   readonly lang?: unknown;
+  /** One exact type (only honoured with `allowClientType`, except `accessible`). */
   readonly type?: unknown;
+  /** Narrowing hint: an array (or comma-separated string) of types. Never widens the allow-list. */
+  readonly types?: unknown;
   readonly client: ClientInfo;
 }
 
 export interface ChallengeResponse {
   readonly token: string;
   readonly type: ChallengeType;
+  /** The widget view that renders this type. */
+  readonly view: ViewKind;
   readonly lang: Lang;
   readonly prompt: string;
   readonly data: unknown;
   readonly level: number;
+  /** Multi-step: this step (1-based) and the total. Both 1 for single puzzles. */
+  readonly step: number;
+  readonly steps: number;
   /** Unix ms. */
   readonly expiresAt: number;
   /** Lifetime in ms (relative, so browsers with a skewed clock still refresh on time). */
@@ -100,7 +145,9 @@ export type VerifyFailure =
 export type PublicVerifyError = 'invalid-input' | 'invalid-token' | 'expired' | 'failed' | 'rate-limited';
 
 export type VerifyResult =
-  | { ok: true; passToken: string; expiresAt: number; expiresInMs: number; type: ChallengeType }
+  | { ok: true; passToken: string; expiresAt: number; expiresInMs: number; type: ChallengeType; solvedTypes: readonly ChallengeType[]; next?: undefined }
+  /** Multi-step: this step was solved; the next challenge must be solved before a pass token is issued. */
+  | { ok: true; next: ChallengeResponse; passToken?: undefined }
   | { ok: false; error: PublicVerifyError; reason: VerifyFailure; detail?: string; retry: boolean };
 
 export interface VerifyRequest {
@@ -120,6 +167,7 @@ export type PassTokenError =
   | 'action-mismatch'
   | 'site-mismatch'
   | 'type-not-allowed'
+  | 'too-few-steps'
   | 'client-mismatch'
   | 'replayed';
 
@@ -137,33 +185,47 @@ export interface VerifyPassTokenOptions {
   readonly store?: NawaGuardStore;
   /** The request's client info; required when the token is client-bound. */
   readonly client?: ClientInfo;
-  /** Restrict which challenge types are acceptable for this route (e.g. exclude 'pow'). */
+  /**
+   * Restrict which challenge types are acceptable for this route (e.g. exclude 'pow'). For a
+   * multi-step token, at least one solved step must be of an allowed type.
+   */
   readonly allowedTypes?: readonly ChallengeType[];
+  /** Require at least this many solved puzzles (multi-step tokens). Default 1. */
+  readonly minSteps?: number;
   readonly clockSkewSec?: number;
   readonly now?: () => number;
 }
 
 const SITE_KEY_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const ACTION_RE = /^[A-Za-z0-9_.:-]{1,48}$/;
-const DEFAULT_LADDER: readonly (readonly ChallengeType[])[] = [
-  ['slider', 'rotate'],
-  ['icons', 'order', 'trace', 'slider'],
-  ['icons', 'trace', 'math', 'order'],
-];
+const MODES: readonly SelectionMode[] = ['random', 'sequence', 'adaptive'];
 const DEFAULT_RATE: RateLimitOptions = { windowSec: 60, challenge: 30, verify: 60 };
 const DEFAULT_ADAPTIVE: AdaptiveOptions = { windowSec: 900, failuresPerLevel: 2, maxLevel: 3 };
 const CLOCK_SKEW_MS = 5000;
+const SEQUENCE_TTL_MS = 24 * 3600 * 1000;
 
-function isChallengeType(v: unknown): v is ChallengeType {
-  return typeof v === 'string' && (CHALLENGE_TYPES as readonly string[]).includes(v);
+interface Issue {
+  readonly type: ChallengeType;
+  readonly level: number;
+  readonly lang: Lang;
+  readonly siteKey: string;
+  readonly action: string;
+  readonly client: ClientInfo;
+  readonly ck: string;
+  readonly policy: ResolvedPolicy;
+  readonly step: number;
+  readonly done: readonly ChallengeType[];
+  readonly pool: readonly ChallengeType[];
 }
 
 export class NawaGuard {
   readonly keys: Keyring;
   readonly store: NawaGuardStore;
   private readonly registry: Record<ChallengeType, PuzzleDefinition>;
-  private readonly enabled: readonly ChallengeType[];
-  private readonly ladder: readonly (readonly ChallengeType[])[];
+  private readonly powByBits = new Map<number, { pow: PuzzleDefinition; accessible: PuzzleDefinition }>();
+  private readonly base: ResolvedPolicy;
+  private readonly explicitTypes: boolean;
+  private readonly policies = new Map<string, ResolvedPolicy>();
   private readonly bind: BindMode;
   private readonly now: () => number;
 
@@ -171,23 +233,52 @@ export class NawaGuard {
     this.keys = createKeyring(options.secret);
     this.store = options.store ?? new MemoryStore();
     this.registry = createRegistry(options.powBits ?? 16);
-    this.enabled = options.types?.length ? options.types.filter(isChallengeType) : CHALLENGE_TYPES;
     this.bind = options.bind ?? 'ip+ua';
     if (!BIND_MODES.includes(this.bind)) throw new Error(`nawa-guard: invalid bind mode "${this.bind}"`);
     this.now = options.now ?? Date.now;
-    const base = options.ladder ?? DEFAULT_LADDER;
-    this.ladder = (options.invisibleFirst ? [['pow'] as const, ...base] : base)
-      .map((pool) => pool.filter((t) => this.enabled.includes(t)))
-      .filter((pool) => pool.length > 0);
-    if (this.ladder.length === 0) {
-      const fallback = this.enabled.filter((t) => t !== 'accessible');
-      if (fallback.length === 0) throw new Error('nawa-guard: no usable challenge types enabled');
-      this.ladder = [fallback];
-    }
     for (const kind of ['challengeTtlSec', 'passTtlSec'] as const) {
       const v = options[kind];
       if (v !== undefined && (!Number.isFinite(v) || v < 10 || v > 3600)) throw new Error(`nawa-guard: ${kind} must be 10..3600`);
     }
+    if (options.mode !== undefined && !MODES.includes(options.mode)) throw new Error(`nawa-guard: mode must be one of ${MODES.join(', ')}`);
+    const types = checkTypes(options.types, 'types');
+    if (types && types.length === 0) throw new Error('nawa-guard: types must list at least one challenge type');
+    this.explicitTypes = types !== undefined;
+    const ladder = (options.ladder ?? DEFAULT_LADDER).map((rung, i) => checkTypes(rung, `ladder[${i}]`)!);
+    this.base = {
+      types: types ?? [...CHALLENGE_TYPES],
+      weights: { ...options.weights },
+      mode: options.mode ?? 'adaptive',
+      steps: checkSteps(options.steps, 'steps') ?? 1,
+      ladder: options.invisibleFirst ? [['pow'], ...ladder] : ladder,
+      powBits: options.powBits ?? 16,
+    };
+    // Validate every per-action override up front so mistakes fail at startup, not per request.
+    for (const action of Object.keys(options.perAction ?? {})) this.policy(action);
+  }
+
+  /** The effective selection policy for an action (global options merged with `perAction`). */
+  policy(action: string): ResolvedPolicy {
+    const cached = this.policies.get(action);
+    if (cached) return cached;
+    const raw = Object.prototype.hasOwnProperty.call(this.options.perAction ?? {}, action) ? this.options.perAction![action] : undefined;
+    const p: ActionPolicy = Array.isArray(raw) ? { types: raw as readonly ChallengeType[] } : ((raw as ActionPolicy | undefined) ?? {});
+    const where = `perAction["${action}"]`;
+    if (p.mode !== undefined && !MODES.includes(p.mode)) throw new Error(`nawa-guard: ${where}.mode must be one of ${MODES.join(', ')}`);
+    const types = checkTypes(p.types, `${where}.types`);
+    if (types && types.length === 0) throw new Error(`nawa-guard: ${where}.types must list at least one challenge type`);
+    const mode = p.mode ?? this.base.mode;
+    const resolved: ResolvedPolicy = {
+      // Without any allow-list, random/sequence draw from the visual types (not pow/accessible).
+      types: types ?? (this.explicitTypes || mode === 'adaptive' ? this.base.types : DEFAULT_POOL),
+      weights: { ...this.base.weights, ...p.weights },
+      mode,
+      steps: checkSteps(p.steps, `${where}.steps`) ?? this.base.steps,
+      ladder: p.ladder ? p.ladder.map((rung, i) => checkTypes(rung, `${where}.ladder[${i}]`)!) : this.base.ladder,
+      powBits: p.powBits ?? this.base.powBits,
+    };
+    this.policies.set(action, resolved);
+    return resolved;
   }
 
   private emit(event: GuardEvent): void {
@@ -224,12 +315,79 @@ export class NawaGuard {
     return Math.min(level, 6);
   }
 
+  private definition(type: ChallengeType, powBits: number): PuzzleDefinition {
+    if ((type !== 'pow' && type !== 'accessible') || powBits === (this.options.powBits ?? 16)) return this.registry[type];
+    let defs = this.powByBits.get(powBits);
+    if (!defs) {
+      defs = { pow: createPow(powBits) as PuzzleDefinition, accessible: createAccessible(powBits) as PuzzleDefinition };
+      this.powByBits.set(powBits, defs);
+    }
+    return defs[type];
+  }
+
   private maxAttempts(type: ChallengeType): number {
     return Math.max(1, this.options.maxAttempts?.[type] ?? this.registry[type].maxAttempts);
   }
 
   private minSolveMs(type: ChallengeType): number {
     return Math.max(0, this.options.minSolveMs?.[type] ?? this.registry[type].minSolveMs);
+  }
+
+  /** Picks a type from `pool` according to the policy, avoiding `exclude` when possible. */
+  private async choose(policy: ResolvedPolicy, pool: readonly ChallengeType[], level: number, ck: string, action: string, exclude: readonly ChallengeType[] = []): Promise<ChallengeType> {
+    const all = drawable(pool);
+    const fresh = all.filter((t) => !exclude.includes(t));
+    const lastDone = exclude[exclude.length - 1];
+    const notRepeat = all.filter((t) => t !== lastDone);
+    const candidates = fresh.length ? fresh : notRepeat.length ? notRepeat : all;
+    switch (policy.mode) {
+      case 'random':
+        return weightedPick(cryptoRng, candidates, policy.weights);
+      case 'sequence': {
+        const n = await this.store.increment(`seq:${ck}:${action}`, SEQUENCE_TTL_MS);
+        return candidates[(n - 1) % candidates.length]!;
+      }
+      default:
+        return weightedPick(cryptoRng, ladderPool(policy.ladder, level, candidates), policy.weights);
+    }
+  }
+
+  private issue(i: Issue): ChallengeResponse {
+    const generated = this.definition(i.type, i.policy.powBits).generate({ level: i.level, lang: i.lang, rng: cryptoRng });
+    const iat = this.now();
+    const exp = iat + (this.options.challengeTtlSec ?? 120) * 1000;
+    const cb = bindingHash(this.keys.key(this.keys.activeKid, 'client-binding')!, this.bind, i.client);
+    const chain = i.policy.steps > 1 ? { stp: i.step, of: i.policy.steps, done: i.done, pool: i.pool } : {};
+    const claims: ChallengeClaims = {
+      v: 1,
+      id: cryptoRng.id(16),
+      typ: i.type,
+      sk: i.siteKey,
+      act: i.action,
+      lang: i.lang,
+      iat,
+      exp,
+      lvl: i.level,
+      // If the binding material is unavailable (e.g. no UA header) the token is simply unbound.
+      cbm: cb ? this.bind : 'none',
+      ...(cb ? { cb } : {}),
+      sol: generated.solution,
+      ...chain,
+    };
+    this.emit({ type: 'challenge-issued', challengeType: i.type, level: i.level, clientKey: i.ck, action: i.action, ...(i.policy.steps > 1 ? { step: i.step, steps: i.policy.steps } : {}) });
+    return {
+      token: sealChallenge(this.keys, claims),
+      type: i.type,
+      view: this.registry[i.type].view,
+      lang: i.lang,
+      prompt: generated.prompt,
+      data: generated.publicData,
+      level: i.level,
+      step: i.step,
+      steps: i.policy.steps,
+      expiresAt: exp,
+      expiresInMs: exp - iat,
+    };
   }
 
   async createChallenge(req: ChallengeRequest): Promise<{ ok: true; challenge: ChallengeResponse } | { ok: false; error: ChallengeError }> {
@@ -240,6 +398,7 @@ export class NawaGuard {
     if (this.options.siteKeys && !this.options.siteKeys.includes(siteKey)) return { ok: false, error: 'invalid-input' };
     if (this.options.actions && !this.options.actions.includes(action)) return { ok: false, error: 'invalid-input' };
     if (req.type !== undefined && req.type !== null && !isChallengeType(req.type)) return { ok: false, error: 'invalid-input' };
+    if (req.types !== undefined && req.types !== null && typeof req.types !== 'string' && !Array.isArray(req.types)) return { ok: false, error: 'invalid-input' };
     const lang: Lang = (LANGS as readonly unknown[]).includes(req.lang) ? (req.lang as Lang) : (this.options.defaultLang ?? 'en');
 
     const ck = this.clientKeyOf(req.client);
@@ -249,37 +408,16 @@ export class NawaGuard {
     }
 
     const level = await this.levelFor(ck, req.client, action);
-    const requested = isChallengeType(req.type) && this.enabled.includes(req.type) ? req.type : undefined;
+    const policy = this.policy(action);
+    const pool = effectivePool(policy, this.options.clientNarrowing === false ? undefined : parseClientTypes(req.types));
+    const requested = isChallengeType(req.type) ? req.type : undefined;
     // The browser does not get to pick the easiest puzzle; only the accessible alternative is always available.
-    const type: ChallengeType =
-      requested && (requested === 'accessible' || this.options.allowClientType)
-        ? requested
-        : pick(this.ladder[Math.min(level, this.ladder.length - 1)] ?? this.ladder[0]!);
+    let type: ChallengeType;
+    if (requested === 'accessible' && (this.options.allowAccessible !== false || pool.includes('accessible'))) type = 'accessible';
+    else if (requested && this.options.allowClientType && pool.includes(requested)) type = requested;
+    else type = await this.choose(policy, pool, level, ck, action);
 
-    const generated = this.registry[type].generate({ level, lang });
-    const iat = this.now();
-    const exp = iat + (this.options.challengeTtlSec ?? 120) * 1000;
-    const cb = bindingHash(this.keys.key(this.keys.activeKid, 'client-binding')!, this.bind, req.client);
-    const claims: ChallengeClaims = {
-      v: 1,
-      id: randomId(16),
-      typ: type,
-      sk: siteKey,
-      act: action,
-      lang,
-      iat,
-      exp,
-      lvl: level,
-      // If the binding material is unavailable (e.g. no UA header) the token is simply unbound.
-      cbm: cb ? this.bind : 'none',
-      ...(cb ? { cb } : {}),
-      sol: generated.solution,
-    };
-    this.emit({ type: 'challenge-issued', challengeType: type, level, clientKey: ck, action });
-    return {
-      ok: true,
-      challenge: { token: sealChallenge(this.keys, claims), type, lang, prompt: generated.prompt, data: generated.publicData, level, expiresAt: exp, expiresInMs: exp - iat },
-    };
+    return { ok: true, challenge: this.issue({ type, level, lang, siteKey, action, client: req.client, ck, policy, step: 1, done: [], pool }) };
   }
 
   async verify(req: VerifyRequest): Promise<VerifyResult> {
@@ -324,18 +462,43 @@ export class NawaGuard {
     const solveMs = now - claims.iat;
     if (solveMs < this.minSolveMs(claims.typ)) return fail('too-fast', { claims, retry });
 
-    const result = this.registry[claims.typ].check(claims.sol, req.answer, { level: claims.lvl });
+    const result = this.registry[claims.typ].check(claims.sol, req.answer, { level: claims.lvl, elapsedMs: solveMs });
     if (!result.ok) return fail(result.reason, { claims, retry: retry && result.reason !== 'invalid-answer', ...(result.detail ? { detail: result.detail } : {}) });
 
     // Atomic one-time redemption: of two concurrent correct submissions only one wins.
     if (!(await this.store.setIfAbsent(`used:${claims.id}`, ttl))) return fail('replayed', { claims });
+
+    const steps = claims.of ?? 1;
+    const step = claims.stp ?? 1;
+    const solved = [...(claims.done ?? []), claims.typ];
+    if (step < steps) {
+      // Multi-step: hand out the next (different) puzzle instead of a pass token.
+      const policy = this.policy(claims.act);
+      const pool = (claims.pool ?? [claims.typ]).filter(isChallengeType);
+      const type = await this.choose(policy, pool, claims.lvl, ck, claims.act, solved);
+      this.emit({ type: 'step-solved', challengeType: claims.typ, level: claims.lvl, clientKey: ck, action: claims.act, step, steps, solveMs });
+      const next = this.issue({
+        type,
+        level: claims.lvl,
+        lang: (LANGS as readonly string[]).includes(claims.lang) ? (claims.lang as Lang) : 'en',
+        siteKey: claims.sk,
+        action: claims.act,
+        client: req.client,
+        ck,
+        policy: { ...policy, steps },
+        step: step + 1,
+        done: solved,
+        pool,
+      });
+      return { ok: true, next };
+    }
 
     const iat = Math.floor(now / 1000);
     const exp = iat + (this.options.passTtlSec ?? 120);
     const cb = claims.cbm === 'none' ? undefined : bindingHash(this.keys.key(this.keys.activeKid, 'client-binding')!, claims.cbm, req.client);
     const passToken = signPassToken(this.keys, {
       v: 1,
-      jti: randomId(16),
+      jti: cryptoRng.id(16),
       sk: claims.sk,
       act: claims.act,
       typ: claims.typ,
@@ -344,9 +507,10 @@ export class NawaGuard {
       exp,
       cbm: cb ? claims.cbm : 'none',
       ...(cb ? { cb } : {}),
+      ...(steps > 1 ? { stp: solved } : {}),
     });
-    this.emit({ type: 'verify-success', challengeType: claims.typ, level: claims.lvl, clientKey: ck, action: claims.act, solveMs });
-    return { ok: true, passToken, expiresAt: exp * 1000, expiresInMs: (exp - iat) * 1000, type: claims.typ };
+    this.emit({ type: 'verify-success', challengeType: claims.typ, level: claims.lvl, clientKey: ck, action: claims.act, solveMs, ...(steps > 1 ? { solvedTypes: solved } : {}) });
+    return { ok: true, passToken, expiresAt: exp * 1000, expiresInMs: (exp - iat) * 1000, type: claims.typ, solvedTypes: solved };
   }
 
   /** Server-side pass-token check using this instance's secrets and store. */
@@ -396,7 +560,7 @@ function keyringFrom(secret: VerifyPassTokenOptions['secret']): Keyring {
 
 /**
  * Verifies a pass token on your backend (the equivalent of reCAPTCHA siteverify, but local):
- * signature, expiry, max age, action, site key, allowed types, client binding, and single use.
+ * signature, expiry, max age, action, site key, allowed types, steps, client binding, and single use.
  */
 export async function verifyPassToken(token: unknown, opts: VerifyPassTokenOptions): Promise<PassTokenResult> {
   if (typeof token !== 'string' || token.length === 0) return { ok: false, error: 'missing-token' };
@@ -414,7 +578,9 @@ export async function verifyPassToken(token: unknown, opts: VerifyPassTokenOptio
   const actions = typeof opts.expectedAction === 'string' ? [opts.expectedAction] : opts.expectedAction;
   if (!actions.includes(claims.act)) return { ok: false, error: 'action-mismatch' };
   if (opts.expectedSiteKey !== undefined && claims.sk !== opts.expectedSiteKey) return { ok: false, error: 'site-mismatch' };
-  if (opts.allowedTypes && !opts.allowedTypes.includes(claims.typ)) return { ok: false, error: 'type-not-allowed' };
+  const solved: readonly string[] = claims.stp ?? [claims.typ];
+  if (opts.allowedTypes && !solved.some((t) => opts.allowedTypes!.includes(t as ChallengeType))) return { ok: false, error: 'type-not-allowed' };
+  if (opts.minSteps !== undefined && solved.length < opts.minSteps) return { ok: false, error: 'too-few-steps' };
 
   if (claims.cbm !== 'none') {
     const key = keys.key(kid, 'client-binding');

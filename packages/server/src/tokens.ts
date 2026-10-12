@@ -1,5 +1,5 @@
 import { BIND_MODES, type BindMode } from './binding.js';
-import { b64url, fromB64url, hmac, isValidKid, open, safeEqual, seal, type Keyring } from './crypto.js';
+import { b64url, fromB64url, fromUtf8, hmac, isValidKid, open, safeEqual, seal, utf8, type Keyring } from './crypto.js';
 import type { ChallengeType } from './types.js';
 
 export const CHALLENGE_PREFIX = 'ngc1';
@@ -25,6 +25,11 @@ export interface ChallengeClaims {
   readonly cb?: string;
   /** Type-specific solution. Never leaves the server in readable form. */
   readonly sol: unknown;
+  /** Multi-step chains only: this step (1-based), total steps, types already solved, and the pool to pick from. */
+  readonly stp?: number;
+  readonly of?: number;
+  readonly done?: readonly ChallengeType[];
+  readonly pool?: readonly ChallengeType[];
 }
 
 /** Contents of a pass token. Signed (HMAC-SHA256), readable by design; holds no secret. */
@@ -40,6 +45,11 @@ export interface PassTokenClaims {
   readonly exp: number;
   readonly cbm: BindMode;
   readonly cb?: string;
+  /**
+   * Multi-step only (`steps` > 1): every solved type in order; `typ` is the last one. Optional and
+   * additive, so single-step tokens are byte-for-byte the v1 format.
+   */
+  readonly stp?: readonly ChallengeType[];
 }
 
 // ------------------------------------------------------------------ challenge tokens
@@ -83,7 +93,7 @@ export function signPassToken(keys: Keyring, claims: PassTokenClaims): string {
   const kid = keys.activeKid;
   const key = keys.key(kid, 'pass-token');
   if (!key) throw new Error('nawa-guard: active key missing');
-  const head = `${PASS_PREFIX}.${kid}.${b64url(Buffer.from(JSON.stringify(claims), 'utf8'))}`;
+  const head = `${PASS_PREFIX}.${kid}.${b64url(utf8(JSON.stringify(claims)))}`;
   return `${head}.${b64url(hmac(key, head))}`;
 }
 
@@ -104,7 +114,9 @@ export function parsePassToken(keys: Keyring, token: string): PassTokenParse {
   // Signature first: nothing inside the payload is trusted (or even parsed) before it verifies.
   if (!safeEqual(sigBytes, hmac(key, `${prefix}.${kid}.${payload}`))) return { ok: false, error: 'bad-signature' };
   try {
-    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as PassTokenClaims;
+    const text = fromUtf8(fromB64url(payload)!);
+    if (text === undefined) return { ok: false, error: 'malformed' };
+    const claims = JSON.parse(text) as PassTokenClaims;
     if (!isPassClaims(claims)) return { ok: false, error: 'malformed' };
     return { ok: true, claims, kid };
   } catch {
@@ -126,6 +138,7 @@ function isPassClaims(c: unknown): c is PassTokenClaims {
     Number.isInteger(o['lvl']) &&
     typeof o['cbm'] === 'string' &&
     BIND_MODES.includes(o['cbm'] as BindMode) &&
-    (o['cb'] === undefined || typeof o['cb'] === 'string')
+    (o['cb'] === undefined || typeof o['cb'] === 'string') &&
+    (o['stp'] === undefined || (Array.isArray(o['stp']) && o['stp'].length >= 1 && o['stp'].length <= 5 && o['stp'].every((t) => typeof t === 'string')))
   );
 }

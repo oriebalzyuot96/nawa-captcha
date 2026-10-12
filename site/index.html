@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nawa Guard — Self-hosted, accessible puzzle CAPTCHA (reCAPTCHA alternative)</title>
-  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
+  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
   <link rel="canonical" href="https://oriebalzyuot96.github.io/nawa-guard/" />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="oriebalzyuot96" />
@@ -14,7 +14,7 @@
   <link rel="alternate" type="text/plain" href="llms.txt" title="LLM summary" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Nawa Guard — self-hosted, accessible puzzle CAPTCHA" />
-  <meta property="og:description" content="Open-source reCAPTCHA alternative: 8 puzzle types, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Node.js and ASP.NET Core." />
+  <meta property="og:description" content="Open-source reCAPTCHA alternative: 30+ puzzle types, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Try it live in your browser. Node.js and ASP.NET Core." />
   <meta property="og:url" content="https://oriebalzyuot96.github.io/nawa-guard/" />
   <meta name="twitter:card" content="summary" />
   <script type="application/ld+json">
@@ -23,132 +23,373 @@
     "@type": "SoftwareSourceCode",
     "name": "Nawa Guard",
     "alternateName": ["nawa-guard", "@nawa-guard/server"],
-    "description": "Open-source, self-hosted, accessible puzzle CAPTCHA. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
+    "description": "Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
     "url": "https://oriebalzyuot96.github.io/nawa-guard/",
     "codeRepository": "https://github.com/oriebalzyuot96/nawa-guard",
     "programmingLanguage": ["TypeScript", "C#"],
     "runtimePlatform": ["Node.js", "ASP.NET Core", "React", "Vue", "Svelte", "Angular"],
     "license": "https://opensource.org/licenses/MIT",
-    "keywords": "captcha, recaptcha alternative, hcaptcha alternative, turnstile alternative, self-hosted captcha, accessible captcha, puzzle captcha, slider captcha, bot protection, anti-spam, proof of work, aspnetcore, nodejs"
+    "keywords": "captcha, recaptcha alternative, hcaptcha alternative, turnstile alternative, self-hosted captcha, accessible captcha, puzzle captcha, slider captcha, rotate captcha, bot protection, anti-spam, proof of work, aspnetcore, nodejs"
   }
   </script>
+  <script>
+    // Remembered theme choice (light/dark); otherwise the system preference applies.
+    try { var t = localStorage.getItem('nawa-guard-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
   <style>
-    :root { color-scheme: light dark; --bg: #ffffff; --fg: #16262d; --muted: #4b6873; --line: #dbe5e8; --card: #f4f8f9; --primary: #5b34d6; --primary-ink: #5230cc; --on-primary: #fff; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #10161b; --fg: #e7eef1; --muted: #a1b4bc; --line: #283640; --card: #172028; --primary: #b9a5ff; --primary-ink: #c4b5fd; --on-primary: #1d0f4a; } }
+    :root {
+      color-scheme: light;
+      --bg: #ffffff; --bg-2: #f4f8f9; --fg: #16262d; --muted: #4b6873; --line: #dbe5e8; --card: #ffffff;
+      --primary: #5b34d6; --primary-ink: #5230cc; --primary-hover: #4925b8; --on-primary: #ffffff;
+      --primary-soft: color-mix(in srgb, #5b34d6 10%, #ffffff); --code-bg: #14112b; --code-fg: #e9e5ff;
+      --ok: #0f6b33; --bad: #c0262d; --shadow: 0 14px 32px -16px rgba(22, 38, 45, .22), 0 2px 6px rgba(22, 38, 45, .06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #10161b; --bg-2: #172028; --fg: #e7eef1; --muted: #a1b4bc; --line: #283640; --card: #141c22;
+        --primary: #b9a5ff; --primary-ink: #c4b5fd; --primary-hover: #d3c7ff; --on-primary: #1d0f4a;
+        --primary-soft: color-mix(in srgb, #b9a5ff 14%, #10161b); --code-bg: #0b0f13; --code-fg: #e7eef1;
+        --ok: #4cd987; --bad: #ff8a8a; --shadow: 0 14px 32px -16px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .3);
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #10161b; --bg-2: #172028; --fg: #e7eef1; --muted: #a1b4bc; --line: #283640; --card: #141c22;
+      --primary: #b9a5ff; --primary-ink: #c4b5fd; --primary-hover: #d3c7ff; --on-primary: #1d0f4a;
+      --primary-soft: color-mix(in srgb, #b9a5ff 14%, #10161b); --code-bg: #0b0f13; --code-fg: #e7eef1;
+      --ok: #4cd987; --bad: #ff8a8a; --shadow: 0 14px 32px -16px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .3);
+    }
+    /* The widget reads Nawa UI tokens through its shadow boundary. */
+    :root {
+      --nw-primary: var(--primary); --nw-primary-hover: var(--primary-hover); --nw-primary-soft: var(--primary-soft); --nw-on-primary: var(--on-primary);
+      --nw-surface: var(--card); --nw-surface-alt: var(--bg-2); --nw-text: var(--fg); --nw-text-muted: var(--muted); --nw-border: var(--line);
+      --nw-control-border: color-mix(in srgb, var(--muted) 70%, var(--line)); --nw-focus: var(--primary); --nw-success: var(--ok); --nw-danger: var(--bad);
+      --nw-success-soft: color-mix(in srgb, var(--ok) 12%, var(--card)); --nw-danger-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
+      --nw-radius: 16px; --nw-radius-sm: 10px; --nw-shadow-sm: none;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif; }
     a { color: var(--primary-ink); }
-    a:focus-visible, summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
-    .wrap { width: min(100% - 2rem, 64rem); margin-inline: auto; }
-    .skip { position: absolute; top: -100px; left: 1rem; background: var(--primary); color: var(--on-primary); padding: .5rem 1rem; border-radius: 8px; }
+    :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+    .wrap { width: min(100% - 2rem, 72rem); margin-inline: auto; }
+    .skip { position: absolute; top: -100px; left: 1rem; background: var(--primary); color: var(--on-primary); padding: .5rem 1rem; border-radius: 8px; z-index: 10; }
     .skip:focus { top: 1rem; }
-    header { border-bottom: 1px solid var(--line); }
-    header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; flex-wrap: wrap; }
+    header.site { border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 5; }
+    header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; flex-wrap: wrap; }
     .brand { font-weight: 800; font-size: 1.15rem; color: var(--fg); text-decoration: none; display: inline-flex; gap: .5rem; align-items: center; }
-    nav a { margin-inline-start: 1rem; font-weight: 600; }
-    .hero { padding: 4rem 0 2.5rem; }
-    h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; margin: 0 0 1rem; letter-spacing: -.02em; }
-    h2 { font-size: 1.6rem; margin: 0 0 1rem; }
-    .lead { font-size: 1.15rem; color: var(--muted); max-width: 46rem; }
-    .btns { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; }
-    .btn { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.25rem; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); color: var(--fg); background: var(--card); }
-    .btn--primary { background: var(--primary); color: var(--on-primary); border-color: transparent; }
-    section { padding: 2.5rem 0; border-top: 1px solid var(--line); }
+    nav.main { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+    nav.main a { font-weight: 600; text-decoration: none; color: var(--muted); }
+    nav.main a:hover { color: var(--primary-ink); }
+    body { overflow-x: clip; }
+    .hero { padding: 4.5rem 0 3rem; position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; }
+    @media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 3rem; } }
+    .hero::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); background: radial-gradient(45% 70% at 80% 30%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%); pointer-events: none; z-index: -1; }
+    .hero-demo { position: relative; }
+    .hero-demo .tagline { margin: .6rem 0 0; text-align: center; font-size: .82rem; color: var(--muted); }
+    .hero-demo nawa-guard { margin-inline: auto; box-shadow: var(--shadow); border-radius: 16px; }
+    .eyebrow { display: inline-block; font-weight: 700; font-size: .85rem; color: var(--primary-ink); background: var(--primary-soft); padding: .25rem .75rem; border-radius: 999px; margin-bottom: 1rem; }
+    h1 { font-size: clamp(2rem, 4.4vw, 3.1rem); hyphens: manual; line-height: 1.12; margin: 0 0 1rem; letter-spacing: -.025em; max-width: 52rem; }
+    h1 .accent { color: var(--primary-ink); }
+    h2 { font-size: clamp(1.5rem, 3vw, 1.9rem); margin: 0 0 .5rem; letter-spacing: -.01em; }
+    .section-lead { color: var(--muted); margin: 0 0 1.5rem; max-width: 48rem; }
+    .lead { font-size: 1.15rem; color: var(--muted); max-width: 46rem; margin: 0; }
+    .btns { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+    .btn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.9rem; padding: 0 1.25rem; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); color: var(--fg); background: var(--card); cursor: pointer; font-size: 1rem; }
+    .btn:hover { border-color: var(--primary); }
+    .btn--primary { background: var(--primary); color: var(--on-primary); border-color: transparent; box-shadow: var(--shadow); }
+    .btn--primary:hover { background: var(--primary-hover); }
+    .btn svg { width: 1.1em; height: 1.1em; }
+    .stats { display: grid; grid-template-columns: repeat(4, max-content); gap: .75rem 2rem; margin-top: 2.25rem; color: var(--muted); font-size: .95rem; }
+    @media (max-width: 560px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .stats strong { display: block; font-size: 1.6rem; color: var(--fg); line-height: 1.2; }
+    section.block { padding: 3.5rem 0; border-top: 1px solid var(--line); scroll-margin-top: 4rem; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
     .card { padding: 1.25rem; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
     .card h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
     .card p { margin: 0; color: var(--muted); }
-    pre { margin: .75rem 0 0; padding: 1rem; border-radius: 12px; background: #0f172a; color: #e2e8f0; overflow-x: auto; font-size: .9rem; }
-    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
-    th, td { padding: .6rem .75rem; border-bottom: 1px solid var(--line); text-align: start; }
-    th { color: var(--muted); }
+    pre { margin: .75rem 0 0; padding: 1rem 1.1rem; border-radius: 12px; background: var(--code-bg); color: var(--code-fg); overflow-x: auto; font-size: .86rem; line-height: 1.55; direction: ltr; text-align: left; }
+    pre[dir="auto"] { unicode-bidi: plaintext; text-align: start; }
+    code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+    table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+    th, td { padding: .55rem .7rem; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+    .note { padding: .9rem 1.1rem; border-radius: 12px; background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); margin: 1rem 0; }
     footer { padding: 2rem 0; color: var(--muted); border-top: 1px solid var(--line); font-size: .9rem; }
-    [dir="rtl"] { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; }
+
+    /* ------------------------------------------------------------------ playground */
+    .demo-banner { display: flex; gap: .75rem; align-items: flex-start; padding: .85rem 1rem; border-radius: 14px; background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); color: var(--fg); margin-bottom: 1.25rem; font-weight: 600; }
+    .demo-banner svg { flex: none; width: 1.3rem; height: 1.3rem; color: var(--primary-ink); margin-top: .1rem; }
+    .pg { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 960px) { .pg { grid-template-columns: 1fr; } }
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); padding: 1.25rem; }
+    .panel + .panel { margin-top: 1.25rem; }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; margin: 0 0 .9rem; }
+    .panel-title h3 { margin: 0; font-size: 1.05rem; }
+    .muted { color: var(--muted); }
+    .small { font-size: .85rem; }
+    .seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); gap: 2px; flex-wrap: wrap; }
+    .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; font-size: .9rem; padding: .4rem .8rem; border-radius: 9px; cursor: pointer; min-height: 2.25rem; }
+    .seg button[aria-pressed="true"] { background: var(--card); color: var(--primary-ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem 1.25rem; margin-top: 1rem; }
+    .control label, .control .label { display: block; font-weight: 700; font-size: .85rem; margin-bottom: .35rem; }
+    .control input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .pg-group { margin-bottom: .85rem; }
+    .pg-group-title { margin: 0 0 .4rem; font-size: .8rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+    [dir="rtl"] .pg-group-title { text-transform: none; letter-spacing: 0; }
+    .pg-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .pg-chip { font: inherit; font-size: .86rem; font-weight: 600; padding: .38rem .75rem; min-height: 2.25rem; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--fg); cursor: pointer; transition: border-color .15s, background-color .15s; }
+    .pg-chip:hover { border-color: var(--primary); }
+    .pg-chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+    .pg-tools { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .linkish { font: inherit; font-size: .85rem; font-weight: 600; background: none; border: 0; color: var(--primary-ink); cursor: pointer; padding: .25rem .4rem; border-radius: 6px; }
+    .preview { display: grid; gap: .75rem; max-width: 380px; margin-inline: auto; }
+    .preview h3 { margin: 0; font-size: 1.15rem; }
+    .preview input[type="email"] { font: inherit; min-height: 2.75rem; padding: 0 .8rem; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-2); color: var(--fg); width: 100%; }
+    .preview .btn { justify-content: center; }
+    .preview .btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    details.insp { border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+    details.insp + details.insp { margin-top: .75rem; }
+    details.insp summary { cursor: pointer; padding: .8rem 1rem; font-weight: 700; list-style-position: inside; }
+    details.insp .body { padding: 0 1rem 1rem; }
+    details.insp pre { margin: .5rem 0 0; max-height: 18rem; font-size: .78rem; white-space: pre-wrap; word-break: break-all; }
+    #pg-log { list-style: none; margin: .5rem 0 0; padding: 0; font-size: .82rem; max-height: 14rem; overflow: auto; direction: ltr; text-align: left; }
+    #pg-log li { padding: .3rem 0; border-bottom: 1px dashed var(--line); font-family: ui-monospace, Consolas, monospace; }
+    #pg-log time { color: var(--muted); }
+    .pg-log-ok { color: var(--ok); }
+    .pg-log-bad { color: var(--bad); }
   </style>
+  <script type="module" src="assets/playground.js"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header>
+  <header class="site">
     <div class="wrap">
       <a class="brand" href="./"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5b34d6"/><path d="M16 7l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9v-6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nawa Guard</a>
-      <nav aria-label="Main"><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
+      <nav class="main" aria-label="Main"><a href="#playground">Playground</a><a href="#puzzles">Puzzles</a><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
     </div>
   </header>
 
   <main id="main">
     <div class="wrap hero">
-      <h1>Nawa Guard — the self-hosted, accessible puzzle CAPTCHA</h1>
-      <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
+      <div>
+      <span class="eyebrow">Open source · MIT · self-hosted</span>
+      <h1>Nawa Guard — the <span style="white-space:nowrap">self-hosted</span>, <span class="accent">accessible</span> puzzle CAPTCHA</h1>
+      <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong> with <strong><span data-type-count>37</span> puzzle types</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
       <div class="btns">
-        <a class="btn btn--primary" href="https://github.com/oriebalzyuot96/nawa-guard#readme">Get started</a>
-        <a class="btn" href="https://github.com/oriebalzyuot96/nawa-guard">Star on GitHub</a>
+        <a class="btn btn--primary" href="#playground">Try the live playground</a>
+        <a class="btn" href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.8 13.6H4l11-12-1.8 9.6H20l-11 12z"/></svg>Open in StackBlitz</a>
+        <a class="btn" href="https://github.com/oriebalzyuot96/nawa-guard#readme">Read the docs</a>
+      </div>
+      <div class="stats" aria-label="At a glance">
+        <div><strong>30+</strong>puzzle types</div>
+        <div><strong>0</strong>runtime dependencies</div>
+        <div><strong>2</strong>languages, RTL</div>
+        <div><strong>3</strong>input modes</div>
+      </div>
+      </div>
+      <div class="hero-demo">
+        <nawa-guard id="hero-widget" endpoint="/__nawa-guard-demo__" site-key="playground" action="signup" lang="en"></nawa-guard>
+        <p class="tagline">A real puzzle, generated and checked in this page (demo mode).</p>
       </div>
     </div>
 
-    <section aria-labelledby="why">
+    <section class="block" id="playground" aria-labelledby="playground-h">
+      <div class="wrap">
+        <h2 id="playground-h">Playground</h2>
+        <p class="section-lead">Pick a puzzle, or mix several and see how the server chooses between them, chains them, and what ends up in the pass token.</p>
+        <div class="demo-banner" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg><span data-i18n="banner">Demo mode: challenges are generated and verified in your browser; in production your server does this.</span></div>
+        <div class="pg">
+          <div>
+            <div class="panel">
+              <div class="panel-title">
+                <h3 data-i18n="puzzles">Puzzles</h3>
+                <div class="pg-tools">
+                  <div class="seg" id="pg-pick" role="group" aria-label="Selection style"><button type="button" data-value="one" data-i18n="pickOne">Try one</button><button type="button" data-value="many" data-i18n="pickMany">Mix several</button></div>
+                  <button type="button" class="linkish" id="pg-all" data-i18n="all">All</button>
+                  <button type="button" class="linkish" id="pg-none" data-i18n="none">Clear</button>
+                </div>
+              </div>
+              <p class="muted small" id="pg-count" aria-live="polite"></p>
+              <div id="pg-gallery"></div>
+              <div class="controls">
+                <div class="control"><span class="label" id="pg-mode-l" data-i18n="mode">Selection</span><div class="seg" id="pg-mode" role="group" aria-labelledby="pg-mode-l"><button type="button" data-value="random" data-i18n="random">Random</button><button type="button" data-value="sequence" data-i18n="sequence">Sequence</button><button type="button" data-value="adaptive" data-i18n="adaptive">Adaptive</button></div><p class="muted small" id="pg-mode-help"></p></div>
+                <div class="control"><span class="label" id="pg-steps-l" data-i18n="steps">Puzzles in a row</span><div class="seg" id="pg-steps" role="group" aria-labelledby="pg-steps-l"><button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button></div></div>
+                <div class="control"><span class="label" id="pg-lang-l" data-i18n="language">Language</span><div class="seg" id="pg-lang" role="group" aria-labelledby="pg-lang-l"><button type="button" data-value="en">English</button><button type="button" data-value="ar" lang="ar">العربية</button></div></div>
+                <div class="control"><span class="label" id="pg-theme-l" data-i18n="theme">Theme</span><div class="seg" id="pg-theme" role="group" aria-labelledby="pg-theme-l"><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button></div></div>
+                <div class="control"><label for="pg-level"><span data-i18n="level">Difficulty level</span>: <span id="pg-level-value">0</span></label><input id="pg-level" type="range" min="0" max="3" step="1" value="0" /></div>
+              </div>
+            </div>
+            <details class="insp" open style="margin-top:1.25rem">
+              <summary data-i18n="config">Your configuration</summary>
+              <div class="body"><pre><code id="pg-config"></code></pre></div>
+            </details>
+          </div>
+          <div>
+            <div class="panel">
+              <form class="preview" id="pg-form" aria-labelledby="pg-form-h">
+                <h3 id="pg-form-h" data-i18n="formTitle">Create your account</h3>
+                <label for="pg-email" class="muted small" data-i18n="email">Email</label>
+                <input id="pg-email" type="email" autocomplete="off" placeholder="you@example.com" />
+                <nawa-guard id="pg-widget" endpoint="/__nawa-guard-demo__" site-key="playground" action="signup" lang="en"></nawa-guard>
+                <button type="submit" class="btn btn--primary" id="pg-submit" disabled data-i18n="submit">Sign up</button>
+              </form>
+            </div>
+            <details class="insp" open style="margin-top:1.25rem">
+              <summary data-i18n="pass">Pass token</summary>
+              <div class="body"><p class="muted small" data-i18n="passNote"></p><pre id="pg-pass" dir="auto"></pre><button type="button" class="btn" id="pg-verify" style="margin-top:.75rem" disabled data-i18n="verifyBackend">Verify as the backend would</button></div>
+            </details>
+            <details class="insp">
+              <summary data-i18n="received">What the browser received</summary>
+              <div class="body"><p class="muted small" data-i18n="receivedNote"></p><pre id="pg-received"></pre></div>
+            </details>
+            <details class="insp">
+              <summary data-i18n="sealed">Inside the sealed token (visible only in demo mode)</summary>
+              <div class="body"><p class="muted small" data-i18n="sealedNote"></p><pre id="pg-sealed"></pre></div>
+            </details>
+            <details class="insp" open>
+              <summary data-i18n="log">Event log</summary>
+              <div class="body"><ul id="pg-log"></ul></div>
+            </details>
+          </div>
+        </div>
+        <p class="muted small" style="margin-top:1.25rem">Want the real thing with a Node server? <a href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard">Open the Express demo in StackBlitz</a> (runs <code>npm run demo</code>), or clone the repository and run it locally.</p>
+      </div>
+    </section>
+
+    <section class="block" id="puzzles" aria-labelledby="puzzles-h">
+      <div class="wrap">
+        <h2 id="puzzles-h"><span data-type-count>37</span> puzzle types</h2>
+        <p class="section-lead">Every type works with mouse, touch and keyboard, and the text alternative is always one click away. The answer never reaches the browser: pictures are rendered on the server, and the solution is sealed inside the challenge token. "Blind guess" is the chance that a random answer passes one attempt; combine weak types with others (<code>steps</code>) or keep them for low-risk forms.</p>
+        <div class="table-scroll">
+          <table>
+            <caption class="muted" style="text-align:start;padding:.75rem">All challenge types (use the id in <code>types: [...]</code>)</caption>
+            <thead><tr><th scope="col">Id</th><th scope="col">Puzzle</th><th scope="col">العربية</th><th scope="col">Kind</th><th scope="col">Blind guess</th></tr></thead>
+            <tbody>
+<!-- types:start -->
+            <tr><td><code>slider</code></td><td>Slider jigsaw</td><td lang="ar" dir="rtl">لغز السحب</td><td>Drag, slide, rotate, hold</td><td>≈ 8%</td></tr>
+            <tr><td><code>slide-unlock</code></td><td>Slide to the target</td><td lang="ar" dir="rtl">اسحب إلى الهدف</td><td>Drag, slide, rotate, hold</td><td>≈ 7%</td></tr>
+            <tr><td><code>shadow-drag</code></td><td>Drag to the shadow</td><td lang="ar" dir="rtl">اسحب إلى الظل</td><td>Drag, slide, rotate, hold</td><td>&lt; 2%</td></tr>
+            <tr><td><code>jigsaw</code></td><td>Jigsaw (4 pieces)</td><td lang="ar" dir="rtl">أحجية من 4 قطع</td><td>Drag, slide, rotate, hold</td><td>1 in 23</td></tr>
+            <tr><td><code>rotate</code></td><td>Rotate the scene</td><td lang="ar" dir="rtl">تدوير المشهد</td><td>Drag, slide, rotate, hold</td><td>≈ 7%</td></tr>
+            <tr><td><code>rotate-object</code></td><td>Rotate the object</td><td lang="ar" dir="rtl">تدوير الشيء</td><td>Drag, slide, rotate, hold</td><td>≈ 7%</td></tr>
+            <tr><td><code>rotate-match</code></td><td>Align the inner circle</td><td lang="ar" dir="rtl">محاذاة الدائرة الداخلية</td><td>Drag, slide, rotate, hold</td><td>≈ 7%</td></tr>
+            <tr><td><code>hold</code></td><td>Hold and release</td><td lang="ar" dir="rtl">اضغط ثم أفلت</td><td>Drag, slide, rotate, hold</td><td>≈ 1 in 4</td></tr>
+            <tr><td><code>icons</code></td><td>Select matching shapes</td><td lang="ar" dir="rtl">اختيار الأشكال المطابقة</td><td>Select in a picture</td><td>&lt; 1%</td></tr>
+            <tr><td><code>icons-weather</code></td><td>Select weather icons</td><td lang="ar" dir="rtl">اختيار رموز الطقس</td><td>Select in a picture</td><td>&lt; 1%</td></tr>
+            <tr><td><code>icons-objects</code></td><td>Select everyday objects</td><td lang="ar" dir="rtl">اختيار الأشياء</td><td>Select in a picture</td><td>&lt; 1%</td></tr>
+            <tr><td><code>odd-one-out</code></td><td>Odd one out</td><td lang="ar" dir="rtl">المختلف</td><td>Select in a picture</td><td>1 in 9</td></tr>
+            <tr><td><code>odd-rotation</code></td><td>Find the mirrored letter</td><td lang="ar" dir="rtl">الحرف المعكوس</td><td>Select in a picture</td><td>1 in 6</td></tr>
+            <tr><td><code>color-name</code></td><td>Colour by name + pattern</td><td lang="ar" dir="rtl">اللون بالاسم والنقش</td><td>Select in a picture</td><td>&lt; 1%</td></tr>
+            <tr><td><code>biggest</code></td><td>Largest / smallest</td><td lang="ar" dir="rtl">الأكبر / الأصغر</td><td>Select in a picture</td><td>1 in 9</td></tr>
+            <tr><td><code>find-shape</code></td><td>Find the shape</td><td lang="ar" dir="rtl">ابحث عن الشكل</td><td>Select in a picture</td><td>&lt; 1%</td></tr>
+            <tr><td><code>shadow-pick</code></td><td>Pick the shadow</td><td lang="ar" dir="rtl">اختر الظل</td><td>Select in a picture</td><td>1 in 6</td></tr>
+            <tr><td><code>pattern</code></td><td>What comes next</td><td lang="ar" dir="rtl">ما التالي</td><td>Select in a picture</td><td>1 in 6</td></tr>
+            <tr><td><code>clock</code></td><td>Read the clock</td><td lang="ar" dir="rtl">قراءة الساعة</td><td>Select in a picture</td><td>1 in 6</td></tr>
+            <tr><td><code>math-compare</code></td><td>Compare sums</td><td lang="ar" dir="rtl">مقارنة النواتج</td><td>Select in a picture</td><td>1 in 62</td></tr>
+            <tr><td><code>symmetry</code></td><td>Complete the mirror</td><td lang="ar" dir="rtl">أكمل التماثل</td><td>Select in a picture</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>pairs</code></td><td>Match pairs</td><td lang="ar" dir="rtl">مطابقة الأزواج</td><td>Select in a picture</td><td>1 in 105</td></tr>
+            <tr><td><code>tap-order</code></td><td>Tap numbers in order</td><td lang="ar" dir="rtl">انقر الأرقام بالترتيب</td><td>Tap in order</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>spell</code></td><td>Spell the word</td><td lang="ar" dir="rtl">تهجئة الكلمة</td><td>Tap in order</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>order</code></td><td>Order dots / bars</td><td lang="ar" dir="rtl">ترتيب النقاط والأعمدة</td><td>Put in order</td><td>1 in 24</td></tr>
+            <tr><td><code>order-size</code></td><td>Order by size</td><td lang="ar" dir="rtl">الترتيب حسب الحجم</td><td>Put in order</td><td>1 in 24</td></tr>
+            <tr><td><code>order-numbers</code></td><td>Order numbers</td><td lang="ar" dir="rtl">ترتيب الأعداد</td><td>Put in order</td><td>1 in 24</td></tr>
+            <tr><td><code>order-time</code></td><td>Order clock times</td><td lang="ar" dir="rtl">ترتيب الأوقات</td><td>Put in order</td><td>1 in 24</td></tr>
+            <tr><td><code>story</code></td><td>Picture story</td><td lang="ar" dir="rtl">قصة مصورة</td><td>Put in order</td><td>1 in 6–24</td></tr>
+            <tr><td><code>trace</code></td><td>Connect the dots</td><td lang="ar" dir="rtl">توصيل النقاط</td><td>Draw a path</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>trace-letters</code></td><td>Connect A–E</td><td lang="ar" dir="rtl">توصيل الحروف</td><td>Draw a path</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>maze</code></td><td>Maze</td><td lang="ar" dir="rtl">متاهة</td><td>Draw a path</td><td>&lt; 0.1%</td></tr>
+            <tr><td><code>math</code></td><td>Math image</td><td lang="ar" dir="rtl">عملية حسابية</td><td>Type the answer</td><td>≈ 10%</td></tr>
+            <tr><td><code>count</code></td><td>Count the objects</td><td lang="ar" dir="rtl">عدّ الأشياء</td><td>Type the answer</td><td>≈ 1 in 5</td></tr>
+            <tr><td><code>dice</code></td><td>Dice total</td><td lang="ar" dir="rtl">مجموع النرد</td><td>Type the answer</td><td>≈ 1 in 6</td></tr>
+            <tr><td><code>pow</code></td><td>Invisible proof-of-work</td><td lang="ar" dir="rtl">إثبات عمل غير مرئي</td><td>Invisible / text alternative</td><td>n/a (CPU cost)</td></tr>
+            <tr><td><code>accessible</code></td><td>Accessible text question</td><td lang="ar" dir="rtl">سؤال نصي ميسّر</td><td>Invisible / text alternative</td><td>machine-readable</td></tr>
+<!-- types:end -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="why">
       <div class="wrap">
         <h2 id="why">Why Nawa Guard</h2>
         <div class="grid">
           <div class="card"><h3>🔒 The client is never trusted</h3><p>Puzzles are rendered on the server. The answer is sealed with AES-256-GCM inside the challenge and never reaches the browser.</p></div>
           <div class="card"><h3>✅ Verify on your backend</h3><p>A solved puzzle yields a short-lived, single-use, signed pass token. Your route verifies it locally — like reCAPTCHA's siteverify, without the third party.</p></div>
-          <div class="card"><h3>♿ Everyone can pass it</h3><p>Mouse, touch and full keyboard for every puzzle, plus a text alternative for screen-reader users (WCAG 1.1.1, 2.1.1). Arabic and English, RTL.</p></div>
-          <div class="card"><h3>🧩 8 challenge types</h3><p>Slider jigsaw, rotate, pick icons, math image, drag to order, connect the dots, invisible proof-of-work and an accessible question. Difficulty adapts after failures.</p></div>
-          <div class="card"><h3>🛡️ Replay & tamper proof</h3><p>Single-use tokens, expiry, IP/UA binding, key rotation with key IDs, pointer-trajectory heuristics and rate-limit hooks.</p></div>
+          <div class="card"><h3>♿ Everyone can pass it</h3><p>Mouse, touch and full keyboard for every puzzle, plus a text alternative with 50+ question templates for screen-reader users (WCAG 1.1.1, 2.1.1). Arabic and English, RTL.</p></div>
+          <div class="card"><h3>🧩 30+ challenge types, your choice</h3><p>Allow one, two or many types, per action. Pick at random, in sequence or by an adaptive difficulty ladder, and chain two or three puzzles before a pass token.</p></div>
+          <div class="card"><h3>🛡️ Replay &amp; tamper proof</h3><p>Single-use tokens, expiry, IP/UA binding, key rotation with key IDs, pointer-trajectory heuristics and rate-limit hooks.</p></div>
           <div class="card"><h3>📦 Zero dependencies</h3><p>The Node server uses only node:crypto and node:zlib. The widget is a dependency-free Web Component that runs under a strict CSP.</p></div>
         </div>
       </div>
     </section>
 
-    <section aria-labelledby="install" id="install">
+    <section class="block" aria-labelledby="install-h" id="install">
       <div class="wrap">
-        <h2>Install</h2>
-        <p>npm, yarn, pnpm and bun all work:</p>
+        <h2 id="install-h">Install</h2>
+        <div class="note"><strong>Coming to npm and NuGet.</strong> The packages are published under the <code>@nawa-guard</code> scope (and <code>NawaGuard.AspNetCore</code>) once the organisation is set up. Until then, build them from source:
+          <pre><code>git clone https://github.com/oriebalzyuot96/nawa-guard.git
+cd nawa-guard && npm install && npm run build
+npm pack -w @nawa-guard/server -w @nawa-guard/widget   # → .tgz files you can npm install</code></pre></div>
+        <p>When published, npm, yarn, pnpm and bun all work:</p>
         <pre><code>npm i @nawa-guard/server @nawa-guard/widget
 yarn add @nawa-guard/react      # or @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular
 dotnet add package NawaGuard.AspNetCore</code></pre>
-        <p style="margin-top:1rem">Server (Express):</p>
+        <p style="margin-top:1rem">Server (Express) — choose your puzzles:</p>
         <pre><code>import { createNawaGuard } from '@nawa-guard/server';
 import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
 
-const guard = createNawaGuard({ secret: process.env.NAWA_GUARD_SECRET, siteKeys: ['main'], actions: ['login'] });
+const guard = createNawaGuard({
+  secret: process.env.NAWA_GUARD_SECRET,
+  types: ['slider', 'rotate-object', 'pairs', 'maze'],   // one, two or many
+  mode: 'random',                                         // or 'sequence' | 'adaptive'
+  perAction: { login: ['pow', 'slider'], signup: { types: ['maze', 'pairs'], steps: 2 } },
+});
 app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
 app.post('/login', requireCaptcha(guard, { expectedAction: 'login', maxAgeSec: 300 }), handler);</code></pre>
-        <p style="margin-top:1rem">Browser (any framework):</p>
-        <pre><code>&lt;nawa-guard site-key="main" endpoint="/captcha" action="login" lang="en"&gt;&lt;/nawa-guard&gt;</code></pre>
+        <p style="margin-top:1rem">Browser (any framework) — <code>types</code> can only narrow the server's list:</p>
+        <pre><code>&lt;nawa-guard site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"&gt;&lt;/nawa-guard&gt;</code></pre>
         <p style="margin-top:1rem">ASP.NET Core:</p>
         <pre><code>builder.Services.AddNawaGuard(builder.Configuration.GetSection("NawaGuard"));
 app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
       </div>
     </section>
 
-    <section aria-labelledby="compare" id="compare">
+    <section class="block" aria-labelledby="compare" id="compare">
       <div class="wrap">
         <h2>Nawa Guard vs reCAPTCHA, hCaptcha and Turnstile</h2>
-        <table>
-          <caption style="text-align:start;color:var(--muted);padding-bottom:.5rem">Feature comparison</caption>
-          <thead><tr><th scope="col">Feature</th><th scope="col">Nawa Guard</th><th scope="col">reCAPTCHA</th><th scope="col">hCaptcha</th><th scope="col">Turnstile</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Self-hosted, no third-party calls</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
-            <tr><th scope="row">No user tracking / cookies</th><td>Yes</td><td>No</td><td>Partial</td><td>Partial</td></tr>
-            <tr><th scope="row">Open source (MIT)</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
-            <tr><th scope="row">Keyboard + screen-reader alternative</th><td>Yes</td><td>Audio</td><td>Accessibility cookie</td><td>Mostly invisible</td></tr>
-            <tr><th scope="row">Arabic / RTL built in</th><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-            <tr><th scope="row">ASP.NET Core verifier included</th><td>Yes</td><td>Community</td><td>Community</td><td>Community</td></tr>
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <caption class="muted" style="text-align:start;padding:.75rem">Feature comparison</caption>
+            <thead><tr><th scope="col">Feature</th><th scope="col">Nawa Guard</th><th scope="col">reCAPTCHA</th><th scope="col">hCaptcha</th><th scope="col">Turnstile</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Self-hosted, no third-party calls</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+              <tr><th scope="row">No user tracking / cookies</th><td>Yes</td><td>No</td><td>Partial</td><td>Partial</td></tr>
+              <tr><th scope="row">Open source (MIT)</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+              <tr><th scope="row">You choose the puzzle types</th><td>Yes (30+)</td><td>No</td><td>No</td><td>No</td></tr>
+              <tr><th scope="row">Keyboard + screen-reader alternative</th><td>Yes</td><td>Audio</td><td>Accessibility cookie</td><td>Mostly invisible</td></tr>
+              <tr><th scope="row">Arabic / RTL built in</th><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+              <tr><th scope="row">ASP.NET Core verifier included</th><td>Yes</td><td>Community</td><td>Community</td><td>Community</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <section aria-labelledby="ar" lang="ar" dir="rtl">
+    <section class="block" aria-labelledby="ar" lang="ar" dir="rtl">
       <div class="wrap">
-        <h2 id="ar">نواة جارد — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
-        <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. ثمانية أنواع من الألغاز، دعم كامل للوحة المفاتيح وقارئات الشاشة، والعربية والإنجليزية مع RTL. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core.</p>
+        <h2 id="ar">نوى جارد — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
+        <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. أكثر من ثلاثين نوعًا من الألغاز تختار منها ما تشاء، لغزًا واحدًا أو عدة ألغاز، لكل إجراء على حدة، مع إمكانية طلب لغزين متتاليين. دعم كامل للوحة المفاتيح وقارئات الشاشة، والعربية والإنجليزية مع RTL. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core. جرّب الملعب التفاعلي أعلاه باللغة العربية.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Nawa UI</a> · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></div>
+    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Nawa UI</a> · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
   </footer>
 </body>
 </html>
