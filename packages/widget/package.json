@@ -1,0 +1,30 @@
+{
+  "name": "@nawa-guard/widget",
+  "version": "0.1.0",
+  "description": "Nawa Guard <nawa-guard> Web Component: accessible, RTL-ready puzzle CAPTCHA widget with no dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "captcha",
+    "web-component",
+    "accessibility",
+    "rtl",
+    "arabic"
+  ]
+}

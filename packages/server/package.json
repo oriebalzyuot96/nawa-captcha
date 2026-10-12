@@ -1,0 +1,38 @@
+{
+  "name": "@nawa-guard/server",
+  "version": "0.1.0",
+  "description": "Nawa Guard server core: sealed puzzle challenges, verification, single-use pass tokens. Zero runtime dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "import": "./dist/express.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "captcha",
+    "bot-protection",
+    "proof-of-work",
+    "accessibility",
+    "arabic"
+  ]
+}

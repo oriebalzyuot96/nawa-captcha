@@ -1,0 +1,32 @@
+{
+  "name": "@nawa-guard/svelte",
+  "version": "0.1.0",
+  "description": "Svelte 5 component (bindable token) for the Nawa Guard CAPTCHA widget.",
+  "license": "MIT",
+  "type": "module",
+  "svelte": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "svelte": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "dependencies": {
+    "@nawa-guard/widget": "0.1.0"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "svelte": "^5.40.0",
+    "svelte-check": "^4.3.0"
+  }
+}

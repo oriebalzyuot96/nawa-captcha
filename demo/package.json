@@ -1,0 +1,14 @@
+{
+  "name": "@nawa-guard/demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@nawa-guard/server": "0.1.0",
+    "@nawa-guard/widget": "0.1.0",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "nawa-guard-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Nawa Guard: privacy-friendly, accessible puzzle CAPTCHA with server-sealed solutions.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/server",
+    "packages/widget",
+    "packages/react",
+    "packages/vue",
+    "packages/svelte",
+    "packages/angular",
+    "demo"
+  ],
+  "scripts": {
+    "build": "npm run build -w @nawa-guard/server -w @nawa-guard/widget -w @nawa-guard/react -w @nawa-guard/vue -w @nawa-guard/angular",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "demo": "npm run build && node demo/server.mjs",
+    "fixture:dotnet": "node scripts/make-dotnet-fixture.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.11"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

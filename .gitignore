@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+dotnet/**/bin/
+dotnet/**/obj/
+.vs/
+*.user
+.env
