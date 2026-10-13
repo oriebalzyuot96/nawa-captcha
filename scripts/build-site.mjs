@@ -42,7 +42,7 @@ console.log(`site/assets/playground.js  ${(bytes / 1024).toFixed(1)} kB`);
 // The catalogue is plain TypeScript data; esbuild turns it into an importable module.
 const catalog = await build({ entryPoints: [join(serverSrc, 'catalog.ts')], bundle: true, format: 'esm', write: false, platform: 'neutral' });
 const { TYPE_INFO } = await import(`data:text/javascript;base64,${Buffer.from(catalog.outputFiles[0].text).toString('base64')}`);
-const FAMILY = { drag: 'Drag, slide, rotate, hold', select: 'Select in a picture', tap: 'Tap in order', order: 'Put in order', draw: 'Draw a path', type: 'Type the answer', invisible: 'Invisible / text alternative' };
+const FAMILY = { drag: 'Drag, slide, rotate, hold', select: 'Select in a picture', tap: 'Tap in order', order: 'Put in order', draw: 'Draw a path', type: 'Type the answer', invisible: 'Invisible / accessible alternative' };
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const rows = Object.entries(TYPE_INFO)
   .map(([type, i]) => `            <tr><td><code>${type}</code></td><td>${esc(i.en)}</td><td lang="ar" dir="rtl">${esc(i.ar)}</td><td>${esc(FAMILY[i.family])}</td><td>${esc(i.guess)}</td></tr>`)

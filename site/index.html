@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nawa Guard — Self-hosted, accessible puzzle CAPTCHA (reCAPTCHA alternative)</title>
-  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
+  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
   <link rel="canonical" href="https://oriebalzyuot96.github.io/nawa-guard/" />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="oriebalzyuot96" />
@@ -14,7 +14,7 @@
   <link rel="alternate" type="text/plain" href="llms.txt" title="LLM summary" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Nawa Guard — self-hosted, accessible puzzle CAPTCHA" />
-  <meta property="og:description" content="Open-source reCAPTCHA alternative: 30+ puzzle types, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Try it live in your browser. Node.js and ASP.NET Core." />
+  <meta property="og:description" content="Open-source reCAPTCHA alternative: 30+ puzzle types with a premium 3D design and six themes, an audio challenge, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Try it live in your browser. Node.js and ASP.NET Core." />
   <meta property="og:url" content="https://oriebalzyuot96.github.io/nawa-guard/" />
   <meta name="twitter:card" content="summary" />
   <script type="application/ld+json">
@@ -23,13 +23,13 @@
     "@type": "SoftwareSourceCode",
     "name": "Nawa Guard",
     "alternateName": ["nawa-guard", "@nawa-guard/server"],
-    "description": "Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
+    "description": "Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
     "url": "https://oriebalzyuot96.github.io/nawa-guard/",
     "codeRepository": "https://github.com/oriebalzyuot96/nawa-guard",
     "programmingLanguage": ["TypeScript", "C#"],
     "runtimePlatform": ["Node.js", "ASP.NET Core", "React", "Vue", "Svelte", "Angular"],
     "license": "https://opensource.org/licenses/MIT",
-    "keywords": "captcha, recaptcha alternative, hcaptcha alternative, turnstile alternative, self-hosted captcha, accessible captcha, puzzle captcha, slider captcha, rotate captcha, bot protection, anti-spam, proof of work, aspnetcore, nodejs"
+    "keywords": "captcha, recaptcha alternative, hcaptcha alternative, turnstile alternative, self-hosted captcha, accessible captcha, puzzle captcha, slider captcha, rotate captcha, bot protection, anti-spam, proof of work, audio captcha, captcha themes, aspnetcore, nodejs"
   }
   </script>
   <script>
@@ -60,13 +60,13 @@
       --primary-soft: color-mix(in srgb, #b9a5ff 14%, #10161b); --code-bg: #0b0f13; --code-fg: #e7eef1;
       --ok: #4cd987; --bad: #ff8a8a; --shadow: 0 14px 32px -16px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .3);
     }
-    /* The widget reads Nawa UI tokens through its shadow boundary. */
+    /* The widget picks up Orca UI tokens (--oc-*) through its shadow boundary when theme="auto". */
     :root {
-      --nw-primary: var(--primary); --nw-primary-hover: var(--primary-hover); --nw-primary-soft: var(--primary-soft); --nw-on-primary: var(--on-primary);
-      --nw-surface: var(--card); --nw-surface-alt: var(--bg-2); --nw-text: var(--fg); --nw-text-muted: var(--muted); --nw-border: var(--line);
-      --nw-control-border: color-mix(in srgb, var(--muted) 70%, var(--line)); --nw-focus: var(--primary); --nw-success: var(--ok); --nw-danger: var(--bad);
-      --nw-success-soft: color-mix(in srgb, var(--ok) 12%, var(--card)); --nw-danger-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
-      --nw-radius: 16px; --nw-radius-sm: 10px; --nw-shadow-sm: none;
+      --oc-primary: var(--primary); --oc-primary-hover: var(--primary-hover); --oc-primary-soft: var(--primary-soft); --oc-on-primary: var(--on-primary);
+      --oc-surface: var(--card); --oc-surface-alt: var(--bg-2); --oc-text: var(--fg); --oc-text-muted: var(--muted); --oc-border: var(--line);
+      --oc-control-border: color-mix(in srgb, var(--muted) 70%, var(--line)); --oc-focus: var(--primary); --oc-success: var(--ok); --oc-danger: var(--bad);
+      --oc-success-soft: color-mix(in srgb, var(--ok) 12%, var(--card)); --oc-danger-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
+      --oc-accent: #14b8c8; --oc-radius: 20px; --oc-radius-sm: 12px;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -89,7 +89,7 @@
     .hero::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); background: radial-gradient(45% 70% at 80% 30%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%); pointer-events: none; z-index: -1; }
     .hero-demo { position: relative; }
     .hero-demo .tagline { margin: .6rem 0 0; text-align: center; font-size: .82rem; color: var(--muted); }
-    .hero-demo nawa-guard { margin-inline: auto; box-shadow: var(--shadow); border-radius: 16px; }
+    .hero-demo nawa-guard { margin-inline: auto; }
     .eyebrow { display: inline-block; font-weight: 700; font-size: .85rem; color: var(--primary-ink); background: var(--primary-soft); padding: .25rem .75rem; border-radius: 999px; margin-bottom: 1rem; }
     h1 { font-size: clamp(2rem, 4.4vw, 3.1rem); hyphens: manual; line-height: 1.12; margin: 0 0 1rem; letter-spacing: -.025em; max-width: 52rem; }
     h1 .accent { color: var(--primary-ink); }
@@ -110,6 +110,7 @@
     .card { padding: 1.25rem; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
     .card h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
     .card p { margin: 0; color: var(--muted); }
+    .card code { overflow-wrap: anywhere; }
     pre { margin: .75rem 0 0; padding: 1rem 1.1rem; border-radius: 12px; background: var(--code-bg); color: var(--code-fg); overflow-x: auto; font-size: .86rem; line-height: 1.55; direction: ltr; text-align: left; }
     pre[dir="auto"] { unicode-bidi: plaintext; text-align: start; }
     code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
@@ -161,6 +162,19 @@
     #pg-log time { color: var(--muted); }
     .pg-log-ok { color: var(--ok); }
     .pg-log-bad { color: var(--bad); }
+    .swatches { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .swatch { display: inline-flex; align-items: center; gap: .45rem; font: inherit; font-size: .86rem; font-weight: 600; padding: .3rem .7rem .3rem .35rem; min-height: 2.25rem; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--fg); cursor: pointer; }
+    .swatch::before { content: ""; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--sw, conic-gradient(#5b34d6, #14b8c8, #f0b36b, #5b34d6)); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 1px 3px rgba(0,0,0,.25); }
+    .swatch[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+    .control-wide { grid-column: 1 / -1; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.5rem; align-items: start; margin-top: 1.5rem; }
+    .gallery figure { margin: 0; padding: 1.5rem 1rem 1rem; border-radius: 24px; display: grid; gap: .75rem; justify-items: center; }
+    .gallery figcaption { font-size: .9rem; font-weight: 600; }
+    .gallery figcaption code { font-size: .85rem; }
+    .g-midnight { background: radial-gradient(120% 90% at 20% 0%, #1c2850, #070b17); color: #e9eefc; }
+    .g-aurora { background: radial-gradient(120% 90% at 80% 0%, #12403a, #061012); color: #e3fbf4; }
+    .g-sand { background: radial-gradient(120% 90% at 20% 0%, #fffaf0, #efe4d2); color: #2a2116; }
+    .gallery nawa-guard { width: 100%; }
   </style>
   <script type="module" src="assets/playground.js"></script>
 </head>
@@ -169,7 +183,7 @@
   <header class="site">
     <div class="wrap">
       <a class="brand" href="./"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5b34d6"/><path d="M16 7l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9v-6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nawa Guard</a>
-      <nav class="main" aria-label="Main"><a href="#playground">Playground</a><a href="#puzzles">Puzzles</a><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
+      <nav class="main" aria-label="Main"><a href="#playground">Playground</a><a href="#design">Design</a><a href="#puzzles">Puzzles</a><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
     </div>
   </header>
 
@@ -188,7 +202,7 @@
         <div><strong>30+</strong>puzzle types</div>
         <div><strong>0</strong>runtime dependencies</div>
         <div><strong>2</strong>languages, RTL</div>
-        <div><strong>3</strong>input modes</div>
+        <div><strong>6</strong>themes, light &amp; dark</div>
       </div>
       </div>
       <div class="hero-demo">
@@ -219,7 +233,11 @@
                 <div class="control"><span class="label" id="pg-mode-l" data-i18n="mode">Selection</span><div class="seg" id="pg-mode" role="group" aria-labelledby="pg-mode-l"><button type="button" data-value="random" data-i18n="random">Random</button><button type="button" data-value="sequence" data-i18n="sequence">Sequence</button><button type="button" data-value="adaptive" data-i18n="adaptive">Adaptive</button></div><p class="muted small" id="pg-mode-help"></p></div>
                 <div class="control"><span class="label" id="pg-steps-l" data-i18n="steps">Puzzles in a row</span><div class="seg" id="pg-steps" role="group" aria-labelledby="pg-steps-l"><button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button></div></div>
                 <div class="control"><span class="label" id="pg-lang-l" data-i18n="language">Language</span><div class="seg" id="pg-lang" role="group" aria-labelledby="pg-lang-l"><button type="button" data-value="en">English</button><button type="button" data-value="ar" lang="ar">العربية</button></div></div>
-                <div class="control"><span class="label" id="pg-theme-l" data-i18n="theme">Theme</span><div class="seg" id="pg-theme" role="group" aria-labelledby="pg-theme-l"><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button></div></div>
+                <div class="control control-wide"><span class="label" id="pg-wtheme-l" data-i18n="wtheme">Widget theme</span><div class="swatches" id="pg-wtheme" role="group" aria-labelledby="pg-wtheme-l"><button type="button" class="swatch" data-value="auto" data-i18n="auto">Auto (page tokens)</button><button type="button" class="swatch" data-value="orca" style="--sw:linear-gradient(135deg,#7c5dde,#5b34d6)">Orca</button><button type="button" class="swatch" data-value="midnight" style="--sw:linear-gradient(135deg,#2f48c4,#0c1224)">Midnight</button><button type="button" class="swatch" data-value="aurora" style="--sw:linear-gradient(135deg,#4fe0b5,#8b5cf6)">Aurora</button><button type="button" class="swatch" data-value="sand" style="--sw:linear-gradient(135deg,#f0b36b,#9a4a12)">Sand</button><button type="button" class="swatch" data-value="ocean" style="--sw:linear-gradient(135deg,#5cc3ff,#0566a6)">Ocean</button><button type="button" class="swatch" data-value="mono" style="--sw:linear-gradient(135deg,#f2f2f3,#1c1c1f)">Mono</button></div></div>
+                <div class="control"><span class="label" id="pg-appear-l" data-i18n="appearance">Appearance</span><div class="seg" id="pg-appear" role="group" aria-labelledby="pg-appear-l"><button type="button" data-value="page" data-i18n="page">Page</button><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button><button type="button" data-value="high-contrast" data-i18n="hc">High contrast</button></div></div>
+                <div class="control"><span class="label" id="pg-theme-l" data-i18n="theme">Page</span><div class="seg" id="pg-theme" role="group" aria-labelledby="pg-theme-l"><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button></div></div>
+                <div class="control"><span class="label" id="pg-sound-l" data-i18n="sound">Sound effects</span><div class="seg" id="pg-sound" role="group" aria-labelledby="pg-sound-l"><button type="button" data-value="off" data-i18n="off">Off</button><button type="button" data-value="on" data-i18n="on">On</button></div><p class="muted small" data-i18n="soundHelp">Visitors can always switch it with the speaker button.</p></div>
+                <div class="control"><span class="label" data-i18n="a11yAlt">Accessible alternatives</span><button type="button" class="btn" id="pg-audio" style="min-height:2.4rem;font-size:.9rem" data-i18n="tryAudio">Try the audio challenge</button></div>
                 <div class="control"><label for="pg-level"><span data-i18n="level">Difficulty level</span>: <span id="pg-level-value">0</span></label><input id="pg-level" type="range" min="0" max="3" step="1" value="0" /></div>
               </div>
             </div>
@@ -257,6 +275,23 @@
           </div>
         </div>
         <p class="muted small" style="margin-top:1.25rem">Want the real thing with a Node server? <a href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard">Open the Express demo in StackBlitz</a> (runs <code>npm run demo</code>), or clone the repository and run it locally.</p>
+      </div>
+    </section>
+
+    <section class="block" id="design" aria-labelledby="design-h">
+      <div class="wrap">
+        <h2 id="design-h">A CAPTCHA that looks like part of your product</h2>
+        <p class="section-lead">A layered, glass-like card with real depth: a subtle perspective tilt that follows the pointer, parallax inside the puzzle frame, pieces that lift and click into place, and a verified state that draws its own checkmark. Six themes in light and dark plus high contrast, or let it pick up your <strong>Orca UI</strong> tokens automatically. Motion switches off for <code>prefers-reduced-motion</code>, every colour pair passes WCAG 2.2 AA, and forced colours are respected.</p>
+        <div class="gallery">
+          <figure class="g-midnight"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="en" theme="midnight" appearance="dark" types="icons"></nawa-guard><figcaption><code>theme="midnight"</code></figcaption></figure>
+          <figure class="g-aurora"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="en" theme="aurora" appearance="dark" types="order"></nawa-guard><figcaption><code>theme="aurora"</code></figcaption></figure>
+          <figure class="g-sand"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="ar" theme="sand" appearance="light" types="rotate"></nawa-guard><figcaption><code>theme="sand" lang="ar"</code></figcaption></figure>
+        </div>
+        <div class="grid" style="margin-top:1.5rem">
+          <div class="card"><h3>🔊 Optional sound</h3><p>Soft synthesized cues for grab, snap, step and success (Web Audio, no files). Off by default, never before a click or key press, with a volume slider, a remembered speaker toggle and an app-level mute. Every change is also announced to screen readers.</p></div>
+          <div class="card"><h3>🎧 Audio challenge</h3><p>For blind and low-vision visitors: a server-synthesized WAV of spoken digits (or beeps to count) over background noise, with a replay limit and no transcript. The answer stays sealed on the server like every other puzzle.</p></div>
+          <div class="card"><h3>🎨 Themes and tokens</h3><p><code>theme="orca|midnight|aurora|sand|ocean|mono"</code>, <code>appearance="auto|light|dark|high-contrast"</code>, <code>--nawa-guard-*</code> overrides, and automatic Orca UI <code>--oc-*</code> tokens (legacy <code>--nw-*</code> still work).</p></div>
+        </div>
       </div>
     </section>
 
@@ -305,9 +340,9 @@
             <tr><td><code>math</code></td><td>Math image</td><td lang="ar" dir="rtl">عملية حسابية</td><td>Type the answer</td><td>≈ 10%</td></tr>
             <tr><td><code>count</code></td><td>Count the objects</td><td lang="ar" dir="rtl">عدّ الأشياء</td><td>Type the answer</td><td>≈ 1 in 5</td></tr>
             <tr><td><code>dice</code></td><td>Dice total</td><td lang="ar" dir="rtl">مجموع النرد</td><td>Type the answer</td><td>≈ 1 in 6</td></tr>
-            <tr><td><code>pow</code></td><td>Invisible proof-of-work</td><td lang="ar" dir="rtl">إثبات عمل غير مرئي</td><td>Invisible / text alternative</td><td>n/a (CPU cost)</td></tr>
-            <tr><td><code>accessible</code></td><td>Accessible text question</td><td lang="ar" dir="rtl">سؤال نصي ميسّر</td><td>Invisible / text alternative</td><td>machine-readable</td></tr>
-            <tr><td><code>audio</code></td><td>Audio challenge (digits / beeps)</td><td lang="ar" dir="rtl">تحدٍّ صوتي (أرقام / نغمات)</td><td>Invisible / text alternative</td><td>1 in 10,000 (digits) · ≈ 1 in 6 (beeps)</td></tr>
+            <tr><td><code>pow</code></td><td>Invisible proof-of-work</td><td lang="ar" dir="rtl">إثبات عمل غير مرئي</td><td>Invisible / accessible alternative</td><td>n/a (CPU cost)</td></tr>
+            <tr><td><code>accessible</code></td><td>Accessible text question</td><td lang="ar" dir="rtl">سؤال نصي ميسّر</td><td>Invisible / accessible alternative</td><td>machine-readable</td></tr>
+            <tr><td><code>audio</code></td><td>Audio challenge (digits / beeps)</td><td lang="ar" dir="rtl">تحدٍّ صوتي (أرقام / نغمات)</td><td>Invisible / accessible alternative</td><td>1 in 10,000 (digits) · ≈ 1 in 6 (beeps)</td></tr>
 <!-- types:end -->
             </tbody>
           </table>
@@ -321,7 +356,7 @@
         <div class="grid">
           <div class="card"><h3>🔒 The client is never trusted</h3><p>Puzzles are rendered on the server. The answer is sealed with AES-256-GCM inside the challenge and never reaches the browser.</p></div>
           <div class="card"><h3>✅ Verify on your backend</h3><p>A solved puzzle yields a short-lived, single-use, signed pass token. Your route verifies it locally — like reCAPTCHA's siteverify, without the third party.</p></div>
-          <div class="card"><h3>♿ Everyone can pass it</h3><p>Mouse, touch and full keyboard for every puzzle, plus a text alternative with 50+ question templates for screen-reader users (WCAG 1.1.1, 2.1.1). Arabic and English, RTL.</p></div>
+          <div class="card"><h3>♿ Everyone can pass it</h3><p>Mouse, touch and full keyboard for every puzzle, plus a text alternative with 50+ question templates and an audio challenge for screen-reader users (WCAG 1.1.1, 2.1.1). Arabic and English, RTL.</p></div>
           <div class="card"><h3>🧩 30+ challenge types, your choice</h3><p>Allow one, two or many types, per action. Pick at random, in sequence or by an adaptive difficulty ladder, and chain two or three puzzles before a pass token.</p></div>
           <div class="card"><h3>🛡️ Replay &amp; tamper proof</h3><p>Single-use tokens, expiry, IP/UA binding, key rotation with key IDs, pointer-trajectory heuristics and rate-limit hooks.</p></div>
           <div class="card"><h3>📦 Zero dependencies</h3><p>The Node server uses only node:crypto and node:zlib. The widget is a dependency-free Web Component that runs under a strict CSP.</p></div>
@@ -372,8 +407,9 @@ app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
               <tr><th scope="row">No user tracking / cookies</th><td>Yes</td><td>No</td><td>Partial</td><td>Partial</td></tr>
               <tr><th scope="row">Open source (MIT)</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
               <tr><th scope="row">You choose the puzzle types</th><td>Yes (30+)</td><td>No</td><td>No</td><td>No</td></tr>
-              <tr><th scope="row">Keyboard + screen-reader alternative</th><td>Yes</td><td>Audio</td><td>Accessibility cookie</td><td>Mostly invisible</td></tr>
+              <tr><th scope="row">Keyboard + screen-reader alternative</th><td>Yes (text + audio)</td><td>Audio</td><td>Accessibility cookie</td><td>Mostly invisible</td></tr>
               <tr><th scope="row">Arabic / RTL built in</th><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+              <tr><th scope="row">Themes (light, dark, high contrast)</th><td>6 presets + your tokens</td><td>Light/dark</td><td>Light/dark</td><td>Light/dark</td></tr>
               <tr><th scope="row">ASP.NET Core verifier included</th><td>Yes</td><td>Community</td><td>Community</td><td>Community</td></tr>
             </tbody>
           </table>
@@ -384,13 +420,13 @@ app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
     <section class="block" aria-labelledby="ar" lang="ar" dir="rtl">
       <div class="wrap">
         <h2 id="ar">نوى جارد — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
-        <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. أكثر من ثلاثين نوعًا من الألغاز تختار منها ما تشاء، لغزًا واحدًا أو عدة ألغاز، لكل إجراء على حدة، مع إمكانية طلب لغزين متتاليين. دعم كامل للوحة المفاتيح وقارئات الشاشة، والعربية والإنجليزية مع RTL. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core. جرّب الملعب التفاعلي أعلاه باللغة العربية.</p>
+        <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. أكثر من ثلاثين نوعًا من الألغاز تختار منها ما تشاء، لغزًا واحدًا أو عدة ألغاز، لكل إجراء على حدة، مع إمكانية طلب لغزين متتاليين. دعم كامل للوحة المفاتيح وقارئات الشاشة مع سؤال نصي وتحدٍّ صوتي، والعربية والإنجليزية مع RTL، وستة أنماط ألوان بتصميم ثلاثي الأبعاد. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core. جرّب الملعب التفاعلي أعلاه باللغة العربية.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Nawa UI</a> · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
+    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Orca UI</a> (formerly Nawa UI) · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
   </footer>
 </body>
 </html>

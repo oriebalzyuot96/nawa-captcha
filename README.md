@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-5b34d6.svg)](LICENSE)
 
-**Self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.**
+**Self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge, six themes and a premium 3D design — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.**
 
 🌐 [Website](https://oriebalzyuot96.github.io/nawa-guard/) · 🧩 [Live playground](https://oriebalzyuot96.github.io/nawa-guard/#playground) (runs in your browser) · ⚡ [Open the Node demo in StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard)
 
@@ -16,7 +16,9 @@ npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
 
 1. **The client is never trusted.** Puzzles are rendered on the server as pixels. The solution is sealed inside the challenge token with AES-256-GCM and never reaches the browser in a form it can read.
 2. **Verification happens on your own backend, the way reCAPTCHA's siteverify does.** A solved puzzle produces a short-lived, single-use, HMAC-signed **pass token**. Your protected route verifies it locally with no third-party call. Node and ASP.NET Core implementations are included and interoperate.
-3. **Everyone can pass it.** Every puzzle works with mouse, touch and keyboard. A text-only alternative works with screen readers (WCAG 1.1.1 and 2.1.1). Arabic and English are built in, with full RTL support.
+3. **Everyone can pass it.** Every puzzle works with mouse, touch and keyboard. A text question and an audio challenge work with screen readers (WCAG 1.1.1 and 2.1.1). Arabic and English are built in, with full RTL support.
+
+It also looks the part: a layered, glass-like card with depth and subtle motion, six theme presets (light and dark) plus high contrast, automatic pick-up of your Orca UI tokens, and optional synthesized sound effects. See [Design, themes and sound](#design-themes-and-sound).
 
 | Package | What it is |
 |---|---|
@@ -31,7 +33,7 @@ npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
 
 ## Puzzle types
 
-37 challenge types, each in its own module under [`packages/server/src/puzzles`](packages/server/src/puzzles) with tests. Every type renders as pixels (PNG) or path-only SVG on the server; the answer stays in the sealed token. Each works with mouse, touch **and** keyboard, and the text alternative (`accessible`) is always one click away. Try them all in the [playground](https://oriebalzyuot96.github.io/nawa-guard/#playground).
+38 challenge types, each in its own module under [`packages/server/src/puzzles`](packages/server/src/puzzles) with tests. Every type renders as pixels (PNG), path-only SVG or synthesized audio (WAV) on the server; the answer stays in the sealed token. Each works with mouse, touch **and** keyboard, and the accessible alternatives (`accessible` text question, `audio` challenge) are always one click away. Try them all in the [playground](https://oriebalzyuot96.github.io/nawa-guard/#playground).
 
 "Blind guess" is the chance that a random answer (with a fake but plausible gesture) passes a single attempt. Types with a high blind-guess rate are fine as friction on low-risk forms, or combined with others via `steps`; don't rely on them alone for sensitive actions.
 
@@ -91,6 +93,7 @@ npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
 | `dice` | Types the total of two (three) rotated dice. | ≈ 1 in 6 |
 | `pow` | Nothing: an invisible hashcash proof of work, SHA-256(`salt:nonce`) with `bits` leading zero bits. Default 16 bits, +2 per level; per-action `powBits`. | n/a (proves CPU, not humanity) |
 | `accessible` | Answers a plain-text question in Arabic or English: 50+ randomised templates (numbers, days, months, seasons, colours, categories, opposites, comparisons, letters…). Answers are normalised (case, diacritics, alef/ta-marbuta variants, Arabic-Indic digits, words or digits, either language) and carry a silent PoW tax. | machine-readable by design |
+| `audio` | Presses Play and types what they heard: 4–5 English digits spoken by a randomised formant voice (`lang="en"`), or the number of high-pitched beeps in a run of high and low ones (`lang="ar"`, language-neutral). Rain-like noise and muffled babble are mixed in; replays are limited; there is no transcript. Silent PoW tax, like `accessible`. See [Audio challenge](#audio-challenge). | 1 in 10,000 (digits) · ≈ 1 in 6 (beeps) |
 
 Per type you can override `maxAttempts` and `minSolveMs`. `assessRisk()` and failed attempts raise the difficulty level, which tightens tolerances, adds decoys, tiles and PoW bits.
 
@@ -121,7 +124,7 @@ const guard = createNawaGuard({
 - **`mode`**: `adaptive` walks the difficulty ladder (`ladder[level] ∩ types`, falling back to the nearest rung that has an allowed type); `random` is a weighted pick; `sequence` rotates through the allowed types per client and action.
 - **`perAction`** overrides `types`, `weights`, `mode`, `steps`, `ladder` and `powBits` for one action.
 - **`steps: 2 | 3`** chains puzzles: `POST /verify` answers `{ success: true, next: <challenge> }` until the last step, each step uses a different type when the pool allows it, and only then returns a pass token. The pass token lists every solved type in `stp` (see the token format). The widget shows "Step 1 of 2" and moves on automatically.
-- **The accessible alternative** stays reachable from every widget (`type: 'accessible'`) unless you set `allowAccessible: false`. It isn't drawn at random.
+- **The accessible alternatives** stay reachable from every widget (`type: 'accessible'` and `type: 'audio'`) unless you set `allowAccessible: false`. They are never drawn at random.
 
 In the browser, narrow the server's list with `types` (comma-separated). If none of the requested types is allowed, the server's own list is used:
 
@@ -242,15 +245,21 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 | `lang` | inherited `lang`, else `en` | `ar` or `en`. Arabic switches the widget to RTL. |
 | `name` | `nawa-guard-token` | Name of the hidden `<input>` (in light DOM) that is submitted with the form. |
 | `types` | (server decides) | Comma-separated types to **narrow** the server's allow-list, e.g. `slider,rotate`. Never widens it; ignored if none of them is allowed. |
-| `type` | (server decides) | One exact puzzle. Only honoured with `allowClientType: true` (galleries), except `accessible`, which is always allowed. |
+| `type` | (server decides) | One exact puzzle. Only honoured with `allowClientType: true` (galleries), except `accessible` and `audio`, which are always allowed. |
 | `dir` | from `lang` | Forces `rtl` or `ltr`. |
+| `theme` | `auto` | `orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`, or `auto` (page tokens, else Orca). Shorthands `light`, `dark`, `high-contrast` set the appearance. See [Themes](#themes). |
+| `appearance` | `auto` | `light`, `dark`, `high-contrast`, or `auto` (follows `prefers-color-scheme` and `prefers-contrast`). |
+| `sound` | off | Turns UI sound effects on by default (`sound`, `sound="on"`; `sound="off"` to force the default off). The visitor's speaker toggle still wins. |
+| `volume` | `0.6` | UI sound volume, `0`–`1`. |
+| `muted` | – | Silences the widget whatever the visitor chose (your app's own mute). |
+| `tilt` | on | `tilt="off"` disables the pointer-following tilt (it is already off for touch, reduced motion and high contrast). |
 
 Events, all `bubbles` + `composed`:
 - `nawa-guard:verified` with `detail: { token, expiresInMs, type }` (after the last step of a multi-step chain)
 - `nawa-guard:expired` (the pass token lapsed and a new challenge loads)
 - `nawa-guard:error` with `detail: { error: 'network' | 'rate-limited' | 'config' }`
 
-API: `el.token` (`''` until verified) and `el.reset()`. Call `reset()` after you use a token, because tokens are single-use.
+API: `el.token` (`''` until verified) and `el.reset()`. Call `reset()` after you use a token, because tokens are single-use. Properties `theme`, `sound`, `volume` and `muted` mirror the attributes; `setNawaGuardMuted(true)` (exported by `@nawa-guard/widget`) mutes every widget on the page.
 
 ```js
 const guard = document.querySelector('nawa-guard');
@@ -345,20 +354,80 @@ export class LoginComponent {
 
 The control value is the pass token. The control reports `{ nawaGuard: true }` until the user is verified. `setDisabledState` makes the widget inert. Outputs: `(verified)`, `(expired)`, `(failed)`.
 
-### Theming (Nawa UI tokens)
+### Theming
 
-The widget reads the Nawa UI design tokens through the shadow boundary, so it follows any Nawa UI theme (light, dark or high-contrast) automatically. Each value resolves in this order: `--nawa-guard-*` (widget-specific override), then `--nw-*` (Nawa UI token), then a neutral fallback.
+See [Design, themes and sound](#design-themes-and-sound) below for presets, Orca UI tokens, CSS custom properties and the sound options. The outer box is exposed as `::part(container)`. Styles use constructable stylesheets and CSSOM, so the widget runs under `style-src 'self'` with no `'unsafe-inline'`. The demo ships a strict CSP.
 
-| Purpose | Variables |
+---
+
+## Design, themes and sound
+
+### Design
+
+The widget is a layered, glass-like ("acrylic") card with real depth: an aurora glow layer behind the content, raised controls lit from the top-left, a recessed puzzle frame with a parallax glass sheen, and puzzle pieces that float above the frame, lift while dragged and settle with a small bounce. A mouse or pen tilts the card by up to 4° in perspective with a specular highlight that follows the pointer; the card flattens while you drag, so pointer coordinates stay exact. Loading shows a floating stack and a shimmering frame; success morphs into a drawn checkmark with a small burst; a wrong answer shakes the puzzle and flashes the card; an expired challenge shows a notice above the new one.
+
+Server-rendered pictures got the same art direction without new dependencies: lit gradients with a key light and a shadow pool, contact shadows and specular sheen on near shapes, hazy far shapes, vignettes, aerial perspective in landscapes, and a bevelled slider piece over a recessed hole. The security model is unchanged (pixels only, answer sealed).
+
+Accessibility guards: `prefers-reduced-motion` removes tilt, parallax, the burst and every animation; `theme="high-contrast"` (or `prefers-contrast: more` in `auto`) and `forced-colors` drop the decoration entirely; focus is a visible 3 px ring; RTL mirrors the layout; touch targets are ≥ 34 px (≥ 44 px for main controls).
+
+### Themes
+
+| `theme` | Look |
 |---|---|
-| Brand | `--nw-primary`, `--nw-primary-hover`, `--nw-primary-soft`, `--nw-on-primary` |
-| Surfaces | `--nw-surface`, `--nw-surface-alt` |
-| Text | `--nw-text`, `--nw-text-muted` |
-| Lines | `--nw-border`, `--nw-control-border`, `--nw-focus` |
-| Status | `--nw-success`, `--nw-success-soft`, `--nw-danger`, `--nw-danger-soft` |
-| Shape / type | `--nw-radius`, `--nw-radius-sm`, `--nw-font`, `--nw-ease`, `--nw-shadow-sm` |
+| `auto` (default) | Uses your page's Orca UI tokens when present, otherwise Orca; light or dark from `prefers-color-scheme`, high contrast from `prefers-contrast: more` |
+| `orca` | Orca violet with a cyan accent |
+| `midnight` | Deep navy and indigo |
+| `aurora` | Teal-green with a violet glow |
+| `sand` | Warm paper and terracotta |
+| `ocean` | Sea blue with an aqua accent |
+| `mono` | Neutral greyscale |
+| `light` / `dark` / `high-contrast` | Shorthands for the appearance (with `auto` colours) |
 
-The outer box is exposed as `::part(container)`. The widget honours `prefers-reduced-motion` and `forced-colors`. Styles use constructable stylesheets and CSSOM, so it runs under `style-src 'self'` with no `'unsafe-inline'`. The demo ships a strict CSP.
+Every preset has a light and a dark palette; `appearance="auto|light|dark|high-contrast"` picks one (`auto` follows the OS). Every foreground/background pair the widget renders, in every palette, is checked against **WCAG 2.2 AA** (4.5:1 text, 3:1 UI and focus) by `npm run check:contrast`, which runs in CI and fails on any failing pair; the widget tests run the same check.
+
+**Orca UI tokens.** With `theme="auto"` the widget reads Orca UI design tokens through the shadow boundary, so it follows your Orca UI theme (light, dark or high contrast) automatically. The legacy Nawa UI tokens (`--nw-*`, Orca UI's previous name) still work. Each colour resolves in this order:
+
+1. `--nawa-guard-<name>`: per-widget override (set it on the element or any ancestor)
+2. the explicit preset (`theme="midnight"`…) or the high-contrast palette
+3. `--oc-<name>`: Orca UI token
+4. `--nw-<name>`: legacy Nawa UI token
+5. the built-in Orca palette (light or dark)
+
+| Purpose | `<name>` |
+|---|---|
+| Brand | `primary`, `primary-hover`, `primary-soft`, `on-primary`, `accent` (decorative glow only) |
+| Surfaces | `surface`, `surface-alt` |
+| Text | `text`, `text-muted` |
+| Lines | `border`, `control-border`, `focus` |
+| Status | `success`, `success-soft`, `danger`, `danger-soft` |
+| Shape / type | `--nawa-guard-radius` / `--oc-radius` / `--nw-radius`, `radius-sm`, `font` |
+
+```html
+<nawa-guard theme="midnight" appearance="dark" …></nawa-guard>
+<nawa-guard style="--nawa-guard-primary:#0a7cff; --nawa-guard-radius:12px" …></nawa-guard>
+```
+
+If you override colours yourself, keep them AA: the contrast pairs are listed in [`packages/widget/src/themes.ts`](packages/widget/src/themes.ts) (`CONTRAST_PAIRS`, `checkContrast()` and `contrastRatio()` are exported).
+
+### Sound
+
+Short, soft cues synthesized with the Web Audio API (no audio files): grab, snap into place, select, step complete, verified and "not quite".
+
+- **Off by default.** Turn it on with the `sound` attribute/property, or let visitors use the speaker button in the widget. The visitor's choice and volume are remembered per site (`localStorage`, any storage error is ignored) and beat the site default.
+- **Never before a gesture.** No `AudioContext` is created and nothing plays until the visitor has pressed a key or pointer inside the widget (trusted events only).
+- **Volume** slider in the widget footer while sound is on, or the `volume` attribute (`0`–`1`).
+- **App-level mute:** the `muted` attribute on a widget, `setNawaGuardMuted(true)` for every widget, or `data-nawa-guard-muted` on `<html>`.
+- **Never the only signal:** every state change is still announced in the live region.
+
+### Audio challenge
+
+For blind and low-vision visitors the accessible mode (the person icon) offers **Text question** and **Audio**. The audio challenge (`type: 'audio'`):
+
+- The server synthesizes a 16-bit PCM WAV (11 kHz mono, about 4–6 s, ~100–130 kB as a data: URL) with no dependencies: a small formant (Klatt-style) voice speaks 4 digits (5 at level ≥ 2) for English, or a run of high and low beeps to count for Arabic, with randomized voice, timing and pitch, rain-like noise and muffled babble.
+- The answer is sealed in the challenge token like every other type and is never in the JSON; the clip carries it only as sound. Answers like `4 7 2 1`, `4-7-2-1` or Arabic-Indic digits are accepted; beep counts also as words (EN/AR).
+- Nothing plays until **Play** is pressed (Web Audio decode, so no `media-src` CSP entry is needed; `<audio>` fallback). Three plays per challenge, no transcript, and the result field gets focus when the clip ends.
+- An answer sooner than ~¾ of the clip (max 4 s) is refused, and it carries the same PoW tax as `accessible`.
+- Honest limits: speech recognisers can read audio CAPTCHAs, so treat `audio` as low assurance (it is in `NawaGuardChallengeTypes.LowAssurance`); the replay limit is a UX limit (the clip is in the page). The synthesized digits were checked with the Windows speech recogniser: 9 of 10 digits are recognised in clean conditions (it misses "two"), so a real listener should test the voice before you rely on it.
 
 ---
 
@@ -526,7 +595,7 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 
 ## Accessibility
 
-- **WCAG 1.1.1 (non-text content):** visual puzzles have a text alternative, the **accessible challenge** (toolbar button with `aria-pressed`). It is a plain-language question in Arabic or English with no image or audio, answerable in words or digits. Image `alt` text points users to it.
+- **WCAG 1.1.1 (non-text content):** visual puzzles have two alternatives behind the toolbar's accessibility button (`aria-pressed`): a plain-language **text question** in Arabic or English, answerable in words or digits, and an **audio challenge** (Play button, limited replays, no transcript). Image `alt` text points users to them.
 - **WCAG 2.1.1 (keyboard):** every puzzle is fully operable without a pointer:
   - slide and rotate types: `role="slider"` with arrows (Shift for big steps), Home/End, Enter to submit
   - shadow-drag: the piece is focusable; arrows move it in 2D, Enter drops it
@@ -536,13 +605,15 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
   - order types: Space to pick up, arrows to move (RTL-aware), Space to drop, with each move announced
   - tap-order and spell: a crosshair moved with arrows, Space taps, Backspace undoes, the count is announced
   - trace: a crosshair moved with arrows, Space to add a point, Backspace to undo; maze: arrows move one cell at a time after Space
-  - math, count, dice and accessible: ordinary text inputs
+  - math, count, dice, accessible and audio: ordinary text inputs (audio: a Play button first)
 - **Use of colour (1.4.1):** `color-name` pairs every colour with a named pattern.
 - **Multi-step:** the step ("Step 1 of 2") is shown and announced; the next puzzle gets focus.
 - **Status messages (4.1.3):** loading, wrong answer, expiry, success and reorder announcements go to a `role="status"` live region.
-- **Visible focus (2.4.7):** a 3 px `--nw-focus` outline, with `Highlight` in forced-colors mode.
-- **Target size:** controls are ≥ 44 px.
-- **Motion:** honours `prefers-reduced-motion`.
+- **Visible focus (2.4.7):** a 3 px focus outline (`--oc-focus` / `--nw-focus` / theme), with `Highlight` in forced-colors mode.
+- **Contrast (1.4.3, 1.4.11):** every theme palette is checked against WCAG 2.2 AA in CI (`npm run check:contrast`).
+- **Target size (2.5.8):** main controls are ≥ 44 px, toolbar buttons ≥ 34 px.
+- **Motion:** `prefers-reduced-motion` removes tilt, parallax, the success burst and all animation; the tilt never runs for touch.
+- **Sound:** off by default, never before a gesture, never the only feedback.
 - **RTL:** Arabic mirrors the layout and reading order. The image stages stay physically LTR so that "right" means right on the picture.
 - **Timing:** challenges refresh themselves before expiry with an announcement, and pass tokens live long enough to finish a short form. Raise `passTtlSec` for longer forms.
 
@@ -635,6 +706,7 @@ npm test             # Vitest
 npm run test:dotnet  # xUnit (requires .NET 8 SDK/runtime)
 npm run demo         # http://localhost:5180 (also what StackBlitz runs, via .stackblitzrc)
 npm run build:site   # bundles the playground into site/assets and regenerates the type tables
+npm run check:contrast  # WCAG 2.2 AA check of every widget theme palette (fails on any failing pair)
 npm run fixture:dotnet  # regenerate the Node→.NET interop fixture
 ```
 
@@ -656,7 +728,7 @@ Nawa Guard comes from two in-house captchas (mashroo3hub, and a similar one in t
 
 ## العربية: ملخص
 
-**Nawa Guard (نوى غارد)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Nawa UI. تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال.
+**Nawa Guard (نوى غارد)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Nawa UI. تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال، وتحدٍّ صوتي يولّده الخادم (أرقام منطوقة بالإنجليزية أو عدّ النغمات الحادّة للعربية) مع ضوضاء خلفية وعدد محدود من مرات التشغيل وبلا نص مكتوب.
 
 - **أنت تختار الألغاز:** لغز واحد أو اثنان أو عدة ألغاز عبر `types`، مع أوزان وطريقة اختيار (`random` أو `sequence` أو `adaptive`) وإعدادات لكل إجراء (`perAction`)، ويمكن طلب لغزين أو ثلاثة متتالية (`steps`). خاصية `types` في الأداة تضيّق القائمة فقط ولا توسّعها أبدًا. ويدعم ASP.NET Core ذلك عبر `AllowedTypes` و`ActionAllowedTypes` و`MinSteps`.
 - **عرض حي:** [الملعب التفاعلي](https://oriebalzyuot96.github.io/nawa-guard/#playground) يشغّل المحرك الحقيقي داخل المتصفح (وضع العرض فقط)، ويمكن تشغيل خادم Node التجريبي على [StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard).
@@ -664,7 +736,9 @@ Nawa Guard comes from two in-house captchas (mashroo3hub, and a similar one in t
 - **لا ثقة بالمتصفح:** الحل مختوم داخل الرمز بتشفير AES-256-GCM ولا يصل إلى العميل أبدًا، وكل التحقق يجري على الخادم.
 - **رمز عبور (Pass token)** موقّع بـ HMAC، قصير العمر، يُستخدم مرة واحدة فقط، ومقيّد بالإجراء (مثل `login`) ويمكن ربطه بعنوان IP والمتصفح. يتحقق منه الخادم الخلفي محليًا عبر `verifyPassToken` في Node أو `INawaGuardVerifier` و`[RequireNawaGuard]` في ASP.NET Core. التنسيق موثّق ومتوافق بين المنصتين ومختبر بينهما.
 - **حماية إضافية:** تحديد المعدل، وصعوبة تتكيف بعد الإخفاقات، وحد للمحاولات، وحد أدنى لزمن الحل، وتحليل حركة المؤشر لرفض السحب الآلي المستقيم، وتدوير المفاتيح عبر معرّف `kid`.
-- **إتاحة كاملة:** كل لغز يعمل بالفأرة واللمس ولوحة المفاتيح، ويدعم العربية والإنجليزية مع اتجاه RTL، ويتبع رموز تصميم Nawa UI (`--nw-*`) ويحترم تقليل الحركة ووضع الألوان القسرية.
+- **إتاحة كاملة:** كل لغز يعمل بالفأرة واللمس ولوحة المفاتيح، ويدعم العربية والإنجليزية مع اتجاه RTL، ويحترم تقليل الحركة ووضع الألوان القسرية.
+- **تصميم وأنماط:** بطاقة زجاجية بعمق ثلاثي الأبعاد وحركة خفيفة تتوقف مع تقليل الحركة، وستة أنماط (`orca` و`midnight` و`aurora` و`sand` و`ocean` و`mono`) بوضعين فاتح وداكن مع تباين عالٍ، وكلها مفحوصة وفق WCAG 2.2 AA. تلتقط الأداة رموز تصميم Orca UI (`--oc-*`) تلقائيًا وتبقى رموز Nawa UI القديمة (`--nw-*`) مدعومة.
+- **صوت اختياري:** مؤثرات قصيرة مولّدة عبر Web Audio، متوقفة افتراضيًا، لا تعمل قبل تفاعل المستخدم، مع زر سماعة يُحفظ اختياره وشريط لمستوى الصوت وكتم على مستوى التطبيق.
 - **التكامل:** مكوّن ويب `<nawa-guard>` مع أغلفة React وVue وSvelte وAngular (مع ControlValueAccessor للنماذج التفاعلية). يشرح قسم «Integrate into mashroo3hub» أعلاه خطوات دمجه في نافذة تسجيل الدخول وفي نقاط .NET الحالية.
 - **حدود صريحة:** الكابتشا تزيد كلفة الهجوم ولا تمنعه نهائيًا. المهاجم المصمم قد يستخدم الرؤية الحاسوبية أو حلّالين بشريين، لذلك اجمعها مع تحديد المعدل وقفل الحسابات والمراقبة.
 

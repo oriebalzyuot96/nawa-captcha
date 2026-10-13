@@ -5,7 +5,7 @@ const FAMILIES = {
   order: ['Put in order', 'الترتيب'],
   draw: ['Draw a path', 'رسم مسار'],
   type: ['Type the answer', 'كتابة الإجابة'],
-  invisible: ['Invisible and text alternative', 'غير مرئي وبديل نصي'],
+  invisible: ['Invisible and accessible alternatives', 'غير مرئي وبدائل ميسّرة'],
 };
 
 const gallery = document.getElementById('gallery');

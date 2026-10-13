@@ -25,9 +25,20 @@ const UI: Record<Lang, Record<string, string>> = {
     steps: 'Puzzles in a row',
     level: 'Difficulty level',
     language: 'Language',
-    theme: 'Theme',
+    theme: 'Page',
     light: 'Light',
     dark: 'Dark',
+    wtheme: 'Widget theme',
+    auto: 'Auto (page tokens)',
+    appearance: 'Appearance',
+    page: 'Page',
+    hc: 'High contrast',
+    sound: 'Sound effects',
+    on: 'On',
+    off: 'Off',
+    soundHelp: 'Visitors can always switch it with the speaker button.',
+    a11yAlt: 'Accessible alternatives',
+    tryAudio: 'Try the audio challenge',
     preview: 'Live widget',
     formTitle: 'Create your account',
     email: 'Email',
@@ -58,9 +69,20 @@ const UI: Record<Lang, Record<string, string>> = {
     steps: 'عدد الألغاز المتتالية',
     level: 'مستوى الصعوبة',
     language: 'اللغة',
-    theme: 'المظهر',
+    theme: 'الصفحة',
     light: 'فاتح',
     dark: 'داكن',
+    wtheme: 'نمط الأداة',
+    auto: 'تلقائي (ألوان الصفحة)',
+    appearance: 'المظهر',
+    page: 'الصفحة',
+    hc: 'تباين عالٍ',
+    sound: 'المؤثرات الصوتية',
+    on: 'تشغيل',
+    off: 'إيقاف',
+    soundHelp: 'يستطيع الزائر تغييرها دائمًا بزر السماعة.',
+    a11yAlt: 'البدائل الميسّرة',
+    tryAudio: 'جرّب التحدي الصوتي',
     preview: 'الأداة مباشرة',
     formTitle: 'أنشئ حسابك',
     email: 'البريد الإلكتروني',
@@ -88,7 +110,7 @@ const FAMILY_NAMES: Record<TypeFamily, Record<Lang, string>> = {
   order: { en: 'Put in order', ar: 'الترتيب' },
   draw: { en: 'Draw a path', ar: 'رسم مسار' },
   type: { en: 'Type the answer', ar: 'كتابة الإجابة' },
-  invisible: { en: 'Invisible · text', ar: 'غير مرئي ونصي' },
+  invisible: { en: 'Invisible · text · audio', ar: 'غير مرئي ونصي وصوتي' },
 };
 
 const state = {
@@ -98,7 +120,24 @@ const state = {
   steps: 1,
   level: 0,
   lang: 'en' as Lang,
+  wtheme: 'auto',
+  appear: 'page' as 'page' | 'light' | 'dark' | 'high-contrast',
+  sound: false,
 };
+
+const pageIsDark = (): boolean => {
+  const forced = document.documentElement.dataset['theme'];
+  return forced ? forced === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
+/** Applies the chosen theme/appearance/sound to the playground and hero widgets. */
+function applyLook(): void {
+  for (const w of document.querySelectorAll<HTMLElement>('#pg-widget, #hero-widget')) {
+    w.setAttribute('theme', state.wtheme);
+    w.setAttribute('appearance', state.appear === 'page' ? (pageIsDark() ? 'dark' : 'light') : state.appear);
+    w.setAttribute('sound', state.sound ? 'on' : 'off');
+  }
+}
 
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 const root = $('#playground');
@@ -117,6 +156,8 @@ function options() {
     assessRisk: () => state.level,
     powBits: 12,
     bind: 'ua' as const,
+    // The theme gallery uses its own action, so it can show other puzzles than the playground.
+    perAction: { gallery: { types: ['icons', 'order', 'rotate'] as ChallengeType[], mode: 'random' as const } },
   };
 }
 
@@ -175,7 +216,10 @@ function renderControls(): void {
   setPressed('#pg-mode', state.mode);
   setPressed('#pg-steps', String(state.steps));
   setPressed('#pg-lang', state.lang);
-  setPressed('#pg-theme', document.documentElement.dataset['theme'] === 'dark' ? 'dark' : 'light');
+  setPressed('#pg-theme', pageIsDark() ? 'dark' : 'light');
+  setPressed('#pg-wtheme', state.wtheme);
+  setPressed('#pg-appear', state.appear);
+  setPressed('#pg-sound', state.sound ? 'on' : 'off');
   ($('#pg-level') as HTMLInputElement).value = String(state.level);
   $('#pg-level-value').textContent = String(state.level);
   $('#pg-mode-help').textContent = MODE_HELP[state.lang][state.mode];
@@ -201,15 +245,19 @@ function renderConfig(): void {
     `});`,
     ``,
     `<nawa-guard site-key="main" endpoint="/captcha"`,
-    `            action="${ACTION}" lang="${state.lang}"></nawa-guard>`,
+    `            action="${ACTION}" lang="${state.lang}"`,
+    ...(state.wtheme !== 'auto' ? [`            theme="${state.wtheme}"`] : []),
+    ...(state.appear !== 'page' ? [`            appearance="${state.appear}"`] : []),
+    ...(state.sound ? [`            sound`] : []),
+    `></nawa-guard>`,
   ];
   $('#pg-config').textContent = lines.join('\n');
 }
 
 function short(value: unknown): unknown {
-  if (typeof value === 'string' && value.startsWith('data:image/')) {
+  if (typeof value === 'string' && (value.startsWith('data:image/') || value.startsWith('data:audio/'))) {
     const kb = ((value.length * 3) / 4 / 1024).toFixed(1);
-    return `${value.slice(0, 26)}… (${kb} kB image)`;
+    return `${value.slice(0, 26)}… (${kb} kB ${value.startsWith('data:audio/') ? 'WAV' : 'image'})`;
   }
   if (typeof value === 'string' && value.length > 80) return `${value.slice(0, 40)}…${value.slice(-12)}`;
   if (Array.isArray(value)) return value.map(short);
@@ -276,6 +324,8 @@ function apply(reload = true): void {
   $('#pg-pass').textContent = t('waiting');
   $<HTMLButtonElement>('#pg-verify').disabled = true;
   widget.setAttribute('lang', state.lang);
+  widget.removeAttribute('type');
+  applyLook();
   if (reload) widget.reset();
 }
 
@@ -311,11 +361,36 @@ segmented('#pg-theme', (v) => {
   } catch {
     // storage unavailable: the choice just is not remembered
   }
+  applyLook();
+  renderControls();
+});
+segmented('#pg-wtheme', (v) => {
+  state.wtheme = v;
+  applyLook();
+  renderControls();
+});
+segmented('#pg-appear', (v) => {
+  state.appear = v as typeof state.appear;
+  applyLook();
+  renderControls();
+});
+segmented('#pg-sound', (v) => {
+  state.sound = v === 'on';
+  applyLook();
+  renderControls();
+});
+$('#pg-audio').addEventListener('click', () => {
+  widget.setAttribute('type', 'audio');
+  widget.reset();
+  log('Requested the audio challenge (type "audio" is always allowed as an accessible alternative).');
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  applyLook();
   renderControls();
 });
 $('#pg-all').addEventListener('click', () => {
   state.pick = 'many';
-  state.selected = new Set(CHALLENGE_TYPES.filter((x) => x !== 'accessible'));
+  state.selected = new Set(CHALLENGE_TYPES.filter((x) => x !== 'accessible' && x !== 'audio'));
   apply();
 });
 $('#pg-none').addEventListener('click', () => {

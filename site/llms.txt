@@ -53,9 +53,9 @@
 - math: Math image (type the answer)
 - count: Count the objects (type the answer)
 - dice: Dice total (type the answer)
-- pow: Invisible proof-of-work (invisible / text alternative)
-- accessible: Accessible text question (invisible / text alternative)
-- audio: Audio challenge (digits / beeps) (invisible / text alternative)
+- pow: Invisible proof-of-work (invisible / accessible alternative)
+- accessible: Accessible text question (invisible / accessible alternative)
+- audio: Audio challenge (digits / beeps) (invisible / accessible alternative)
 <!-- types:end -->
 
 ## Security model

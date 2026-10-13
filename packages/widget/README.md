@@ -4,9 +4,11 @@
 
 This package: Framework-agnostic web component.
 
-- 🧩 37 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work and an accessible text question — [see them live](https://oriebalzyuot96.github.io/nawa-guard/#playground)
+- 🧩 38 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work, an accessible text question and an audio challenge — [see them live](https://oriebalzyuot96.github.io/nawa-guard/#playground)
 - 🔒 Answers are sealed (AES-256-GCM) and never reach the browser; pass tokens are signed and single-use
-- ♿ Keyboard, touch and screen-reader friendly; Arabic and English; RTL; themes
+- ♿ Keyboard, touch and screen-reader friendly (text question and audio challenge); Arabic and English; RTL
+- 🎨 Premium 3D design; six themes (`orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`) in light and dark plus high contrast, all WCAG 2.2 AA; picks up Orca UI `--oc-*` tokens (legacy `--nw-*` too)
+- 🔊 Optional synthesized sound effects (off by default, never before a gesture, volume, app-level mute)
 - 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaGuard.AspNetCore`, coming to NuGet)
 
 ## Install
@@ -41,6 +43,25 @@ pnpm add @nawa-guard/widget
 | `types` | Comma-separated list that **narrows** the server's allowed puzzle types, e.g. `slider,rotate-object`. It never widens them. |
 | `type` | One exact type (only if the server sets `allowClientType`, except `accessible`) |
 | `name` | Hidden input name (default `nawa-guard-token`) |
+| `theme` | `auto` (default: page Orca UI tokens, else Orca), `orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`; shorthands `light`, `dark`, `high-contrast` |
+| `appearance` | `auto` (follows `prefers-color-scheme` / `prefers-contrast`), `light`, `dark`, `high-contrast` |
+| `sound` | Sound effects on by default (the visitor's speaker toggle, remembered per site, still wins). Off when absent. |
+| `volume` | Sound volume `0`–`1` (default `0.6`) |
+| `muted` | Silence this widget (your app's mute). `setNawaGuardMuted(true)` mutes all widgets. |
+| `tilt` | `off` disables the pointer tilt (already off for touch, reduced motion and high contrast) |
+
+## Theming
+
+```html
+<nawa-guard theme="aurora" appearance="dark" …></nawa-guard>
+<nawa-guard style="--nawa-guard-primary:#0a7cff" …></nawa-guard>
+```
+
+Each colour resolves `--nawa-guard-<name>` → explicit preset / high contrast → Orca UI `--oc-<name>` → legacy `--nw-<name>` → built-in Orca palette. Names: `primary`, `primary-hover`, `primary-soft`, `on-primary`, `accent`, `surface`, `surface-alt`, `text`, `text-muted`, `border`, `control-border`, `focus`, `success`, `success-soft`, `danger`, `danger-soft` (plus `radius`, `radius-sm`, `font`). `checkContrast()`, `contrastRatio()`, `PALETTES` and `CONTRAST_PAIRS` are exported if you want to check your own overrides.
+
+## Sound and the audio challenge
+
+UI cues (grab, snap, select, step, verified, wrong) are synthesized with Web Audio: no files, off by default, no `AudioContext` before a trusted gesture inside the widget, every change also announced in the live region. The accessibility button offers a **text question** and an **audio challenge** (server-synthesized WAV of spoken digits or beeps to count; Play button, three plays, no transcript).
 
 Multi-step policies (`steps: 2`) are handled for you: the widget shows "Step 1 of 2", loads the next puzzle and fires `nawa-guard:verified` after the last one. Every puzzle works with mouse, touch and keyboard, and the accessible text alternative is one click away.
 
