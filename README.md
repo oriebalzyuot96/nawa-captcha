@@ -12,13 +12,13 @@ npm i @nawa-captcha/server @nawa-captcha/widget    # or: yarn add / pnpm add
 
 > **Coming to npm.** The packages will be published under the `@nawa-captcha` scope (and `NawaCaptcha.AspNetCore` on NuGet) once the organisation exists; `npm view @nawa-captcha/server` does not find them yet. Until then, build from source: `git clone https://github.com/oriebalzyuot96/nawa-captcha.git && cd nawa-captcha && npm install && npm run build`, then `npm pack -w @nawa-captcha/server -w @nawa-captcha/widget` and install the `.tgz` files (or use a workspace / `file:` dependency).
 
-**Nawa Captcha** (formerly **Nawa Guard**, see [Renamed from Nawa Guard](#renamed-from-nawa-guard)) is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Orca UI component library, formerly Nawa UI). It's designed around three ideas:
+**Nawa Captcha** (formerly **Nawa Guard**, see [Renamed from Nawa Guard](#renamed-from-nawa-guard)) is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Pelagic UI component library, formerly Nawa UI). It's designed around three ideas:
 
 1. **The client is never trusted.** Puzzles are rendered on the server as pixels. The solution is sealed inside the challenge token with AES-256-GCM and never reaches the browser in a form it can read.
 2. **Verification happens on your own backend, the way reCAPTCHA's siteverify does.** A solved puzzle produces a short-lived, single-use, HMAC-signed **pass token**. Your protected route verifies it locally with no third-party call. Node and ASP.NET Core implementations are included and interoperate.
 3. **Everyone can pass it.** Every puzzle works with mouse, touch and keyboard. A text question and an audio challenge work with screen readers (WCAG 1.1.1 and 2.1.1). Arabic and English are built in, with full RTL support.
 
-It also looks the part: a layered, glass-like card with depth and subtle motion, six theme presets (light and dark) plus high contrast, automatic pick-up of your Orca UI tokens, and optional synthesized sound effects. See [Design, themes and sound](#design-themes-and-sound).
+It also looks the part: a layered, glass-like card with depth and subtle motion, six theme presets (light and dark) plus high contrast, automatic pick-up of your Pelagic UI tokens, and optional synthesized sound effects. See [Design, themes and sound](#design-themes-and-sound).
 
 | Package | What it is |
 |---|---|
@@ -271,7 +271,7 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 | `types` | (server decides) | Comma-separated types to **narrow** the server's allow-list, e.g. `slider,rotate`. Never widens it; ignored if none of them is allowed. |
 | `type` | (server decides) | One exact puzzle. Only honoured with `allowClientType: true` (galleries), except `accessible` and `audio`, which are always allowed. |
 | `dir` | from `lang` | Forces `rtl` or `ltr`. |
-| `theme` | `auto` | `orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`, or `auto` (page tokens, else Orca). Shorthands `light`, `dark`, `high-contrast` set the appearance. See [Themes](#themes). |
+| `theme` | `auto` | `pelagic`, `midnight`, `aurora`, `sand`, `ocean`, `mono`, or `auto` (page tokens, else Pelagic). Shorthands `light`, `dark`, `high-contrast` set the appearance. See [Themes](#themes). |
 | `appearance` | `auto` | `light`, `dark`, `high-contrast`, or `auto` (follows `prefers-color-scheme` and `prefers-contrast`). |
 | `sound` | off | Turns UI sound effects on by default (`sound`, `sound="on"`; `sound="off"` to force the default off). The visitor's speaker toggle still wins. |
 | `volume` | `0.6` | UI sound volume, `0`–`1`. |
@@ -380,7 +380,7 @@ The control value is the pass token. The control reports `{ nawaCaptcha: true }`
 
 ### Theming
 
-See [Design, themes and sound](#design-themes-and-sound) below for presets, Orca UI tokens, CSS custom properties and the sound options. The outer box is exposed as `::part(container)`. Styles use constructable stylesheets and CSSOM, so the widget runs under `style-src 'self'` with no `'unsafe-inline'`. The demo ships a strict CSP.
+See [Design, themes and sound](#design-themes-and-sound) below for presets, Pelagic UI tokens, CSS custom properties and the sound options. The outer box is exposed as `::part(container)`. Styles use constructable stylesheets and CSSOM, so the widget runs under `style-src 'self'` with no `'unsafe-inline'`. The demo ships a strict CSP.
 
 ---
 
@@ -398,8 +398,8 @@ Accessibility guards: `prefers-reduced-motion` removes tilt, parallax, the burst
 
 | `theme` | Look |
 |---|---|
-| `auto` (default) | Uses your page's Orca UI tokens when present, otherwise Orca; light or dark from `prefers-color-scheme`, high contrast from `prefers-contrast: more` |
-| `orca` | Orca violet with a cyan accent |
+| `auto` (default) | Uses your page's Pelagic UI tokens when present, otherwise the Pelagic palette; light or dark from `prefers-color-scheme`, high contrast from `prefers-contrast: more` |
+| `pelagic` | Pelagic violet with a cyan accent |
 | `midnight` | Deep navy and indigo |
 | `aurora` | Teal-green with a violet glow |
 | `sand` | Warm paper and terracotta |
@@ -409,13 +409,13 @@ Accessibility guards: `prefers-reduced-motion` removes tilt, parallax, the burst
 
 Every preset has a light and a dark palette; `appearance="auto|light|dark|high-contrast"` picks one (`auto` follows the OS). Every foreground/background pair the widget renders, in every palette, is checked against **WCAG 2.2 AA** (4.5:1 text, 3:1 UI and focus) by `npm run check:contrast`, which runs in CI and fails on any failing pair; the widget tests run the same check.
 
-**Orca UI tokens.** With `theme="auto"` the widget reads Orca UI design tokens through the shadow boundary, so it follows your Orca UI theme (light, dark or high contrast) automatically. The legacy Nawa UI tokens (`--nw-*`, Orca UI's previous name) still work. Each colour resolves in this order:
+**Pelagic UI tokens.** With `theme="auto"` the widget reads Pelagic UI design tokens through the shadow boundary, so it follows your Pelagic UI theme (light, dark or high contrast) automatically. The legacy Nawa UI tokens (`--nw-*`, Pelagic UI's previous name) still work. Each colour resolves in this order:
 
 1. `--nawa-captcha-<name>`: per-widget override (set it on the element or any ancestor)
 2. the explicit preset (`theme="midnight"`…) or the high-contrast palette
-3. `--oc-<name>`: Orca UI token
+3. `--pl-<name>`: Pelagic UI token
 4. `--nw-<name>`: legacy Nawa UI token
-5. the built-in Orca palette (light or dark)
+5. the built-in Pelagic palette (light or dark)
 
 | Purpose | `<name>` |
 |---|---|
@@ -424,7 +424,7 @@ Every preset has a light and a dark palette; `appearance="auto|light|dark|high-c
 | Text | `text`, `text-muted` |
 | Lines | `border`, `control-border`, `focus` |
 | Status | `success`, `success-soft`, `danger`, `danger-soft` |
-| Shape / type | `--nawa-captcha-radius` / `--oc-radius` / `--nw-radius`, `radius-sm`, `font` |
+| Shape / type | `--nawa-captcha-radius` / `--pl-radius` / `--nw-radius`, `radius-sm`, `font` |
 
 ```html
 <nawa-captcha theme="midnight" appearance="dark" …></nawa-captcha>
@@ -633,7 +633,7 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 - **Use of colour (1.4.1):** `color-name` pairs every colour with a named pattern.
 - **Multi-step:** the step ("Step 1 of 2") is shown and announced; the next puzzle gets focus.
 - **Status messages (4.1.3):** loading, wrong answer, expiry, success and reorder announcements go to a `role="status"` live region.
-- **Visible focus (2.4.7):** a 3 px focus outline (`--oc-focus` / `--nw-focus` / theme), with `Highlight` in forced-colors mode.
+- **Visible focus (2.4.7):** a 3 px focus outline (`--pl-focus` / `--nw-focus` / theme), with `Highlight` in forced-colors mode.
 - **Contrast (1.4.3, 1.4.11):** every theme palette is checked against WCAG 2.2 AA in CI (`npm run check:contrast`).
 - **Target size (2.5.8):** main controls are ≥ 44 px, toolbar buttons ≥ 34 px.
 - **Motion:** `prefers-reduced-motion` removes tilt, parallax, the success burst and all animation; the tilt never runs for touch.
@@ -752,7 +752,7 @@ Nawa Captcha comes from two in-house captchas (mashroo3hub, and a similar one in
 
 ## العربية: ملخص
 
-**Nawa Captcha (نوى كابتشا)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Orca UI (Nawa UI سابقًا)، وكان اسمها سابقًا Nawa Guard (تبقى الأسماء القديمة تعمل مؤقتًا كأسماء بديلة). تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال، وتحدٍّ صوتي يولّده الخادم (أرقام منطوقة بالإنجليزية أو عدّ النغمات الحادّة للعربية) مع ضوضاء خلفية وعدد محدود من مرات التشغيل وبلا نص مكتوب.
+**Nawa Captcha (نوى كابتشا)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Pelagic UI (Nawa UI سابقًا)، وكان اسمها سابقًا Nawa Guard (تبقى الأسماء القديمة تعمل مؤقتًا كأسماء بديلة). تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال، وتحدٍّ صوتي يولّده الخادم (أرقام منطوقة بالإنجليزية أو عدّ النغمات الحادّة للعربية) مع ضوضاء خلفية وعدد محدود من مرات التشغيل وبلا نص مكتوب.
 
 - **أنت تختار الألغاز:** لغز واحد أو اثنان أو عدة ألغاز عبر `types`، مع أوزان وطريقة اختيار (`random` أو `sequence` أو `adaptive`) وإعدادات لكل إجراء (`perAction`)، ويمكن طلب لغزين أو ثلاثة متتالية (`steps`). خاصية `types` في الأداة تضيّق القائمة فقط ولا توسّعها أبدًا. ويدعم ASP.NET Core ذلك عبر `AllowedTypes` و`ActionAllowedTypes` و`MinSteps`.
 - **عرض حي:** [الملعب التفاعلي](https://oriebalzyuot96.github.io/nawa-captcha/#playground) يشغّل المحرك الحقيقي داخل المتصفح (وضع العرض فقط)، ويمكن تشغيل خادم Node التجريبي على [StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-captcha).
@@ -761,7 +761,7 @@ Nawa Captcha comes from two in-house captchas (mashroo3hub, and a similar one in
 - **رمز عبور (Pass token)** موقّع بـ HMAC، قصير العمر، يُستخدم مرة واحدة فقط، ومقيّد بالإجراء (مثل `login`) ويمكن ربطه بعنوان IP والمتصفح. يتحقق منه الخادم الخلفي محليًا عبر `verifyPassToken` في Node أو `INawaCaptchaVerifier` و`[RequireNawaCaptcha]` في ASP.NET Core. التنسيق موثّق ومتوافق بين المنصتين ومختبر بينهما.
 - **حماية إضافية:** تحديد المعدل، وصعوبة تتكيف بعد الإخفاقات، وحد للمحاولات، وحد أدنى لزمن الحل، وتحليل حركة المؤشر لرفض السحب الآلي المستقيم، وتدوير المفاتيح عبر معرّف `kid`.
 - **إتاحة كاملة:** كل لغز يعمل بالفأرة واللمس ولوحة المفاتيح، ويدعم العربية والإنجليزية مع اتجاه RTL، ويحترم تقليل الحركة ووضع الألوان القسرية.
-- **تصميم وأنماط:** بطاقة زجاجية بعمق ثلاثي الأبعاد وحركة خفيفة تتوقف مع تقليل الحركة، وستة أنماط (`orca` و`midnight` و`aurora` و`sand` و`ocean` و`mono`) بوضعين فاتح وداكن مع تباين عالٍ، وكلها مفحوصة وفق WCAG 2.2 AA. تلتقط الأداة رموز تصميم Orca UI (`--oc-*`) تلقائيًا وتبقى رموز Nawa UI القديمة (`--nw-*`) مدعومة.
+- **تصميم وأنماط:** بطاقة زجاجية بعمق ثلاثي الأبعاد وحركة خفيفة تتوقف مع تقليل الحركة، وستة أنماط (`pelagic` و`midnight` و`aurora` و`sand` و`ocean` و`mono`) بوضعين فاتح وداكن مع تباين عالٍ، وكلها مفحوصة وفق WCAG 2.2 AA. تلتقط الأداة رموز تصميم Pelagic UI (`--pl-*`) تلقائيًا وتبقى رموز Nawa UI القديمة (`--nw-*`) مدعومة.
 - **صوت اختياري:** مؤثرات قصيرة مولّدة عبر Web Audio، متوقفة افتراضيًا، لا تعمل قبل تفاعل المستخدم، مع زر سماعة يُحفظ اختياره وشريط لمستوى الصوت وكتم على مستوى التطبيق.
 - **التكامل:** مكوّن ويب `<nawa-captcha>` مع أغلفة React وVue وSvelte وAngular (مع ControlValueAccessor للنماذج التفاعلية). يشرح قسم «Integrate into mashroo3hub» أعلاه خطوات دمجه في نافذة تسجيل الدخول وفي نقاط .NET الحالية.
 - **حدود صريحة:** الكابتشا تزيد كلفة الهجوم ولا تمنعه نهائيًا. المهاجم المصمم قد يستخدم الرؤية الحاسوبية أو حلّالين بشريين، لذلك اجمعها مع تحديد المعدل وقفل الحسابات والمراقبة.

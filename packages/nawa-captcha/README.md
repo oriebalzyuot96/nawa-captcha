@@ -83,7 +83,7 @@ ASP.NET Core verification: `dotnet add package NawaCaptcha.AspNetCore` (see the 
 ## Why Nawa Captcha
 - 🔒 Answers are sealed on the server (AES-256-GCM) and never reach the browser; pass tokens are signed and single-use.
 - ♿ Mouse, touch and full keyboard for every puzzle, plus text and audio alternatives (WCAG 2.2 AA).
-- 🎨 Themes (Orca, Midnight, Aurora, Sand, Ocean, Mono) in light, dark and high contrast; follows Orca UI tokens automatically.
+- 🎨 Themes (Pelagic, Midnight, Aurora, Sand, Ocean, Mono) in light, dark and high contrast; follows Pelagic UI tokens automatically.
 - 🔊 Optional synthesized sound, off by default.
 - 🌍 Arabic and English, full RTL.
 

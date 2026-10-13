@@ -1,6 +1,6 @@
 {
   "name": "@nawa-captcha/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha for React: accessible, self-hosted puzzle CAPTCHA component and hook — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@nawa-captcha/widget": "0.1.0"
+    "@nawa-captcha/widget": "0.1.1"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -48,7 +48,7 @@
     "anti-spam",
     "proof-of-work",
     "nawa-captcha",
-    "orca-ui",
+    "pelagic-ui",
     "arabic",
     "rtl"
   ],

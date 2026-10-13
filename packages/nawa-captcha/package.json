@@ -1,6 +1,6 @@
 {
   "name": "nawa-captcha",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha in one package: a self-hosted, accessible puzzle CAPTCHA with 38 challenge types, an audio challenge and themes. Server (Node.js/Express) plus the <nawa-captcha> widget and React, Vue, Svelte and Angular components. An open-source reCAPTCHA / hCaptcha / Turnstile alternative.",
   "type": "module",
   "main": "./dist/server/index.js",

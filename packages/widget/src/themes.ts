@@ -7,12 +7,12 @@
  *   --nawa-captcha-*          per-widget override (CSS custom property on the element or an ancestor;
  *                             the pre-rename --nawa-guard-* names still work)
  *   explicit preset           theme="midnight" etc., or the high-contrast palette
- *   --oc-*                    Orca UI design tokens (inherited from the page)
- *   --nw-*                    legacy Nawa UI tokens (Orca UI's previous name)
- *   built-in default          Orca violet, light or dark following the appearance
+ *   --pl-*                    Pelagic UI design tokens (inherited from the page)
+ *   --nw-*                    legacy Nawa UI tokens (Pelagic UI's previous name)
+ *   built-in default          Pelagic violet, light or dark following the appearance
  */
 
-export const THEME_PRESETS = ['orca', 'midnight', 'aurora', 'sand', 'ocean', 'mono'] as const;
+export const THEME_PRESETS = ['pelagic', 'midnight', 'aurora', 'sand', 'ocean', 'mono'] as const;
 export type ThemePreset = (typeof THEME_PRESETS)[number];
 /** `theme` attribute values: a preset, `auto` (default), or an appearance shorthand. */
 export type ThemeName = ThemePreset | 'auto' | 'light' | 'dark' | 'high-contrast';
@@ -42,7 +42,7 @@ export interface Palette {
 }
 
 export const PALETTES: Readonly<Record<ThemePreset | 'high-contrast', Readonly<Record<Scheme, Palette>>>> = {
-  orca: {
+  pelagic: {
     light: { primary: '#5b34d6', primaryHover: '#4a25bd', primarySoft: '#ede8ff', onPrimary: '#ffffff', accent: '#14b8c8', surface: '#ffffff', surfaceAlt: '#f4f1fd', text: '#1b1530', muted: '#575170', border: '#e1dbf3', controlBorder: '#857ca3', focus: '#5b34d6', danger: '#b42330', dangerSoft: '#fdecee', success: '#0f6b3a', successSoft: '#e6f5ec' },
     dark: { primary: '#b6a2ff', primaryHover: '#cbbdff', primarySoft: '#2d2553', onPrimary: '#1a0f45', accent: '#4fe3f0', surface: '#17132a', surfaceAlt: '#211c3a', text: '#f3f0ff', muted: '#b9b0d8', border: '#372f5c', controlBorder: '#857aaf', focus: '#c9bbff', danger: '#ff98a0', dangerSoft: '#3b1b26', success: '#6fe0a0', successSoft: '#15322a' },
   },
@@ -72,7 +72,7 @@ export const PALETTES: Readonly<Record<ThemePreset | 'high-contrast', Readonly<R
   },
 };
 
-/** Token name ↔ palette key. Orca UI (`--oc-*`) and legacy Nawa UI (`--nw-*`) use the same suffixes. */
+/** Token name ↔ palette key. Pelagic UI (`--pl-*`) and legacy Nawa UI (`--nw-*`) use the same suffixes. */
 export const TOKENS: ReadonlyArray<readonly [keyof Palette, string]> = [
   ['primary', 'primary'],
   ['primaryHover', 'primary-hover'],
@@ -166,17 +166,19 @@ export function isPreset(v: string | null | undefined): v is ThemePreset {
 
 /**
  * Resolves the `theme` and `appearance` attributes plus the user's system preferences into the
- * palette the widget renders. `explicit` is false when page tokens (Orca UI) may take over.
+ * palette the widget renders. `explicit` is false when page tokens (Pelagic UI) may take over.
  */
 export function resolveTheme(
   theme: string | null | undefined,
   appearance: string | null | undefined,
   system: { dark: boolean; moreContrast: boolean },
 ): { preset: ThemePreset; scheme: Scheme; highContrast: boolean; explicit: boolean } {
-  const t = (theme ?? '').trim().toLowerCase();
+  const raw = (theme ?? '').trim().toLowerCase();
+  // `orca` was the default preset's name in 0.1.0.
+  const t = raw === 'orca' ? 'pelagic' : raw;
   let a = (appearance ?? '').trim().toLowerCase();
   if (t === 'light' || t === 'dark' || t === 'high-contrast') a = t;
-  const preset: ThemePreset = isPreset(t) ? t : 'orca';
+  const preset: ThemePreset = isPreset(t) ? t : 'pelagic';
   const highContrast = a === 'high-contrast' || ((a === '' || a === 'auto') && system.moreContrast);
   const scheme: Scheme = a === 'light' ? 'light' : a === 'dark' ? 'dark' : system.dark ? 'dark' : 'light';
   return { preset, scheme, highContrast, explicit: isPreset(t) || highContrast };
@@ -191,8 +193,8 @@ export function paletteVars(p: Palette, prefix: string): string {
 export function themeCss(): string {
   const out: string[] = [];
   // Defaults (light/dark follow data-scheme): used only when neither a preset nor page tokens apply.
-  out.push(`.ng{${paletteVars(PALETTES.orca.light, '_d')}}`);
-  out.push(`.ng[data-scheme="dark"]{${paletteVars(PALETTES.orca.dark, '_d')}}`);
+  out.push(`.ng{${paletteVars(PALETTES.pelagic.light, '_d')}}`);
+  out.push(`.ng[data-scheme="dark"]{${paletteVars(PALETTES.pelagic.dark, '_d')}}`);
   for (const preset of THEME_PRESETS) {
     out.push(`.ng[data-theme="${preset}"][data-scheme="light"]{${paletteVars(PALETTES[preset].light, '_t')}}`);
     out.push(`.ng[data-theme="${preset}"][data-scheme="dark"]{${paletteVars(PALETTES[preset].dark, '_t')}}`);
@@ -201,7 +203,7 @@ export function themeCss(): string {
   out.push(`.ng[data-contrast="high"][data-scheme="light"]{${paletteVars(PALETTES['high-contrast'].light, '_t')}}`);
   out.push(`.ng[data-contrast="high"][data-scheme="dark"]{${paletteVars(PALETTES['high-contrast'].dark, '_t')}}`);
   // The resolved tokens.
-  const resolve = TOKENS.map(([, name]) => `--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name}))))));`).join('');
+  const resolve = TOKENS.map(([, name]) => `--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--pl-${name},var(--nw-${name},var(--_d-${name}))))));`).join('');
   out.push(`.ng{${resolve}}`);
   return out.join('\n');
 }

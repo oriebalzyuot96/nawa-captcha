@@ -1,6 +1,6 @@
 {
   "name": "@nawa-captcha/svelte",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha for Svelte 5: accessible, self-hosted puzzle CAPTCHA component — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@nawa-captcha/widget": "0.1.0"
+    "@nawa-captcha/widget": "0.1.1"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
@@ -48,7 +48,7 @@
     "anti-spam",
     "proof-of-work",
     "nawa-captcha",
-    "orca-ui",
+    "pelagic-ui",
     "arabic",
     "rtl"
   ],

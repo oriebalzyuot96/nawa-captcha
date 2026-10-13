@@ -60,13 +60,13 @@
       --primary-soft: color-mix(in srgb, #b9a5ff 14%, #10161b); --code-bg: #0b0f13; --code-fg: #e7eef1;
       --ok: #4cd987; --bad: #ff8a8a; --shadow: 0 14px 32px -16px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .3);
     }
-    /* The widget picks up Orca UI tokens (--oc-*) through its shadow boundary when theme="auto". */
+    /* The widget picks up Pelagic UI tokens (--pl-*) through its shadow boundary when theme="auto". */
     :root {
-      --oc-primary: var(--primary); --oc-primary-hover: var(--primary-hover); --oc-primary-soft: var(--primary-soft); --oc-on-primary: var(--on-primary);
-      --oc-surface: var(--card); --oc-surface-alt: var(--bg-2); --oc-text: var(--fg); --oc-text-muted: var(--muted); --oc-border: var(--line);
-      --oc-control-border: color-mix(in srgb, var(--muted) 70%, var(--line)); --oc-focus: var(--primary); --oc-success: var(--ok); --oc-danger: var(--bad);
-      --oc-success-soft: color-mix(in srgb, var(--ok) 12%, var(--card)); --oc-danger-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
-      --oc-accent: #14b8c8; --oc-radius: 20px; --oc-radius-sm: 12px;
+      --pl-primary: var(--primary); --pl-primary-hover: var(--primary-hover); --pl-primary-soft: var(--primary-soft); --pl-on-primary: var(--on-primary);
+      --pl-surface: var(--card); --pl-surface-alt: var(--bg-2); --pl-text: var(--fg); --pl-text-muted: var(--muted); --pl-border: var(--line);
+      --pl-control-border: color-mix(in srgb, var(--muted) 70%, var(--line)); --pl-focus: var(--primary); --pl-success: var(--ok); --pl-danger: var(--bad);
+      --pl-success-soft: color-mix(in srgb, var(--ok) 12%, var(--card)); --pl-danger-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
+      --pl-accent: #14b8c8; --pl-radius: 20px; --pl-radius-sm: 12px;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -233,7 +233,7 @@
                 <div class="control"><span class="label" id="pg-mode-l" data-i18n="mode">Selection</span><div class="seg" id="pg-mode" role="group" aria-labelledby="pg-mode-l"><button type="button" data-value="random" data-i18n="random">Random</button><button type="button" data-value="sequence" data-i18n="sequence">Sequence</button><button type="button" data-value="adaptive" data-i18n="adaptive">Adaptive</button></div><p class="muted small" id="pg-mode-help"></p></div>
                 <div class="control"><span class="label" id="pg-steps-l" data-i18n="steps">Puzzles in a row</span><div class="seg" id="pg-steps" role="group" aria-labelledby="pg-steps-l"><button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button></div></div>
                 <div class="control"><span class="label" id="pg-lang-l" data-i18n="language">Language</span><div class="seg" id="pg-lang" role="group" aria-labelledby="pg-lang-l"><button type="button" data-value="en">English</button><button type="button" data-value="ar" lang="ar">العربية</button></div></div>
-                <div class="control control-wide"><span class="label" id="pg-wtheme-l" data-i18n="wtheme">Widget theme</span><div class="swatches" id="pg-wtheme" role="group" aria-labelledby="pg-wtheme-l"><button type="button" class="swatch" data-value="auto" data-i18n="auto">Auto (page tokens)</button><button type="button" class="swatch" data-value="orca" style="--sw:linear-gradient(135deg,#7c5dde,#5b34d6)">Orca</button><button type="button" class="swatch" data-value="midnight" style="--sw:linear-gradient(135deg,#2f48c4,#0c1224)">Midnight</button><button type="button" class="swatch" data-value="aurora" style="--sw:linear-gradient(135deg,#4fe0b5,#8b5cf6)">Aurora</button><button type="button" class="swatch" data-value="sand" style="--sw:linear-gradient(135deg,#f0b36b,#9a4a12)">Sand</button><button type="button" class="swatch" data-value="ocean" style="--sw:linear-gradient(135deg,#5cc3ff,#0566a6)">Ocean</button><button type="button" class="swatch" data-value="mono" style="--sw:linear-gradient(135deg,#f2f2f3,#1c1c1f)">Mono</button></div></div>
+                <div class="control control-wide"><span class="label" id="pg-wtheme-l" data-i18n="wtheme">Widget theme</span><div class="swatches" id="pg-wtheme" role="group" aria-labelledby="pg-wtheme-l"><button type="button" class="swatch" data-value="auto" data-i18n="auto">Auto (page tokens)</button><button type="button" class="swatch" data-value="pelagic" style="--sw:linear-gradient(135deg,#7c5dde,#5b34d6)">Pelagic</button><button type="button" class="swatch" data-value="midnight" style="--sw:linear-gradient(135deg,#2f48c4,#0c1224)">Midnight</button><button type="button" class="swatch" data-value="aurora" style="--sw:linear-gradient(135deg,#4fe0b5,#8b5cf6)">Aurora</button><button type="button" class="swatch" data-value="sand" style="--sw:linear-gradient(135deg,#f0b36b,#9a4a12)">Sand</button><button type="button" class="swatch" data-value="ocean" style="--sw:linear-gradient(135deg,#5cc3ff,#0566a6)">Ocean</button><button type="button" class="swatch" data-value="mono" style="--sw:linear-gradient(135deg,#f2f2f3,#1c1c1f)">Mono</button></div></div>
                 <div class="control"><span class="label" id="pg-appear-l" data-i18n="appearance">Appearance</span><div class="seg" id="pg-appear" role="group" aria-labelledby="pg-appear-l"><button type="button" data-value="page" data-i18n="page">Page</button><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button><button type="button" data-value="high-contrast" data-i18n="hc">High contrast</button></div></div>
                 <div class="control"><span class="label" id="pg-theme-l" data-i18n="theme">Page</span><div class="seg" id="pg-theme" role="group" aria-labelledby="pg-theme-l"><button type="button" data-value="light" data-i18n="light">Light</button><button type="button" data-value="dark" data-i18n="dark">Dark</button></div></div>
                 <div class="control"><span class="label" id="pg-sound-l" data-i18n="sound">Sound effects</span><div class="seg" id="pg-sound" role="group" aria-labelledby="pg-sound-l"><button type="button" data-value="off" data-i18n="off">Off</button><button type="button" data-value="on" data-i18n="on">On</button></div><p class="muted small" data-i18n="soundHelp">Visitors can always switch it with the speaker button.</p></div>
@@ -281,7 +281,7 @@
     <section class="block" id="design" aria-labelledby="design-h">
       <div class="wrap">
         <h2 id="design-h">A CAPTCHA that looks like part of your product</h2>
-        <p class="section-lead">A layered, glass-like card with real depth: a subtle perspective tilt that follows the pointer, parallax inside the puzzle frame, pieces that lift and click into place, and a verified state that draws its own checkmark. Six themes in light and dark plus high contrast, or let it pick up your <strong>Orca UI</strong> tokens automatically. Motion switches off for <code>prefers-reduced-motion</code>, every colour pair passes WCAG 2.2 AA, and forced colours are respected.</p>
+        <p class="section-lead">A layered, glass-like card with real depth: a subtle perspective tilt that follows the pointer, parallax inside the puzzle frame, pieces that lift and click into place, and a verified state that draws its own checkmark. Six themes in light and dark plus high contrast, or let it pick up your <strong>Pelagic UI</strong> tokens automatically. Motion switches off for <code>prefers-reduced-motion</code>, every colour pair passes WCAG 2.2 AA, and forced colours are respected.</p>
         <div class="gallery">
           <figure class="g-midnight"><nawa-captcha endpoint="/__nawa-captcha-demo__" site-key="playground" action="gallery" lang="en" theme="midnight" appearance="dark" types="icons"></nawa-captcha><figcaption><code>theme="midnight"</code></figcaption></figure>
           <figure class="g-aurora"><nawa-captcha endpoint="/__nawa-captcha-demo__" site-key="playground" action="gallery" lang="en" theme="aurora" appearance="dark" types="order"></nawa-captcha><figcaption><code>theme="aurora"</code></figcaption></figure>
@@ -290,7 +290,7 @@
         <div class="grid" style="margin-top:1.5rem">
           <div class="card"><h3>🔊 Optional sound</h3><p>Soft synthesized cues for grab, snap, step and success (Web Audio, no files). Off by default, never before a click or key press, with a volume slider, a remembered speaker toggle and an app-level mute. Every change is also announced to screen readers.</p></div>
           <div class="card"><h3>🎧 Audio challenge</h3><p>For blind and low-vision visitors: a server-synthesized WAV of spoken digits (or beeps to count) over background noise, with a replay limit and no transcript. The answer stays sealed on the server like every other puzzle.</p></div>
-          <div class="card"><h3>🎨 Themes and tokens</h3><p><code>theme="orca|midnight|aurora|sand|ocean|mono"</code>, <code>appearance="auto|light|dark|high-contrast"</code>, <code>--nawa-captcha-*</code> overrides, and automatic Orca UI <code>--oc-*</code> tokens (legacy <code>--nw-*</code> still work).</p></div>
+          <div class="card"><h3>🎨 Themes and tokens</h3><p><code>theme="pelagic|midnight|aurora|sand|ocean|mono"</code>, <code>appearance="auto|light|dark|high-contrast"</code>, <code>--nawa-captcha-*</code> overrides, and automatic Pelagic UI <code>--pl-*</code> tokens (legacy <code>--nw-*</code> still work).</p></div>
         </div>
       </div>
     </section>
@@ -426,7 +426,7 @@ app.MapPost("/api/contact", Handler).RequireNawaCaptcha("contact");</code></pre>
   </main>
 
   <footer>
-    <div class="wrap">Nawa Captcha (formerly Nawa Guard) · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Orca UI</a> (formerly Nawa UI) · <a href="https://github.com/oriebalzyuot96/nawa-captcha">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
+    <div class="wrap">Nawa Captcha (formerly Nawa Guard) · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Pelagic UI</a> (formerly Nawa UI) · <a href="https://github.com/oriebalzyuot96/nawa-captcha">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
   </footer>
 </body>
 </html>

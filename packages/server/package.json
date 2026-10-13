@@ -1,6 +1,6 @@
 {
   "name": "@nawa-captcha/server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 37 challenge types you choose from, sealed answers, single-use pass tokens, multi-step chains, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
   "license": "MIT",
   "type": "module",
@@ -48,7 +48,7 @@
     "anti-spam",
     "proof-of-work",
     "nawa-captcha",
-    "orca-ui",
+    "pelagic-ui",
     "arabic",
     "rtl",
     "accessibility"

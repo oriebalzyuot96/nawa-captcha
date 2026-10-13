@@ -9,13 +9,13 @@ import { themeCss } from './themes.js';
  *   piece lift/settle, a success burst with a drawn checkmark, an error shake. All of it is off
  *   under prefers-reduced-motion; high contrast and forced colours drop decoration entirely.
  * - Colours come from the theme layer (themes.ts), which resolves --nawa-captcha-* → preset →
- *   Orca UI --oc-* → legacy Nawa UI --nw-* → built-in default.
+ *   Pelagic UI --pl-* → legacy Nawa UI --nw-* → built-in default.
  */
 export const STYLES = /* css */ `
 :host {
   display: block;
   max-inline-size: 380px;
-  font-family: var(--nawa-captcha-font, var(--nawa-guard-font, var(--oc-font, var(--nw-font, system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif))));
+  font-family: var(--nawa-captcha-font, var(--nawa-guard-font, var(--pl-font, var(--nw-font, system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif))));
   font-size: 0.95rem;
   line-height: 1.45;
   perspective: 1100px;
@@ -26,9 +26,9 @@ export const STYLES = /* css */ `
 [hidden] { display: none !important; }
 ${themeCss()}
 .ng {
-  --_radius: var(--nawa-captcha-radius, var(--nawa-guard-radius, var(--oc-radius-lg, var(--oc-radius, var(--nw-radius, 18px)))));
-  --_radius-sm: var(--nawa-captcha-radius-sm, var(--nawa-guard-radius-sm, var(--oc-radius-sm, var(--nw-radius-sm, 12px))));
-  --_ease: var(--oc-ease, var(--nw-ease, cubic-bezier(0.2, 0.8, 0.2, 1)));
+  --_radius: var(--nawa-captcha-radius, var(--nawa-guard-radius, var(--pl-radius-lg, var(--pl-radius, var(--nw-radius, 18px)))));
+  --_radius-sm: var(--nawa-captcha-radius-sm, var(--nawa-guard-radius-sm, var(--pl-radius-sm, var(--nw-radius-sm, 12px))));
+  --_ease: var(--pl-ease, var(--nw-ease, cubic-bezier(0.2, 0.8, 0.2, 1)));
   --_spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --_sh: 24 14 64;
   --_hl: 255 255 255;

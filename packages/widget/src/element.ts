@@ -74,7 +74,7 @@ const offValue = (v: string | null): boolean => v !== null && /^(off|false|0|no)
 
 /**
  * <nawa-captcha site-key="…" endpoint="/captcha" action="login" lang="ar|en" name="nawa-captcha-token"
- *             theme="auto|orca|midnight|aurora|sand|ocean|mono|light|dark|high-contrast"
+ *             theme="auto|pelagic|midnight|aurora|sand|ocean|mono|light|dark|high-contrast"
  *             appearance="auto|light|dark|high-contrast" sound volume="0.6" muted>
  *
  * Fetches a challenge from your server, renders it, and on success writes the pass token into a

@@ -7,7 +7,7 @@ This package: Angular standalone component (reactive forms).
 - 🧩 38 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work, an accessible text question and an audio challenge — [see them live](https://oriebalzyuot96.github.io/nawa-captcha/#playground)
 - 🔒 Answers are sealed (AES-256-GCM) and never reach the browser; pass tokens are signed and single-use
 - ♿ Keyboard, touch and screen-reader friendly (text question and audio challenge); Arabic and English; RTL
-- 🎨 Premium 3D design, six themes in light and dark plus high contrast (WCAG 2.2 AA), Orca UI tokens, optional sound effects
+- 🎨 Premium 3D design, six themes in light and dark plus high contrast (WCAG 2.2 AA), Pelagic UI tokens, optional sound effects
 - 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaCaptcha.AspNetCore`, coming to NuGet)
 
 ## Install

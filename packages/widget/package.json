@@ -1,6 +1,6 @@
 {
   "name": "@nawa-captcha/widget",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha widget: accessible <nawa-captcha> web component (keyboard, touch, screen-reader alternative, RTL, themes) for the self-hosted Nawa Captcha CAPTCHA.",
   "license": "MIT",
   "type": "module",
@@ -40,7 +40,7 @@
     "anti-spam",
     "proof-of-work",
     "nawa-captcha",
-    "orca-ui",
+    "pelagic-ui",
     "arabic",
     "rtl",
     "accessibility"

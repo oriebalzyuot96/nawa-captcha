@@ -29,7 +29,7 @@ abstract class NawaCaptchaControl implements ControlValueAccessor, Validator, Af
   readonly type = input<string>();
   /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
   readonly types = input<string | readonly string[]>();
-  /** Theme preset (orca, midnight, aurora, sand, ocean, mono), auto, or light/dark/high-contrast. */
+  /** Theme preset (pelagic, midnight, aurora, sand, ocean, mono), auto, or light/dark/high-contrast. */
   readonly theme = input<string>();
   readonly appearance = input<'auto' | 'light' | 'dark' | 'high-contrast'>();
   /** UI sound effects on by default (the visitor's own toggle still wins). */

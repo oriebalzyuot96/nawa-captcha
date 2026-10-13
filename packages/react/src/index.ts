@@ -21,7 +21,7 @@ export interface NawaCaptchaProps {
    * It can never widen the server's allow-list (the server is authoritative).
    */
   types?: string | readonly string[];
-  /** Theme preset (`orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`), `auto` (default), or `light`/`dark`/`high-contrast`. */
+  /** Theme preset (`pelagic`, `midnight`, `aurora`, `sand`, `ocean`, `mono`), `auto` (default), or `light`/`dark`/`high-contrast`. */
   theme?: string;
   /** `auto` (default, follows the OS), `light`, `dark` or `high-contrast`. */
   appearance?: 'auto' | 'light' | 'dark' | 'high-contrast';

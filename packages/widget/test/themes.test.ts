@@ -16,7 +16,7 @@ describe('themes: WCAG 2.2 AA', () => {
   });
 
   it('ships the six presets with complete palettes', () => {
-    expect([...THEME_PRESETS]).toEqual(['orca', 'midnight', 'aurora', 'sand', 'ocean', 'mono']);
+    expect([...THEME_PRESETS]).toEqual(['pelagic', 'midnight', 'aurora', 'sand', 'ocean', 'mono']);
     for (const p of Object.values(PALETTES)) for (const scheme of [p.light, p.dark]) for (const [key] of TOKENS) expect(scheme[key]).toMatch(/^#[0-9a-f]{6}$/i);
   });
 });
@@ -27,7 +27,7 @@ describe('themes: resolution', () => {
   const more = { dark: false, moreContrast: true };
 
   it('auto follows prefers-color-scheme and prefers-contrast', () => {
-    expect(resolveTheme(null, null, light)).toEqual({ preset: 'orca', scheme: 'light', highContrast: false, explicit: false });
+    expect(resolveTheme(null, null, light)).toEqual({ preset: 'pelagic', scheme: 'light', highContrast: false, explicit: false });
     expect(resolveTheme('auto', null, dark)).toMatchObject({ scheme: 'dark', explicit: false });
     expect(resolveTheme('auto', null, more)).toMatchObject({ highContrast: true, explicit: true });
   });
@@ -35,19 +35,20 @@ describe('themes: resolution', () => {
   it('presets are explicit; appearance shorthands work', () => {
     expect(resolveTheme('midnight', 'dark', light)).toEqual({ preset: 'midnight', scheme: 'dark', highContrast: false, explicit: true });
     expect(resolveTheme('sand', null, dark)).toMatchObject({ preset: 'sand', scheme: 'dark' });
-    expect(resolveTheme('dark', null, light)).toMatchObject({ preset: 'orca', scheme: 'dark', explicit: false });
+    expect(resolveTheme('dark', null, light)).toMatchObject({ preset: 'pelagic', scheme: 'dark', explicit: false });
     expect(resolveTheme('high-contrast', null, dark)).toMatchObject({ highContrast: true, scheme: 'dark' });
     expect(resolveTheme('ocean', 'light', more)).toMatchObject({ preset: 'ocean', scheme: 'light', highContrast: false });
-    expect(resolveTheme('nonsense', null, light)).toMatchObject({ preset: 'orca', explicit: false });
+    expect(resolveTheme('nonsense', null, light)).toMatchObject({ preset: 'pelagic', explicit: false });
+    expect(resolveTheme('orca', null, light)).toMatchObject({ preset: 'pelagic', explicit: true });
   });
 });
 
 describe('themes: CSS', () => {
   const css = themeCss();
 
-  it('resolves --nawa-captcha-* (legacy --nawa-guard-*) → preset → Orca UI (--oc-*) → legacy Nawa UI (--nw-*) → default, for every token', () => {
+  it('resolves --nawa-captcha-* (legacy --nawa-guard-*) → preset → Pelagic UI (--pl-*) → legacy Nawa UI (--nw-*) → default, for every token', () => {
     for (const [, name] of TOKENS) {
-      expect(css).toContain(`--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name}))))));`);
+      expect(css).toContain(`--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--pl-${name},var(--nw-${name},var(--_d-${name}))))));`);
     }
   });
 

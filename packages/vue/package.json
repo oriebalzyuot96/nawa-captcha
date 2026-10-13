@@ -1,6 +1,6 @@
 {
   "name": "@nawa-captcha/vue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nawa Captcha for Vue 3: accessible, self-hosted puzzle CAPTCHA component with v-model — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@nawa-captcha/widget": "0.1.0"
+    "@nawa-captcha/widget": "0.1.1"
   },
   "peerDependencies": {
     "vue": "^3.3.0"
@@ -47,7 +47,7 @@
     "anti-spam",
     "proof-of-work",
     "nawa-captcha",
-    "orca-ui",
+    "pelagic-ui",
     "arabic",
     "rtl"
   ],
