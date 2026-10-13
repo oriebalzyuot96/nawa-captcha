@@ -165,6 +165,95 @@ export class Raster {
     return this;
   }
 
+  /** Soft radial light (or shade): opacity eases out from the centre to `r` (logical coords). */
+  glow(cx: number, cy: number, r: number, c: RGB, alpha = 255): this {
+    const s = this.ss;
+    const pcx = cx * s;
+    const pcy = cy * s;
+    const pr = r * s;
+    for (let y = Math.max(0, Math.floor(pcy - pr)); y < Math.min(this.ph, Math.ceil(pcy + pr)); y += 1) {
+      for (let x = Math.max(0, Math.floor(pcx - pr)); x < Math.min(this.pw, Math.ceil(pcx + pr)); x += 1) {
+        const d = Math.hypot(x + 0.5 - pcx, y + 0.5 - pcy) / pr;
+        if (d >= 1) continue;
+        const k = (1 - d) * (1 - d);
+        this.blend((y * this.pw + x) * 4, c, alpha * k);
+      }
+    }
+    return this;
+  }
+
+  /** Polygon with a soft contact shadow under it (offset towards the bottom-right, away from the light). */
+  raisedPolygon(points: readonly Pt[], c: RGB, alpha = 255, depth = 3): this {
+    for (let i = 3; i >= 1; i -= 1) {
+      const o = (depth * i) / 3;
+      this.polygon(points.map(([x, y]) => [x + o * 0.7, y + o] as Pt), [10, 14, 30], Math.round(alpha * 0.11));
+    }
+    this.polygon(points, c, alpha);
+    // Specular sheen: a lighter copy nudged towards the light, clipped by drawing it smaller.
+    const cx = points.reduce((a, p) => a + p[0], 0) / points.length;
+    const cy = points.reduce((a, p) => a + p[1], 0) / points.length;
+    const inner = points.map(([x, y]) => [cx + (x - cx) * 0.62 - depth * 0.35, cy + (y - cy) * 0.62 - depth * 0.45] as Pt);
+    this.polygon(inner, [255, 255, 255], Math.round(alpha * 0.16));
+    return this;
+  }
+
+  /** Darkens towards the edges (an elliptical vignette) for depth. Works at any scale. */
+  vignette(strength = 0.22): this {
+    const cx = this.pw / 2;
+    const cy = this.ph / 2;
+    for (let y = 0; y < this.ph; y += 1) {
+      for (let x = 0; x < this.pw; x += 1) {
+        const dx = (x + 0.5 - cx) / cx;
+        const dy = (y + 0.5 - cy) / cy;
+        const d = Math.sqrt(dx * dx * 0.8 + dy * dy * 0.8);
+        const t = Math.min(1, Math.max(0, (d - 0.55) / 0.6));
+        const f = 1 - strength * t * t * (3 - 2 * t);
+        const i = (y * this.pw + x) * 4;
+        this.data[i] = (this.data[i] ?? 0) * f;
+        this.data[i + 1] = (this.data[i + 1] ?? 0) * f;
+        this.data[i + 2] = (this.data[i + 2] ?? 0) * f;
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Directional bevel inside a mask (1x pixel coordinates), lit from the top-left. `raised`
+   * lights the top-left edge and shades the bottom-right one; a recess does the opposite.
+   */
+  bevel(inside: (x: number, y: number) => boolean, bbox: readonly [number, number, number, number], opts: { depth?: number; raised?: boolean; light?: number; shade?: number } = {}): this {
+    const depth = opts.depth ?? 3;
+    const raised = opts.raised ?? true;
+    const light = opts.light ?? 0.55;
+    const shade = opts.shade ?? 0.45;
+    const [x0, y0, x1, y1] = bbox;
+    for (let y = Math.max(0, Math.floor(y0)); y < Math.min(this.ph, Math.ceil(y1)); y += 1) {
+      for (let x = Math.max(0, Math.floor(x0)); x < Math.min(this.pw, Math.ceil(x1)); x += 1) {
+        const px = x + 0.5;
+        const py = y + 0.5;
+        if (!inside(px, py)) continue;
+        let towardsLight = 0;
+        let awayFromLight = 0;
+        for (let k = 1; k <= depth; k += 1) {
+          const w = (depth - k + 1) / depth;
+          if (!towardsLight && !inside(px - k * 0.75, py - k)) towardsLight = w;
+          if (!awayFromLight && !inside(px + k * 0.75, py + k)) awayFromLight = w;
+        }
+        const up = raised ? towardsLight : awayFromLight;
+        const down = raised ? awayFromLight : towardsLight;
+        if (!up && !down) continue;
+        const i = (y * this.pw + x) * 4;
+        for (let ch = 0; ch < 3; ch += 1) {
+          let v = this.data[i + ch] ?? 0;
+          if (up) v += (255 - v) * light * up;
+          if (down) v *= 1 - shade * down;
+          this.data[i + ch] = v;
+        }
+      }
+    }
+    return this;
+  }
+
   /** Box-filter down to 1x. */
   finish(): Raster {
     if (this.ss === 1) return this;

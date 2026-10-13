@@ -54,6 +54,7 @@
     "count",
     "dice",
     "pow",
-    "accessible"
+    "accessible",
+    "audio"
   ]
 }

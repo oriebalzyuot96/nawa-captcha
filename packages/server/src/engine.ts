@@ -1,6 +1,7 @@
 import { bindingHash, clientKey as deriveClientKey, type BindMode, type ClientInfo, BIND_MODES } from './binding.js';
 import { createKeyring, safeEqual, type Keyring, type SecretEntry } from './crypto.js';
 import { createAccessible } from './puzzles/accessible.js';
+import { createAudio } from './puzzles/audio.js';
 import { createRegistry } from './puzzles/index.js';
 import { createPow } from './puzzles/pow.js';
 import { cryptoRng } from './rng.js';
@@ -86,7 +87,7 @@ export interface NawaGuardOptions {
   readonly powBits?: number;
   /** Let the browser pick one exact puzzle type from the allow-list (demos, galleries). */
   readonly allowClientType?: boolean;
-  /** The accessible text alternative can always be requested, even when not in `types`. Default true. */
+  /** The accessible alternatives (text question, audio) can always be requested, even when not in `types`. Default true. */
   readonly allowAccessible?: boolean;
   readonly maxAttempts?: Partial<Record<ChallengeType, number>>;
   readonly minSolveMs?: Partial<Record<ChallengeType, number>>;
@@ -222,7 +223,7 @@ export class NawaGuard {
   readonly keys: Keyring;
   readonly store: NawaGuardStore;
   private readonly registry: Record<ChallengeType, PuzzleDefinition>;
-  private readonly powByBits = new Map<number, { pow: PuzzleDefinition; accessible: PuzzleDefinition }>();
+  private readonly powByBits = new Map<number, { pow: PuzzleDefinition; accessible: PuzzleDefinition; audio: PuzzleDefinition }>();
   private readonly base: ResolvedPolicy;
   private readonly explicitTypes: boolean;
   private readonly policies = new Map<string, ResolvedPolicy>();
@@ -316,10 +317,10 @@ export class NawaGuard {
   }
 
   private definition(type: ChallengeType, powBits: number): PuzzleDefinition {
-    if ((type !== 'pow' && type !== 'accessible') || powBits === (this.options.powBits ?? 16)) return this.registry[type];
+    if ((type !== 'pow' && type !== 'accessible' && type !== 'audio') || powBits === (this.options.powBits ?? 16)) return this.registry[type];
     let defs = this.powByBits.get(powBits);
     if (!defs) {
-      defs = { pow: createPow(powBits) as PuzzleDefinition, accessible: createAccessible(powBits) as PuzzleDefinition };
+      defs = { pow: createPow(powBits) as PuzzleDefinition, accessible: createAccessible(powBits) as PuzzleDefinition, audio: createAudio(powBits) as PuzzleDefinition };
       this.powByBits.set(powBits, defs);
     }
     return defs[type];
@@ -411,9 +412,9 @@ export class NawaGuard {
     const policy = this.policy(action);
     const pool = effectivePool(policy, this.options.clientNarrowing === false ? undefined : parseClientTypes(req.types));
     const requested = isChallengeType(req.type) ? req.type : undefined;
-    // The browser does not get to pick the easiest puzzle; only the accessible alternative is always available.
+    // The browser does not get to pick the easiest puzzle; only the accessible alternatives (text, audio) are always available.
     let type: ChallengeType;
-    if (requested === 'accessible' && (this.options.allowAccessible !== false || pool.includes('accessible'))) type = 'accessible';
+    if ((requested === 'accessible' || requested === 'audio') && (this.options.allowAccessible !== false || pool.includes(requested))) type = requested;
     else if (requested && this.options.allowClientType && pool.includes(requested)) type = requested;
     else type = await this.choose(policy, pool, level, ck, action);
 

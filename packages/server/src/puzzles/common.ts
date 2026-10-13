@@ -5,23 +5,44 @@ import { ICON_KINDS, iconPolygon } from '../render/shapes.js';
 import type { Rng } from '../rng.js';
 import { invalid, ok, wrong, type CheckResult, type Interaction, type TracePoint } from '../types.js';
 
-/** A busy, random backdrop: gradient + translucent shapes. Drawn at 2x for anti-aliasing. */
+/**
+ * A busy, random backdrop with depth: a lit gradient (key light from the top-left, falling off
+ * towards the bottom-right), far shapes that are soft and pale, near shapes with contact shadows
+ * and a specular sheen, and a vignette. Drawn at 2x for anti-aliasing.
+ */
 export function scenicBackground(rng: Rng, w: number, h: number, shapes = 14): Raster {
   const hue = rng.int(0, 360);
   const r = new Raster(w, h, 2).gradient(hsl(hue, 0.55, 0.62), hsl((hue + rng.int(60, 180)) % 360, 0.55, 0.45), rng.int(0, 360));
+  // Atmosphere: a warm key light and a cool shadow pool.
+  r.glow(rng.float(0, w * 0.35), rng.float(0, h * 0.35), Math.max(w, h) * 0.75, hsl((hue + 30) % 360, 0.9, 0.9), 120);
+  r.glow(rng.float(w * 0.7, w), rng.float(h * 0.7, h), Math.max(w, h) * 0.6, hsl((hue + 200) % 360, 0.6, 0.18), 90);
   for (let i = 0; i < shapes; i += 1) {
     const color = hsl(rng.int(0, 360), rng.float(0.4, 0.8), rng.float(0.3, 0.8));
     const size = rng.float(18, 70);
-    if (rng.int(0, 3) === 0) r.circle(rng.float(0, w), rng.float(0, h), size / 2, color, rng.int(70, 170));
-    else r.polygon(iconPolygon(rng.pick(ICON_KINDS), rng.float(0, w), rng.float(0, h), size, rng.float(0, 360)), color, rng.int(70, 170));
+    // Larger shapes read as nearer: they get the contact shadow and sheen; small ones stay hazy.
+    const near = size > 40;
+    if (rng.int(0, 3) === 0) {
+      const cx = rng.float(0, w);
+      const cy = rng.float(0, h);
+      if (near) r.circle(cx + 2, cy + 3, size / 2, [10, 14, 30], 40);
+      r.circle(cx, cy, size / 2, color, rng.int(70, 170));
+      if (near) r.glow(cx - size * 0.15, cy - size * 0.18, size * 0.3, [255, 255, 255], 70);
+    } else {
+      const poly = iconPolygon(rng.pick(ICON_KINDS), rng.float(0, w), rng.float(0, h), size, rng.float(0, 360));
+      if (near) r.raisedPolygon(poly, color, rng.int(110, 190), size / 14);
+      else r.polygon(poly, color, rng.int(60, 130));
+    }
   }
-  return r;
+  return r.vignette(0.2);
 }
 
 /** A soft pastel backdrop for grids and cards. */
 export function softBackground(rng: Rng, w: number, h: number, ss = 2): Raster {
   const hue = rng.int(0, 360);
-  return new Raster(w, h, ss).gradient(hsl(hue, 0.3, 0.94), hsl((hue + rng.int(40, 120)) % 360, 0.28, 0.84), rng.int(0, 360));
+  return new Raster(w, h, ss)
+    .gradient(hsl(hue, 0.3, 0.94), hsl((hue + rng.int(40, 120)) % 360, 0.28, 0.84), rng.int(0, 360))
+    .glow(w * 0.18, h * 0.12, Math.max(w, h) * 0.7, [255, 255, 255], 110)
+    .vignette(0.08);
 }
 
 /** Faint same-colour clutter so cells are not flat colour fields (defeats naive colour masks). */
@@ -184,7 +205,19 @@ export function landscape(rng: Rng, w: number, h: number, opts: { kind?: 'house'
   const r = new Raster(w, h, 2);
   const skyHue = rng.int(185, 225);
   r.gradient(hsl(skyHue, 0.7, 0.55), hsl(skyHue, 0.6, 0.86), 90);
-  r.circle(rng.float(w * 0.15, w * 0.85), rng.float(h * 0.13, h * 0.25), rng.float(10, 15) * (w / 160), hsl(rng.int(40, 55), 0.95, 0.6));
+  const sunX = rng.float(w * 0.15, w * 0.85);
+  const sunY = rng.float(h * 0.13, h * 0.25);
+  const sunR = rng.float(10, 15) * (w / 160);
+  r.glow(sunX, sunY, sunR * 4.5, hsl(rng.int(40, 55), 0.95, 0.85), 150);
+  r.circle(sunX, sunY, sunR, hsl(rng.int(40, 55), 0.95, 0.6));
+  r.circle(sunX - sunR * 0.25, sunY - sunR * 0.25, sunR * 0.55, [255, 250, 220], 110);
+  // Aerial perspective: pale, desaturated far hills behind the ground.
+  const farY = h * rng.float(0.5, 0.56);
+  const far: Pt[] = [];
+  const farPhase = rng.float(0, 6);
+  for (let x = 0; x <= w; x += 8) far.push([x, farY + Math.sin(x / 26 + farPhase) * 7 + Math.sin(x / 9) * 2]);
+  far.push([w, h], [0, h]);
+  r.polygon(far, hsl(skyHue - 20, 0.25, 0.72), 200);
   for (let c = 0; c < 2; c += 1) {
     const cx = rng.float(20, w - 20);
     const cy = rng.float(h * 0.18, h * 0.34);
@@ -196,7 +229,11 @@ export function landscape(rng: Rng, w: number, h: number, opts: { kind?: 'house'
   const ground: Pt[] = [];
   for (let x = 0; x <= w; x += 10) ground.push([x, groundY + Math.sin(x / 18 + phase) * wave]);
   ground.push([w, h], [0, h]);
-  r.polygon(ground, hsl(rng.int(85, 135), 0.5, rng.float(0.32, 0.45)));
+  const groundHue = rng.int(85, 135);
+  r.polygon(ground, hsl(groundHue, 0.5, rng.float(0.32, 0.45)));
+  // Ground shading: lighter crest, darker foreground.
+  r.polygon(ground.map(([x, y]) => [x, y + (y >= h ? 0 : 3)] as Pt).slice(0, -2).concat(ground.slice(0, -2).reverse()), hsl(groundHue, 0.55, 0.62), 90);
+  r.rect(0, h * 0.86, w, h * 0.14, hsl(groundHue, 0.5, 0.18), 60);
 
   const kind = opts.kind ?? rng.pick(['house', 'tree', 'both'] as const);
   const scale = Math.min(w, h) / 160;
@@ -215,6 +252,7 @@ export function landscape(rng: Rng, w: number, h: number, opts: { kind?: 'house'
     r.rect(tx - 4 * scale, base - 34 * scale, 8 * scale, 34 * scale, hsl(28, 0.5, 0.3));
     const leaf = hsl(rng.int(95, 140), 0.55, 0.35);
     r.circle(tx, base - 46 * scale, 15 * scale, leaf).circle(tx - 11 * scale, base - 36 * scale, 11 * scale, leaf).circle(tx + 11 * scale, base - 36 * scale, 11 * scale, leaf);
+    r.glow(tx - 5 * scale, base - 52 * scale, 10 * scale, [220, 255, 200], 90);
   }
-  return r;
+  return r.vignette(0.18);
 }

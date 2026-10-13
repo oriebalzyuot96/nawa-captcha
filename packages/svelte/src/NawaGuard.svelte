@@ -17,13 +17,18 @@
     type?: string;
     /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
     types?: string | readonly string[];
+    theme?: string;
+    appearance?: 'auto' | 'light' | 'dark' | 'high-contrast';
+    sound?: boolean;
+    volume?: number;
+    muted?: boolean;
     token?: string;
     onverified?: (detail: NawaGuardVerifiedDetail) => void;
     onexpired?: () => void;
     onerror?: (detail: NawaGuardErrorDetail) => void;
   }
 
-  let { siteKey, endpoint, action, lang, name, type, types, token = $bindable(''), onverified, onexpired, onerror }: Props = $props();
+  let { siteKey, endpoint, action, lang, name, type, types, theme, appearance, sound, volume, muted, token = $bindable(''), onverified, onexpired, onerror }: Props = $props();
 
   let el: NawaGuardElement | undefined = $state();
   const typesAttr = $derived(types === undefined ? undefined : typeof types === 'string' ? types : types.join(','));
@@ -61,4 +66,4 @@
   }
 </script>
 
-<nawa-guard bind:this={el} site-key={siteKey} {endpoint} {action} {lang} {name} {type} types={typesAttr}></nawa-guard>
+<nawa-guard bind:this={el} site-key={siteKey} {endpoint} {action} {lang} {name} {type} types={typesAttr} {theme} {appearance} {sound} {volume} {muted}></nawa-guard>

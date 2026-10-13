@@ -1,5 +1,6 @@
 import { clamp, h, icon, nextId, pct, round1, s, safeImg } from './dom.js';
 import { solvePow } from './pow.js';
+import type { Cue } from './sound.js';
 import type { Lang, StringKey } from './strings.js';
 
 export type InputMode = 'mouse' | 'touch' | 'pen' | 'keyboard';
@@ -11,6 +12,8 @@ export interface ViewHost {
   t(key: StringKey, vars?: Record<string, string | number>): string;
   submit(answer: Record<string, unknown>): void;
   announce(message: string): void;
+  /** Optional UI sound cue (no-op unless the visitor turned sound on). Never the only feedback. */
+  cue(cue: Cue): void;
   /** Aborted when the challenge is replaced. */
   readonly signal: AbortSignal;
 }
@@ -69,6 +72,13 @@ export function verifyButton(host: ViewHost, onClick: () => void): HTMLButtonEle
   const b = h('button', { type: 'button', class: 'btn' }, host.t('verify'));
   b.addEventListener('click', onClick);
   return b;
+}
+
+/** Restarts the "settle" micro-animation (the piece drops into place with a little bounce). */
+export function settle(el: Element): void {
+  el.classList.remove('settle');
+  void (el as HTMLElement).offsetWidth;
+  el.classList.add('settle');
 }
 
 /** Wires a horizontal drag on `targets`, reporting the client-x delta since pointerdown. */
@@ -155,6 +165,8 @@ export function sliderView(host: ViewHost, data: Record<string, number | string>
   horizontalDrag([piece, thumb], {
     start(e) {
       origin = x;
+      piece.classList.add('dragging');
+      host.cue('grab');
       // The trail records the piece's position over time (plus the real pointer y), so its
       // horizontal travel always matches the submitted x even when the piece hits an edge.
       trail.add(x, pointerY(e), pointerMode(e));
@@ -167,6 +179,9 @@ export function sliderView(host: ViewHost, data: Record<string, number | string>
     },
     end(e) {
       trail.add(x, pointerY(e), pointerMode(e));
+      piece.classList.remove('dragging');
+      settle(piece);
+      host.cue('snap');
       submit();
     },
   });
@@ -238,6 +253,7 @@ export function rotateView(host: ViewHost, data: Record<string, number | string>
   horizontalDrag([thumb], {
     start(e) {
       origin = angle;
+      host.cue('grab');
       trail.add((angle / 360) * TRACK, trailY(e), pointerMode(e));
     },
     move(dx, e) {
@@ -248,6 +264,7 @@ export function rotateView(host: ViewHost, data: Record<string, number | string>
     },
     end(e) {
       trail.add((angle / 360) * TRACK, trailY(e), pointerMode(e));
+      host.cue('snap');
       submit();
     },
   });
@@ -351,6 +368,7 @@ export function gridView(host: ViewHost, data: Record<string, unknown>): PuzzleV
     const on = cell.getAttribute('aria-pressed') !== 'true';
     if (single) for (const c of g.cells) c?.setAttribute('aria-pressed', 'false');
     cell.setAttribute('aria-pressed', String(on));
+    host.cue('tick');
   });
   const submit = (): void => host.submit({ selected: g.cells.flatMap((c, i) => (c?.getAttribute('aria-pressed') === 'true' ? [i] : [])) });
   return {
@@ -435,6 +453,7 @@ export function orderView(host: ViewHost, data: { tiles?: Array<{ id: string; im
         grabbed = grabbed === tile.id ? undefined : tile.id;
         for (const [id, item] of items) item.querySelector('button')!.setAttribute('aria-pressed', String(id === grabbed));
         host.announce(host.t(grabbed ? 'tileGrabbed' : 'tileDropped', { i: idx + 1, n: tiles.length }));
+        host.cue(grabbed ? 'grab' : 'snap');
         return;
       }
       if (e.key === 'Escape' && grabbed) {
@@ -462,6 +481,7 @@ export function orderView(host: ViewHost, data: { tiles?: Array<{ id: string; im
       // Capture on the list, not the tile: re-inserting a captured node would release capture.
       list.setPointerCapture(e.pointerId);
       btn.classList.add('dragging');
+      host.cue('grab');
     });
   }
   list.addEventListener('pointermove', (e) => {
@@ -479,7 +499,10 @@ export function orderView(host: ViewHost, data: { tiles?: Array<{ id: string; im
   });
   const endDrag = (e: PointerEvent): void => {
     if (!drag || e.pointerId !== drag.pointer) return;
-    items.get(drag.id)!.querySelector('button')!.classList.remove('dragging');
+    const b = items.get(drag.id)!.querySelector('button')!;
+    b.classList.remove('dragging');
+    settle(b);
+    host.cue('snap');
     drag = undefined;
   };
   list.addEventListener('pointerup', endDrag);
@@ -548,6 +571,7 @@ export function pathView(host: ViewHost, data: Record<string, unknown>): PuzzleV
     e.preventDefault();
     if (cellMode && trail.length) resetAll(); // a maze is one continuous line
     active = e.pointerId;
+    host.cue('grab');
     stage.setPointerCapture(e.pointerId);
     const [x, y] = toImage(e);
     stroke = s('polyline');

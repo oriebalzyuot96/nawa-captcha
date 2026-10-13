@@ -21,6 +21,16 @@ export interface NawaGuardProps {
    * It can never widen the server's allow-list (the server is authoritative).
    */
   types?: string | readonly string[];
+  /** Theme preset (`orca`, `midnight`, `aurora`, `sand`, `ocean`, `mono`), `auto` (default), or `light`/`dark`/`high-contrast`. */
+  theme?: string;
+  /** `auto` (default, follows the OS), `light`, `dark` or `high-contrast`. */
+  appearance?: 'auto' | 'light' | 'dark' | 'high-contrast';
+  /** Turns UI sound effects on by default (the visitor's own toggle choice still wins). Off by default. */
+  sound?: boolean;
+  /** UI sound volume 0..1 (default 0.6). */
+  volume?: number;
+  /** Silences the widget regardless of the visitor's choice (e.g. your app's own mute). */
+  muted?: boolean;
   className?: string;
   onVerify?: (token: string, detail: NawaGuardVerifiedDetail) => void;
   onExpire?: () => void;
@@ -80,6 +90,12 @@ export const NawaGuard = forwardRef(function NawaGuard(props: NawaGuardProps, re
     name: props.name,
     type: props.type,
     types: typesAttr(props.types),
+    theme: props.theme,
+    appearance: props.appearance,
+    // Booleans work both as React 18 attributes ("true"/"false") and React 19 element properties.
+    sound: props.sound,
+    volume: props.volume,
+    muted: props.muted,
     className: props.className,
   });
 });

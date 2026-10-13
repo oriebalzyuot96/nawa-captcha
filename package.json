@@ -21,7 +21,8 @@
     "test:dotnet": "dotnet test dotnet/NawaGuard.sln",
     "demo": "npm run build -w @nawa-guard/server -w @nawa-guard/widget && node demo/server.mjs",
     "fixture:dotnet": "npm run build -w @nawa-guard/server && node scripts/make-dotnet-fixture.mjs",
-    "build:site": "node scripts/build-site.mjs"
+    "build:site": "node scripts/build-site.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

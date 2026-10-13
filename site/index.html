@@ -178,7 +178,7 @@
       <div>
       <span class="eyebrow">Open source · MIT · self-hosted</span>
       <h1>Nawa Guard — the <span style="white-space:nowrap">self-hosted</span>, <span class="accent">accessible</span> puzzle CAPTCHA</h1>
-      <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong> with <strong><span data-type-count>37</span> puzzle types</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
+      <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong> with <strong><span data-type-count>38</span> puzzle types</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
       <div class="btns">
         <a class="btn btn--primary" href="#playground">Try the live playground</a>
         <a class="btn" href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.8 13.6H4l11-12-1.8 9.6H20l-11 12z"/></svg>Open in StackBlitz</a>
@@ -262,7 +262,7 @@
 
     <section class="block" id="puzzles" aria-labelledby="puzzles-h">
       <div class="wrap">
-        <h2 id="puzzles-h"><span data-type-count>37</span> puzzle types</h2>
+        <h2 id="puzzles-h"><span data-type-count>38</span> puzzle types</h2>
         <p class="section-lead">Every type works with mouse, touch and keyboard, and the text alternative is always one click away. The answer never reaches the browser: pictures are rendered on the server, and the solution is sealed inside the challenge token. "Blind guess" is the chance that a random answer passes one attempt; combine weak types with others (<code>steps</code>) or keep them for low-risk forms.</p>
         <div class="table-scroll">
           <table>
@@ -307,6 +307,7 @@
             <tr><td><code>dice</code></td><td>Dice total</td><td lang="ar" dir="rtl">مجموع النرد</td><td>Type the answer</td><td>≈ 1 in 6</td></tr>
             <tr><td><code>pow</code></td><td>Invisible proof-of-work</td><td lang="ar" dir="rtl">إثبات عمل غير مرئي</td><td>Invisible / text alternative</td><td>n/a (CPU cost)</td></tr>
             <tr><td><code>accessible</code></td><td>Accessible text question</td><td lang="ar" dir="rtl">سؤال نصي ميسّر</td><td>Invisible / text alternative</td><td>machine-readable</td></tr>
+            <tr><td><code>audio</code></td><td>Audio challenge (digits / beeps)</td><td lang="ar" dir="rtl">تحدٍّ صوتي (أرقام / نغمات)</td><td>Invisible / text alternative</td><td>1 in 10,000 (digits) · ≈ 1 in 6 (beeps)</td></tr>
 <!-- types:end -->
             </tbody>
           </table>

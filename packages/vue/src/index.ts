@@ -22,6 +22,13 @@ export const NawaGuard = defineComponent({
     type: { type: String, default: undefined },
     /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
     types: { type: [String, Array] as PropType<string | readonly string[]>, default: undefined },
+    /** Theme preset or appearance shorthand (see the widget README). */
+    theme: { type: String, default: undefined },
+    appearance: { type: String as PropType<'auto' | 'light' | 'dark' | 'high-contrast'>, default: undefined },
+    /** UI sound effects on by default (the visitor's toggle still wins). */
+    sound: { type: Boolean, default: undefined },
+    volume: { type: Number, default: undefined },
+    muted: { type: Boolean, default: undefined },
   },
   emits: {
     'update:modelValue': (token: string) => typeof token === 'string',
@@ -87,6 +94,11 @@ export const NawaGuard = defineComponent({
         name: props.name,
         type: props.type,
         types: props.types === undefined ? undefined : typeof props.types === 'string' ? props.types : props.types.join(','),
+        theme: props.theme,
+        appearance: props.appearance,
+        sound: props.sound,
+        volume: props.volume,
+        muted: props.muted,
       });
   },
 });

@@ -49,6 +49,7 @@ export const CHALLENGE_TYPES = [
   // invisible / text alternative
   'pow',
   'accessible',
+  'audio',
 ] as const;
 export type ChallengeType = (typeof CHALLENGE_TYPES)[number];
 
@@ -56,7 +57,7 @@ export type ChallengeType = (typeof CHALLENGE_TYPES)[number];
  * The widget view that renders a type. Views are generic interaction patterns; the public data
  * of each view is documented next to the puzzles that use it.
  */
-export const VIEW_KINDS = ['slide', 'drag', 'rotate', 'swap', 'hold', 'grid', 'pairs', 'taps', 'order', 'path', 'text', 'pow', 'accessible'] as const;
+export const VIEW_KINDS = ['slide', 'drag', 'rotate', 'swap', 'hold', 'grid', 'pairs', 'taps', 'order', 'path', 'text', 'pow', 'accessible', 'audio'] as const;
 export type ViewKind = (typeof VIEW_KINDS)[number];
 
 export const LANGS = ['ar', 'en'] as const;

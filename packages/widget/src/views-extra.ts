@@ -1,5 +1,5 @@
 import { clamp, h, nextId, pct, round1, s, safeImg } from './dom.js';
-import { cellGrid, pointerMode, Trail, verifyButton, type InputMode, type PuzzleView, type ViewHost } from './views.js';
+import { cellGrid, pointerMode, settle, Trail, verifyButton, type InputMode, type PuzzleView, type ViewHost } from './views.js';
 
 // ------------------------------------------------------------------------------- drag (2D)
 
@@ -37,6 +37,7 @@ export function dragView(host: ViewHost, data: Record<string, unknown>): PuzzleV
     piece.setPointerCapture(e.pointerId);
     origin = [e.clientX, e.clientY, x, y];
     piece.classList.add('dragging');
+    host.cue('grab');
     trail.add(x, y, pointerMode(e));
   });
   piece.addEventListener('pointermove', (e) => {
@@ -52,6 +53,8 @@ export function dragView(host: ViewHost, data: Record<string, unknown>): PuzzleV
     if (e.pointerId !== active) return;
     active = -1;
     piece.classList.remove('dragging');
+    settle(piece);
+    host.cue('snap');
     trail.add(x, y, pointerMode(e));
     submit();
   };
@@ -117,13 +120,19 @@ export function swapView(host: ViewHost, data: Record<string, unknown>): PuzzleV
   const choose = (i: number): void => {
     if (picked === undefined) {
       picked = i;
+      host.cue('tick');
       host.announce(host.t('pieceSelected', { i: i + 1 }));
     } else if (picked === i) picked = undefined;
     else {
       const a = picked;
       [order[a], order[i]] = [order[i]!, order[a]!];
       picked = undefined;
+      host.cue('snap');
       host.announce(host.t('pieceSwapped', { a: a + 1, b: i + 1 }));
+      render();
+      settle(buttons[a]!);
+      settle(buttons[i]!);
+      return;
     }
     render();
   };
@@ -212,6 +221,7 @@ export function holdView(host: ViewHost, data: Record<string, unknown>): PuzzleV
     mode = m;
     started = performance.now();
     button.classList.add('holding');
+    host.cue('grab');
     host.announce(host.t('holdGoing'));
     raf = requestAnimationFrame(frame);
   };
@@ -284,7 +294,10 @@ export function pairsView(host: ViewHost, data: Record<string, unknown>): Puzzle
       labelOf.delete(i);
       labelOf.delete(j);
       host.announce(host.t('pairUndone'));
-    } else if (pending === undefined) pending = i;
+    } else if (pending === undefined) {
+      pending = i;
+      host.cue('tick');
+    }
     else if (pending === i) pending = undefined;
     else {
       const used = new Set(labelOf.values());
@@ -293,6 +306,7 @@ export function pairsView(host: ViewHost, data: Record<string, unknown>): Puzzle
       pairOf.set(i, pending).set(pending, i);
       labelOf.set(i, k).set(pending, k);
       pending = undefined;
+      host.cue('snap');
       host.announce(host.t('pairMade', { k }));
     }
     render();
@@ -345,7 +359,8 @@ export function tapsView(host: ViewHost, data: Record<string, unknown>): PuzzleV
   const tap = (x: number, y: number, mode: InputMode): void => {
     if (trail.length >= count) return;
     trail.add(x, y, mode);
-    marks.append(s('g', { class: 'tap', transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` }, s('circle', { r: 9 }), s('text', { 'text-anchor': 'middle', y: 4 }, String(trail.length))));
+    marks.append(s('g', { class: 'tap', transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` }, s('circle', { class: 'tap-ring', r: 9 }), s('circle', { r: 9 }), s('text', { 'text-anchor': 'middle', y: 4 }, String(trail.length))));
+    host.cue('tick');
     host.announce(host.t('tapsCount', { n: trail.length, total: count }));
     sync();
   };

@@ -39,7 +39,7 @@ export const DEFAULT_LADDER: readonly (readonly ChallengeType[])[] = [
 ];
 
 /** Types used by `random`/`sequence` when no allow-list is configured (everything visual). */
-export const DEFAULT_POOL: readonly ChallengeType[] = CHALLENGE_TYPES.filter((t) => t !== 'pow' && t !== 'accessible');
+export const DEFAULT_POOL: readonly ChallengeType[] = CHALLENGE_TYPES.filter((t) => t !== 'pow' && t !== 'accessible' && t !== 'audio');
 
 export const MAX_STEPS = 3;
 
@@ -95,9 +95,9 @@ export function weightedPick(rng: Rng, pool: readonly ChallengeType[], weights: 
   return pool[pool.length - 1]!;
 }
 
-/** Random pool without the text alternative (it is chosen by the person, not drawn at random). */
+/** Random pool without the text/audio alternatives (chosen by the person, never drawn at random). */
 export function drawable(pool: readonly ChallengeType[]): ChallengeType[] {
-  const visual = pool.filter((t) => t !== 'accessible');
+  const visual = pool.filter((t) => t !== 'accessible' && t !== 'audio');
   return visual.length ? visual : [...pool];
 }
 

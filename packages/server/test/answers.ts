@@ -115,6 +115,7 @@ export function correct(type: ChallengeType, sol: any, data: any, mode: Mode = '
     case 'pow':
       return { nonce: solvePow(data.salt, data.bits)! };
     case 'accessible':
+    case 'audio':
       return { text: sol.accept[0], nonce: solvePow(data.pow.salt, data.pow.bits)! };
     default:
       return { selected: sol.cells };
@@ -168,6 +169,8 @@ export function incorrect(type: ChallengeType, sol: any, data: any): unknown {
       return { nonce: '0' };
     case 'accessible':
       return { text: 'zzzz', nonce: solvePow(data.pow.salt, data.pow.bits)! };
+    case 'audio':
+      return { text: /^d+$/.test(sol.accept[0]) ? String((Number(sol.accept[0][0]) + 1) % 10) + sol.accept[0].slice(1) : 'zzzz', nonce: solvePow(data.pow.salt, data.pow.bits)! };
     default: {
       const n: number = sol.n;
       const other = Array.from({ length: n }, (_, i) => i).find((i) => !sol.cells.includes(i))!;

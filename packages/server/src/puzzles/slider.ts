@@ -53,9 +53,12 @@ export const slider: PuzzleDefinition<SliderSolution, SliderPublic> = {
     // The piece is cut from the clean scene, then both images get independent noise so pixel
     // ratios between "piece" and "gap" are not an exact template match.
     const piece = scene.crop(left, top, pieceW, pieceH, gap.inside);
-    piece.shade((px, py) => onRim((x, y) => gap.inside(x + left, y + top), px, py), lighten(0.65)).noise(6, rng);
+    const pieceInside = (x: number, y: number): boolean => gap.inside(x + left, y + top);
+    // The piece is a raised tile lit from the top-left; the hole is a recess with an inner shadow.
+    piece.bevel(pieceInside, [0, 0, pieceW, pieceH], { depth: 3, raised: true, light: 0.6, shade: 0.45 });
+    piece.shade((px, py) => onRim(pieceInside, px, py, 1), lighten(0.35)).noise(6, rng);
 
-    scene.shade(gap.inside, darken(0.42), gap.bbox).shade((px, py) => onRim(gap.inside, px, py), lighten(0.5), gap.bbox);
+    scene.shade(gap.inside, darken(0.45), gap.bbox).bevel(gap.inside, gap.bbox, { depth: 4, raised: false, light: 0.45, shade: 0.55 });
     if (level >= 1) {
       // A decoy hole of a different outline: easy for a person to dismiss, noise for a naive edge detector.
       let dx = rng.int(BODY + 20, W - BODY - MARGIN);

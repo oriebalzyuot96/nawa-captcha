@@ -1,5 +1,6 @@
 import type { ChallengeType, PuzzleDefinition, ViewKind } from '../types.js';
 import { createAccessible } from './accessible.js';
+import { createAudio } from './audio.js';
 import { biggest } from './biggest.js';
 import { clock } from './clock.js';
 import { colorName } from './color-name.js';
@@ -74,13 +75,14 @@ const VISUAL = {
   math,
   count,
   dice,
-} as const satisfies Record<Exclude<ChallengeType, 'pow' | 'accessible'>, PuzzleDefinition<any, any>>;
+} as const satisfies Record<Exclude<ChallengeType, 'pow' | 'accessible' | 'audio'>, PuzzleDefinition<any, any>>;
 
 export function createRegistry(powBaseBits: number): Record<ChallengeType, PuzzleDefinition> {
   return {
-    ...(VISUAL as unknown as Record<Exclude<ChallengeType, 'pow' | 'accessible'>, PuzzleDefinition>),
+    ...(VISUAL as unknown as Record<Exclude<ChallengeType, 'pow' | 'accessible' | 'audio'>, PuzzleDefinition>),
     pow: createPow(powBaseBits) as PuzzleDefinition,
     accessible: createAccessible(powBaseBits) as PuzzleDefinition,
+    audio: createAudio(powBaseBits) as PuzzleDefinition,
   };
 }
 
@@ -95,6 +97,7 @@ export {
   colorName,
   count,
   createAccessible,
+  createAudio,
   dice,
   findShape,
   hold,
@@ -145,3 +148,5 @@ export type { OrderPublic, OrderTile } from './order.js';
 export type { PathPublic, TracePublic } from './trace.js';
 export type { PowPublic } from './pow.js';
 export type { AccessiblePublic } from './accessible.js';
+export type { AudioKind, AudioPublic, AudioSolution } from './audio.js';
+export { digitsOnly } from './audio.js';

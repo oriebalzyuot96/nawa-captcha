@@ -55,6 +55,7 @@
 - dice: Dice total (type the answer)
 - pow: Invisible proof-of-work (invisible / text alternative)
 - accessible: Accessible text question (invisible / text alternative)
+- audio: Audio challenge (digits / beeps) (invisible / text alternative)
 <!-- types:end -->
 
 ## Security model

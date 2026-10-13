@@ -38,6 +38,11 @@ import type { NawaGuardElement, NawaGuardErrorDetail, NawaGuardVerifiedDetail } 
     [attr.name]="name() ?? null"
     [attr.type]="type() ?? null"
     [attr.types]="typesAttr()"
+    [attr.theme]="theme() ?? null"
+    [attr.appearance]="appearance() ?? null"
+    [attr.sound]="sound() === undefined ? null : sound() ? 'on' : 'off'"
+    [attr.volume]="volume() ?? null"
+    [attr.muted]="muted() ? '' : null"
   ></nawa-guard>`,
   styles: [':host { display: block; } :host([aria-disabled="true"]) { opacity: 0.6; pointer-events: none; }'],
   providers: [
@@ -57,6 +62,14 @@ export class NawaGuardComponent implements ControlValueAccessor, Validator, Afte
   readonly type = input<string>();
   /** Narrows the server's allowed puzzle types (array or comma-separated). Never widens it. */
   readonly types = input<string | readonly string[]>();
+  /** Theme preset (orca, midnight, aurora, sand, ocean, mono), auto, or light/dark/high-contrast. */
+  readonly theme = input<string>();
+  readonly appearance = input<'auto' | 'light' | 'dark' | 'high-contrast'>();
+  /** UI sound effects on by default (the visitor's own toggle still wins). */
+  readonly sound = input<boolean>();
+  readonly volume = input<number>();
+  /** Silences the widget (app-level mute). */
+  readonly muted = input<boolean>();
 
   protected typesAttr(): string | null {
     const t = this.types();

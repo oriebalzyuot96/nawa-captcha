@@ -102,9 +102,9 @@ public static class NawaGuardChallengeTypes
         "icons", "icons-weather", "icons-objects", "odd-one-out", "odd-rotation", "color-name", "biggest", "find-shape",
         "shadow-pick", "pattern", "clock", "math-compare", "symmetry", "pairs", "tap-order", "spell",
         "order", "order-size", "order-numbers", "order-time", "story", "trace", "trace-letters", "maze",
-        "math", "count", "dice", "pow", "accessible",
+        "math", "count", "dice", "pow", "accessible", "audio",
     };
 
     /// <summary>Weak or machine-readable types you may want to exclude on sensitive routes.</summary>
-    public static readonly IReadOnlyList<string> LowAssurance = new[] { "pow", "accessible", "math", "hold", "count", "dice" };
+    public static readonly IReadOnlyList<string> LowAssurance = new[] { "pow", "accessible", "audio", "math", "hold", "count", "dice" };
 }

@@ -40,6 +40,8 @@ const PROMPTS = {
   dice: { en: 'Add up the dots on all the dice.', ar: 'اجمع النقاط الموجودة على كل أحجار النرد.' },
   pow: { en: 'Checking your browser…', ar: 'جارٍ التحقق من المتصفح…' },
   accessible: { en: 'Answer the question in words or digits.', ar: 'أجب عن السؤال بالكلمات أو الأرقام.' },
+  audioDigits: { en: 'Press Play and type the {n} digits you hear.', ar: 'اضغط تشغيل واكتب الأرقام الـ{n} التي تسمعها (بالإنجليزية).' },
+  audioBeeps: { en: 'Press Play and count the high-pitched beeps. Type how many you heard.', ar: 'اضغط تشغيل وعُدّ النغمات الحادّة (العالية)، ثم اكتب عددها.' },
 } as const;
 
 export type PromptKey = keyof typeof PROMPTS;

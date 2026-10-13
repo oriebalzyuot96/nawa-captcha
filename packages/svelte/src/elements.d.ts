@@ -10,6 +10,11 @@ declare module 'svelte/elements' {
       name?: string | undefined;
       type?: string | undefined;
       types?: string | undefined;
+      theme?: string | undefined;
+      appearance?: string | undefined;
+      sound?: boolean | string | undefined;
+      volume?: number | string | undefined;
+      muted?: boolean | string | undefined;
     };
   }
 }

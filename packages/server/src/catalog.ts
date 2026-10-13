@@ -49,4 +49,5 @@ export const TYPE_INFO: Readonly<Record<ChallengeType, TypeInfo>> = {
   dice: { family: 'type', en: 'Dice total', ar: 'مجموع النرد', guess: '≈ 1 in 6' },
   pow: { family: 'invisible', en: 'Invisible proof-of-work', ar: 'إثبات عمل غير مرئي', guess: 'n/a (CPU cost)' },
   accessible: { family: 'invisible', en: 'Accessible text question', ar: 'سؤال نصي ميسّر', guess: 'machine-readable' },
+  audio: { family: 'invisible', en: 'Audio challenge (digits / beeps)', ar: 'تحدٍّ صوتي (أرقام / نغمات)', guess: '1 in 10,000 (digits) · ≈ 1 in 6 (beeps)' },
 };
