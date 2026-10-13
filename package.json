@@ -22,7 +22,9 @@
     "demo": "npm run build -w @nawa-captcha/server -w @nawa-captcha/widget && node demo/server.mjs",
     "fixture:dotnet": "npm run build -w @nawa-captcha/server && node scripts/make-dotnet-fixture.mjs",
     "build:site": "node scripts/build-site.mjs",
-    "check:contrast": "node scripts/check-contrast.mjs"
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "build:umbrella": "node scripts/build-umbrella.mjs",
+    "publish:npm": "npm run build && npm run build:umbrella && npm publish ./packages/nawa-captcha --access public"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
