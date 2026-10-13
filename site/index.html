@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nawa Guard — Self-hosted, accessible puzzle CAPTCHA (reCAPTCHA alternative)</title>
-  <meta name="description" content="Nawa Guard is an open-source, self-hosted and accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
-  <link rel="canonical" href="https://oriebalzyuot96.github.io/nawa-guard/" />
+  <title>Nawa Captcha — Self-hosted, accessible puzzle CAPTCHA (reCAPTCHA alternative)</title>
+  <meta name="description" content="Nawa Captcha is an open-source, self-hosted and accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly reCAPTCHA, hCaptcha and Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification." />
+  <link rel="canonical" href="https://oriebalzyuot96.github.io/nawa-captcha/" />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="oriebalzyuot96" />
   <link rel="sitemap" href="sitemap.xml" />
@@ -13,19 +13,19 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="alternate" type="text/plain" href="llms.txt" title="LLM summary" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Nawa Guard — self-hosted, accessible puzzle CAPTCHA" />
+  <meta property="og:title" content="Nawa Captcha — self-hosted, accessible puzzle CAPTCHA" />
   <meta property="og:description" content="Open-source reCAPTCHA alternative: 30+ puzzle types with a premium 3D design and six themes, an audio challenge, answers sealed on the server, single-use pass tokens, keyboard & screen-reader friendly. Try it live in your browser. Node.js and ASP.NET Core." />
-  <meta property="og:url" content="https://oriebalzyuot96.github.io/nawa-guard/" />
+  <meta property="og:url" content="https://oriebalzyuot96.github.io/nawa-captcha/" />
   <meta name="twitter:card" content="summary" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
-    "name": "Nawa Guard",
-    "alternateName": ["nawa-guard", "@nawa-guard/server"],
+    "name": "Nawa Captcha",
+    "alternateName": ["nawa-captcha", "@nawa-captcha/server", "Nawa Guard"],
     "description": "Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile.",
-    "url": "https://oriebalzyuot96.github.io/nawa-guard/",
-    "codeRepository": "https://github.com/oriebalzyuot96/nawa-guard",
+    "url": "https://oriebalzyuot96.github.io/nawa-captcha/",
+    "codeRepository": "https://github.com/oriebalzyuot96/nawa-captcha",
     "programmingLanguage": ["TypeScript", "C#"],
     "runtimePlatform": ["Node.js", "ASP.NET Core", "React", "Vue", "Svelte", "Angular"],
     "license": "https://opensource.org/licenses/MIT",
@@ -34,7 +34,7 @@
   </script>
   <script>
     // Remembered theme choice (light/dark); otherwise the system preference applies.
-    try { var t = localStorage.getItem('nawa-guard-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+    try { var t = localStorage.getItem('nawa-captcha-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
   <style>
     :root {
@@ -89,7 +89,7 @@
     .hero::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); background: radial-gradient(45% 70% at 80% 30%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%); pointer-events: none; z-index: -1; }
     .hero-demo { position: relative; }
     .hero-demo .tagline { margin: .6rem 0 0; text-align: center; font-size: .82rem; color: var(--muted); }
-    .hero-demo nawa-guard { margin-inline: auto; }
+    .hero-demo nawa-captcha { margin-inline: auto; }
     .eyebrow { display: inline-block; font-weight: 700; font-size: .85rem; color: var(--primary-ink); background: var(--primary-soft); padding: .25rem .75rem; border-radius: 999px; margin-bottom: 1rem; }
     h1 { font-size: clamp(2rem, 4.4vw, 3.1rem); hyphens: manual; line-height: 1.12; margin: 0 0 1rem; letter-spacing: -.025em; max-width: 52rem; }
     h1 .accent { color: var(--primary-ink); }
@@ -174,7 +174,7 @@
     .g-midnight { background: radial-gradient(120% 90% at 20% 0%, #1c2850, #070b17); color: #e9eefc; }
     .g-aurora { background: radial-gradient(120% 90% at 80% 0%, #12403a, #061012); color: #e3fbf4; }
     .g-sand { background: radial-gradient(120% 90% at 20% 0%, #fffaf0, #efe4d2); color: #2a2116; }
-    .gallery nawa-guard { width: 100%; }
+    .gallery nawa-captcha { width: 100%; }
   </style>
   <script type="module" src="assets/playground.js"></script>
 </head>
@@ -182,8 +182,8 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
-      <a class="brand" href="./"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5b34d6"/><path d="M16 7l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9v-6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nawa Guard</a>
-      <nav class="main" aria-label="Main"><a href="#playground">Playground</a><a href="#design">Design</a><a href="#puzzles">Puzzles</a><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a></nav>
+      <a class="brand" href="./"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5b34d6"/><path d="M16 7l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9v-6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nawa Captcha</a>
+      <nav class="main" aria-label="Main"><a href="#playground">Playground</a><a href="#design">Design</a><a href="#puzzles">Puzzles</a><a href="#install">Install</a><a href="#compare">Compare</a><a href="https://github.com/oriebalzyuot96/nawa-captcha">GitHub</a></nav>
     </div>
   </header>
 
@@ -191,12 +191,12 @@
     <div class="wrap hero">
       <div>
       <span class="eyebrow">Open source · MIT · self-hosted</span>
-      <h1>Nawa Guard — the <span style="white-space:nowrap">self-hosted</span>, <span class="accent">accessible</span> puzzle CAPTCHA</h1>
+      <h1>Nawa Captcha — the <span style="white-space:nowrap">self-hosted</span>, <span class="accent">accessible</span> puzzle CAPTCHA</h1>
       <p class="lead">An open-source <strong>reCAPTCHA, hCaptcha and Turnstile alternative</strong> with <strong><span data-type-count>38</span> puzzle types</strong>. Your own server issues the puzzle and verifies the answer — no third-party tracking, no cookies, no data leaving your app. Works with React, Vue, Svelte, Angular or plain HTML, and verifies on <strong>Node.js</strong> or <strong>ASP.NET Core</strong>.</p>
       <div class="btns">
         <a class="btn btn--primary" href="#playground">Try the live playground</a>
-        <a class="btn" href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.8 13.6H4l11-12-1.8 9.6H20l-11 12z"/></svg>Open in StackBlitz</a>
-        <a class="btn" href="https://github.com/oriebalzyuot96/nawa-guard#readme">Read the docs</a>
+        <a class="btn" href="https://stackblitz.com/github/oriebalzyuot96/nawa-captcha"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.8 13.6H4l11-12-1.8 9.6H20l-11 12z"/></svg>Open in StackBlitz</a>
+        <a class="btn" href="https://github.com/oriebalzyuot96/nawa-captcha#readme">Read the docs</a>
       </div>
       <div class="stats" aria-label="At a glance">
         <div><strong>30+</strong>puzzle types</div>
@@ -206,7 +206,7 @@
       </div>
       </div>
       <div class="hero-demo">
-        <nawa-guard id="hero-widget" endpoint="/__nawa-guard-demo__" site-key="playground" action="signup" lang="en"></nawa-guard>
+        <nawa-captcha id="hero-widget" endpoint="/__nawa-captcha-demo__" site-key="playground" action="signup" lang="en"></nawa-captcha>
         <p class="tagline">A real puzzle, generated and checked in this page (demo mode).</p>
       </div>
     </div>
@@ -252,7 +252,7 @@
                 <h3 id="pg-form-h" data-i18n="formTitle">Create your account</h3>
                 <label for="pg-email" class="muted small" data-i18n="email">Email</label>
                 <input id="pg-email" type="email" autocomplete="off" placeholder="you@example.com" />
-                <nawa-guard id="pg-widget" endpoint="/__nawa-guard-demo__" site-key="playground" action="signup" lang="en"></nawa-guard>
+                <nawa-captcha id="pg-widget" endpoint="/__nawa-captcha-demo__" site-key="playground" action="signup" lang="en"></nawa-captcha>
                 <button type="submit" class="btn btn--primary" id="pg-submit" disabled data-i18n="submit">Sign up</button>
               </form>
             </div>
@@ -274,7 +274,7 @@
             </details>
           </div>
         </div>
-        <p class="muted small" style="margin-top:1.25rem">Want the real thing with a Node server? <a href="https://stackblitz.com/github/oriebalzyuot96/nawa-guard">Open the Express demo in StackBlitz</a> (runs <code>npm run demo</code>), or clone the repository and run it locally.</p>
+        <p class="muted small" style="margin-top:1.25rem">Want the real thing with a Node server? <a href="https://stackblitz.com/github/oriebalzyuot96/nawa-captcha">Open the Express demo in StackBlitz</a> (runs <code>npm run demo</code>), or clone the repository and run it locally.</p>
       </div>
     </section>
 
@@ -283,14 +283,14 @@
         <h2 id="design-h">A CAPTCHA that looks like part of your product</h2>
         <p class="section-lead">A layered, glass-like card with real depth: a subtle perspective tilt that follows the pointer, parallax inside the puzzle frame, pieces that lift and click into place, and a verified state that draws its own checkmark. Six themes in light and dark plus high contrast, or let it pick up your <strong>Orca UI</strong> tokens automatically. Motion switches off for <code>prefers-reduced-motion</code>, every colour pair passes WCAG 2.2 AA, and forced colours are respected.</p>
         <div class="gallery">
-          <figure class="g-midnight"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="en" theme="midnight" appearance="dark" types="icons"></nawa-guard><figcaption><code>theme="midnight"</code></figcaption></figure>
-          <figure class="g-aurora"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="en" theme="aurora" appearance="dark" types="order"></nawa-guard><figcaption><code>theme="aurora"</code></figcaption></figure>
-          <figure class="g-sand"><nawa-guard endpoint="/__nawa-guard-demo__" site-key="playground" action="gallery" lang="ar" theme="sand" appearance="light" types="rotate"></nawa-guard><figcaption><code>theme="sand" lang="ar"</code></figcaption></figure>
+          <figure class="g-midnight"><nawa-captcha endpoint="/__nawa-captcha-demo__" site-key="playground" action="gallery" lang="en" theme="midnight" appearance="dark" types="icons"></nawa-captcha><figcaption><code>theme="midnight"</code></figcaption></figure>
+          <figure class="g-aurora"><nawa-captcha endpoint="/__nawa-captcha-demo__" site-key="playground" action="gallery" lang="en" theme="aurora" appearance="dark" types="order"></nawa-captcha><figcaption><code>theme="aurora"</code></figcaption></figure>
+          <figure class="g-sand"><nawa-captcha endpoint="/__nawa-captcha-demo__" site-key="playground" action="gallery" lang="ar" theme="sand" appearance="light" types="rotate"></nawa-captcha><figcaption><code>theme="sand" lang="ar"</code></figcaption></figure>
         </div>
         <div class="grid" style="margin-top:1.5rem">
           <div class="card"><h3>🔊 Optional sound</h3><p>Soft synthesized cues for grab, snap, step and success (Web Audio, no files). Off by default, never before a click or key press, with a volume slider, a remembered speaker toggle and an app-level mute. Every change is also announced to screen readers.</p></div>
           <div class="card"><h3>🎧 Audio challenge</h3><p>For blind and low-vision visitors: a server-synthesized WAV of spoken digits (or beeps to count) over background noise, with a replay limit and no transcript. The answer stays sealed on the server like every other puzzle.</p></div>
-          <div class="card"><h3>🎨 Themes and tokens</h3><p><code>theme="orca|midnight|aurora|sand|ocean|mono"</code>, <code>appearance="auto|light|dark|high-contrast"</code>, <code>--nawa-guard-*</code> overrides, and automatic Orca UI <code>--oc-*</code> tokens (legacy <code>--nw-*</code> still work).</p></div>
+          <div class="card"><h3>🎨 Themes and tokens</h3><p><code>theme="orca|midnight|aurora|sand|ocean|mono"</code>, <code>appearance="auto|light|dark|high-contrast"</code>, <code>--nawa-captcha-*</code> overrides, and automatic Orca UI <code>--oc-*</code> tokens (legacy <code>--nw-*</code> still work).</p></div>
         </div>
       </div>
     </section>
@@ -352,7 +352,7 @@
 
     <section class="block" aria-labelledby="why">
       <div class="wrap">
-        <h2 id="why">Why Nawa Guard</h2>
+        <h2 id="why">Why Nawa Captcha</h2>
         <div class="grid">
           <div class="card"><h3>🔒 The client is never trusted</h3><p>Puzzles are rendered on the server. The answer is sealed with AES-256-GCM inside the challenge and never reaches the browser.</p></div>
           <div class="card"><h3>✅ Verify on your backend</h3><p>A solved puzzle yields a short-lived, single-use, signed pass token. Your route verifies it locally — like reCAPTCHA's siteverify, without the third party.</p></div>
@@ -367,41 +367,41 @@
     <section class="block" aria-labelledby="install-h" id="install">
       <div class="wrap">
         <h2 id="install-h">Install</h2>
-        <div class="note"><strong>Coming to npm and NuGet.</strong> The packages are published under the <code>@nawa-guard</code> scope (and <code>NawaGuard.AspNetCore</code>) once the organisation is set up. Until then, build them from source:
-          <pre><code>git clone https://github.com/oriebalzyuot96/nawa-guard.git
-cd nawa-guard && npm install && npm run build
-npm pack -w @nawa-guard/server -w @nawa-guard/widget   # → .tgz files you can npm install</code></pre></div>
+        <div class="note"><strong>Coming to npm and NuGet.</strong> The packages are published under the <code>@nawa-captcha</code> scope (and <code>NawaCaptcha.AspNetCore</code>) once the organisation is set up. Until then, build them from source:
+          <pre><code>git clone https://github.com/oriebalzyuot96/nawa-captcha.git
+cd nawa-captcha && npm install && npm run build
+npm pack -w @nawa-captcha/server -w @nawa-captcha/widget   # → .tgz files you can npm install</code></pre></div>
         <p>When published, npm, yarn, pnpm and bun all work:</p>
-        <pre><code>npm i @nawa-guard/server @nawa-guard/widget
-yarn add @nawa-guard/react      # or @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular
-dotnet add package NawaGuard.AspNetCore</code></pre>
+        <pre><code>npm i @nawa-captcha/server @nawa-captcha/widget
+yarn add @nawa-captcha/react      # or @nawa-captcha/vue, @nawa-captcha/svelte, @nawa-captcha/angular
+dotnet add package NawaCaptcha.AspNetCore</code></pre>
         <p style="margin-top:1rem">Server (Express) — choose your puzzles:</p>
-        <pre><code>import { createNawaGuard } from '@nawa-guard/server';
-import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
+        <pre><code>import { createNawaCaptcha } from '@nawa-captcha/server';
+import { nawaCaptchaExpress, requireCaptcha } from '@nawa-captcha/server/express';
 
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET,
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET,
   types: ['slider', 'rotate-object', 'pairs', 'maze'],   // one, two or many
   mode: 'random',                                         // or 'sequence' | 'adaptive'
   perAction: { login: ['pow', 'slider'], signup: { types: ['maze', 'pairs'], steps: 2 } },
 });
-app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
+app.use('/captcha', express.json({ limit: '32kb' }), nawaCaptchaExpress(guard));
 app.post('/login', requireCaptcha(guard, { expectedAction: 'login', maxAgeSec: 300 }), handler);</code></pre>
         <p style="margin-top:1rem">Browser (any framework) — <code>types</code> can only narrow the server's list:</p>
-        <pre><code>&lt;nawa-guard site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"&gt;&lt;/nawa-guard&gt;</code></pre>
+        <pre><code>&lt;nawa-captcha site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"&gt;&lt;/nawa-captcha&gt;</code></pre>
         <p style="margin-top:1rem">ASP.NET Core:</p>
-        <pre><code>builder.Services.AddNawaGuard(builder.Configuration.GetSection("NawaGuard"));
-app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
+        <pre><code>builder.Services.AddNawaCaptcha(builder.Configuration.GetSection("NawaCaptcha"));
+app.MapPost("/api/contact", Handler).RequireNawaCaptcha("contact");</code></pre>
       </div>
     </section>
 
     <section class="block" aria-labelledby="compare" id="compare">
       <div class="wrap">
-        <h2>Nawa Guard vs reCAPTCHA, hCaptcha and Turnstile</h2>
+        <h2>Nawa Captcha vs reCAPTCHA, hCaptcha and Turnstile</h2>
         <div class="table-scroll">
           <table>
             <caption class="muted" style="text-align:start;padding:.75rem">Feature comparison</caption>
-            <thead><tr><th scope="col">Feature</th><th scope="col">Nawa Guard</th><th scope="col">reCAPTCHA</th><th scope="col">hCaptcha</th><th scope="col">Turnstile</th></tr></thead>
+            <thead><tr><th scope="col">Feature</th><th scope="col">Nawa Captcha</th><th scope="col">reCAPTCHA</th><th scope="col">hCaptcha</th><th scope="col">Turnstile</th></tr></thead>
             <tbody>
               <tr><th scope="row">Self-hosted, no third-party calls</th><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
               <tr><th scope="row">No user tracking / cookies</th><td>Yes</td><td>No</td><td>Partial</td><td>Partial</td></tr>
@@ -419,14 +419,14 @@ app.MapPost("/api/contact", Handler).RequireNawaGuard("contact");</code></pre>
 
     <section class="block" aria-labelledby="ar" lang="ar" dir="rtl">
       <div class="wrap">
-        <h2 id="ar">نوى جارد — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
+        <h2 id="ar">نوى كابتشا — كابتشا ألغاز مستضافة ذاتياً وسهلة الوصول</h2>
         <p class="lead">بديل مفتوح المصدر لـ reCAPTCHA: خادمك يُنشئ اللغز ويتحقق من الحل، دون تتبّع أو أطراف ثالثة. أكثر من ثلاثين نوعًا من الألغاز تختار منها ما تشاء، لغزًا واحدًا أو عدة ألغاز، لكل إجراء على حدة، مع إمكانية طلب لغزين متتاليين. دعم كامل للوحة المفاتيح وقارئات الشاشة مع سؤال نصي وتحدٍّ صوتي، والعربية والإنجليزية مع RTL، وستة أنماط ألوان بتصميم ثلاثي الأبعاد. يعمل مع React وVue وSvelte وAngular ويتحقق عبر Node.js أو ASP.NET Core. جرّب الملعب التفاعلي أعلاه باللغة العربية.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="wrap">Nawa Guard · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Orca UI</a> (formerly Nawa UI) · <a href="https://github.com/oriebalzyuot96/nawa-guard">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
+    <div class="wrap">Nawa Captcha (formerly Nawa Guard) · MIT License · From the makers of <a href="https://oriebalzyuot96.github.io/nawa-ui/">Orca UI</a> (formerly Nawa UI) · <a href="https://github.com/oriebalzyuot96/nawa-captcha">GitHub</a> · <a href="llms.txt">llms.txt</a></div>
   </footer>
 </body>
 </html>

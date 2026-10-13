@@ -1,20 +1,20 @@
 using System.Collections.Concurrent;
 
-namespace NawaGuard.AspNetCore;
+namespace NawaCaptcha.AspNetCore;
 
 /// <summary>
 /// One-time redemption of pass-token ids. Must be atomic across every instance that verifies tokens:
 /// use the in-memory store only for a single instance, and a shared store (e.g. Redis
 /// <c>SET key 1 PX ttl NX</c>) behind a load balancer.
 /// </summary>
-public interface INawaGuardReplayStore
+public interface INawaCaptchaReplayStore
 {
     /// <summary>Returns true the first time <paramref name="jti"/> is redeemed, false on every later call.</summary>
     Task<bool> TryRedeemAsync(string jti, TimeSpan ttl, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Process-local store with expiry. Safe for one instance only.</summary>
-public sealed class InMemoryReplayStore : INawaGuardReplayStore
+public sealed class InMemoryReplayStore : INawaCaptchaReplayStore
 {
     private readonly ConcurrentDictionary<string, DateTimeOffset> _used = new(StringComparer.Ordinal);
     private readonly TimeProvider _time;
@@ -53,7 +53,7 @@ public sealed class InMemoryReplayStore : INawaGuardReplayStore
 }
 
 /// <summary>Adapter for any atomic "set if absent" primitive, e.g. StackExchange.Redis <c>StringSetAsync(key, "1", ttl, When.NotExists)</c>.</summary>
-public sealed class DelegateReplayStore : INawaGuardReplayStore
+public sealed class DelegateReplayStore : INawaCaptchaReplayStore
 {
     private readonly Func<string, TimeSpan, CancellationToken, Task<bool>> _setIfAbsent;
 

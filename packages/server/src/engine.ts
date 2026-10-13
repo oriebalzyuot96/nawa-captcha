@@ -20,7 +20,7 @@ import {
   type ResolvedPolicy,
   type SelectionMode,
 } from './selection.js';
-import { MemoryStore, type NawaGuardStore } from './store.js';
+import { MemoryStore, type NawaCaptchaStore } from './store.js';
 import { MAX_TOKEN_LENGTH, openChallenge, parsePassToken, sealChallenge, signPassToken, type ChallengeClaims, type PassTokenClaims } from './tokens.js';
 import { CHALLENGE_TYPES, LANGS, type ChallengeType, type CheckFailure, type Lang, type PuzzleDefinition, type ViewKind } from './types.js';
 
@@ -51,14 +51,14 @@ export type GuardEvent =
   | { type: 'verify-failed'; challengeType?: ChallengeType; reason: VerifyFailure; detail?: string; clientKey: string }
   | { type: 'rate-limited'; kind: 'challenge' | 'verify'; clientKey: string };
 
-export interface NawaGuardOptions {
+export interface NawaCaptchaOptions {
   /** Server secret (≥32 chars), or a list of `{ kid, secret }` for rotation (first one signs). */
   readonly secret: string | readonly SecretEntry[];
   /** Allowed public site keys. When omitted any well-formed site key is accepted. */
   readonly siteKeys?: readonly string[];
   /** Allowed action names. When omitted any well-formed action is accepted. */
   readonly actions?: readonly string[];
-  readonly store?: NawaGuardStore;
+  readonly store?: NawaCaptchaStore;
   readonly challengeTtlSec?: number;
   readonly passTtlSec?: number;
   /** Bind tokens to the client's IP and/or User-Agent. Default `ip+ua`. */
@@ -77,7 +77,7 @@ export interface NawaGuardOptions {
   readonly steps?: number;
   /** Per-action overrides, e.g. `{ login: ['pow', 'slider'], signup: { types: [...], steps: 2 } }`. */
   readonly perAction?: Readonly<Record<string, readonly ChallengeType[] | ActionPolicy>>;
-  /** Honour the browser's `types` narrowing hint (`<nawa-guard types="…">`). Default true. */
+  /** Honour the browser's `types` narrowing hint (`<nawa-captcha types="…">`). Default true. */
   readonly clientNarrowing?: boolean;
   /** Type pools by difficulty level (index = level), for `adaptive`. */
   readonly ladder?: readonly (readonly ChallengeType[])[];
@@ -183,7 +183,7 @@ export interface VerifyPassTokenOptions {
   /** Reject tokens issued longer ago than this, even if not yet expired. */
   readonly maxAgeSec?: number;
   /** Shared store for single-use enforcement. Defaults to a process-wide in-memory store. */
-  readonly store?: NawaGuardStore;
+  readonly store?: NawaCaptchaStore;
   /** The request's client info; required when the token is client-bound. */
   readonly client?: ClientInfo;
   /**
@@ -219,9 +219,9 @@ interface Issue {
   readonly pool: readonly ChallengeType[];
 }
 
-export class NawaGuard {
+export class NawaCaptcha {
   readonly keys: Keyring;
-  readonly store: NawaGuardStore;
+  readonly store: NawaCaptchaStore;
   private readonly registry: Record<ChallengeType, PuzzleDefinition>;
   private readonly powByBits = new Map<number, { pow: PuzzleDefinition; accessible: PuzzleDefinition; audio: PuzzleDefinition }>();
   private readonly base: ResolvedPolicy;
@@ -230,20 +230,20 @@ export class NawaGuard {
   private readonly bind: BindMode;
   private readonly now: () => number;
 
-  constructor(readonly options: NawaGuardOptions) {
+  constructor(readonly options: NawaCaptchaOptions) {
     this.keys = createKeyring(options.secret);
     this.store = options.store ?? new MemoryStore();
     this.registry = createRegistry(options.powBits ?? 16);
     this.bind = options.bind ?? 'ip+ua';
-    if (!BIND_MODES.includes(this.bind)) throw new Error(`nawa-guard: invalid bind mode "${this.bind}"`);
+    if (!BIND_MODES.includes(this.bind)) throw new Error(`nawa-captcha: invalid bind mode "${this.bind}"`);
     this.now = options.now ?? Date.now;
     for (const kind of ['challengeTtlSec', 'passTtlSec'] as const) {
       const v = options[kind];
-      if (v !== undefined && (!Number.isFinite(v) || v < 10 || v > 3600)) throw new Error(`nawa-guard: ${kind} must be 10..3600`);
+      if (v !== undefined && (!Number.isFinite(v) || v < 10 || v > 3600)) throw new Error(`nawa-captcha: ${kind} must be 10..3600`);
     }
-    if (options.mode !== undefined && !MODES.includes(options.mode)) throw new Error(`nawa-guard: mode must be one of ${MODES.join(', ')}`);
+    if (options.mode !== undefined && !MODES.includes(options.mode)) throw new Error(`nawa-captcha: mode must be one of ${MODES.join(', ')}`);
     const types = checkTypes(options.types, 'types');
-    if (types && types.length === 0) throw new Error('nawa-guard: types must list at least one challenge type');
+    if (types && types.length === 0) throw new Error('nawa-captcha: types must list at least one challenge type');
     this.explicitTypes = types !== undefined;
     const ladder = (options.ladder ?? DEFAULT_LADDER).map((rung, i) => checkTypes(rung, `ladder[${i}]`)!);
     this.base = {
@@ -265,9 +265,9 @@ export class NawaGuard {
     const raw = Object.prototype.hasOwnProperty.call(this.options.perAction ?? {}, action) ? this.options.perAction![action] : undefined;
     const p: ActionPolicy = Array.isArray(raw) ? { types: raw as readonly ChallengeType[] } : ((raw as ActionPolicy | undefined) ?? {});
     const where = `perAction["${action}"]`;
-    if (p.mode !== undefined && !MODES.includes(p.mode)) throw new Error(`nawa-guard: ${where}.mode must be one of ${MODES.join(', ')}`);
+    if (p.mode !== undefined && !MODES.includes(p.mode)) throw new Error(`nawa-captcha: ${where}.mode must be one of ${MODES.join(', ')}`);
     const types = checkTypes(p.types, `${where}.types`);
-    if (types && types.length === 0) throw new Error(`nawa-guard: ${where}.types must list at least one challenge type`);
+    if (types && types.length === 0) throw new Error(`nawa-captcha: ${where}.types must list at least one challenge type`);
     const mode = p.mode ?? this.base.mode;
     const resolved: ResolvedPolicy = {
       // Without any allow-list, random/sequence draw from the visual types (not pow/accessible).
@@ -515,13 +515,13 @@ export class NawaGuard {
   }
 
   /** Server-side pass-token check using this instance's secrets and store. */
-  verifyPassToken(token: unknown, opts: Omit<VerifyPassTokenOptions, 'secret' | 'store'> & { store?: NawaGuardStore }): Promise<PassTokenResult> {
+  verifyPassToken(token: unknown, opts: Omit<VerifyPassTokenOptions, 'secret' | 'store'> & { store?: NawaCaptchaStore }): Promise<PassTokenResult> {
     return verifyPassToken(token, { now: this.now, ...opts, secret: this.keys, store: opts.store ?? this.store });
   }
 }
 
-export function createNawaGuard(options: NawaGuardOptions): NawaGuard {
-  return new NawaGuard(options);
+export function createNawaCaptcha(options: NawaCaptchaOptions): NawaCaptcha {
+  return new NawaCaptcha(options);
 }
 
 function publicError(reason: VerifyFailure): PublicVerifyError {

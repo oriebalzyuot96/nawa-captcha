@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createNawaGuard, handleChallenge, handleVerify, openChallenge, solvePow, verifyPassToken, type ChallengeType } from '../src/index.js';
+import { createNawaCaptcha, handleChallenge, handleVerify, openChallenge, solvePow, verifyPassToken, type ChallengeType } from '../src/index.js';
 import { correct } from './answers.js';
 import { CLIENT, SECRET, setup } from './helpers.js';
 
@@ -80,11 +80,11 @@ describe('choosing puzzle types', () => {
   });
 
   it('reports configuration mistakes at startup', () => {
-    expect(() => createNawaGuard({ secret: SECRET, types: ['slider', 'nope' as ChallengeType] })).toThrow(/unknown challenge type/);
-    expect(() => createNawaGuard({ secret: SECRET, types: [] })).toThrow(/at least one/);
-    expect(() => createNawaGuard({ secret: SECRET, steps: 4 })).toThrow(/steps/);
-    expect(() => createNawaGuard({ secret: SECRET, mode: 'chaos' as never })).toThrow(/mode/);
-    expect(() => createNawaGuard({ secret: SECRET, perAction: { login: ['sliders' as ChallengeType] } })).toThrow(/perAction\["login"\]/);
+    expect(() => createNawaCaptcha({ secret: SECRET, types: ['slider', 'nope' as ChallengeType] })).toThrow(/unknown challenge type/);
+    expect(() => createNawaCaptcha({ secret: SECRET, types: [] })).toThrow(/at least one/);
+    expect(() => createNawaCaptcha({ secret: SECRET, steps: 4 })).toThrow(/steps/);
+    expect(() => createNawaCaptcha({ secret: SECRET, mode: 'chaos' as never })).toThrow(/mode/);
+    expect(() => createNawaCaptcha({ secret: SECRET, perAction: { login: ['sliders' as ChallengeType] } })).toThrow(/perAction\["login"\]/);
   });
 
   it('sends the view for every challenge', async () => {

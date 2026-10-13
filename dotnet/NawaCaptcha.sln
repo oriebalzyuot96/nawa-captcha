@@ -5,11 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NawaGuard.AspNetCore", "src\NawaGuard.AspNetCore\NawaGuard.AspNetCore.csproj", "{E3EE3C41-5C07-4A8D-B74E-54AF31E4B4E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NawaCaptcha.AspNetCore", "src\NawaCaptcha.AspNetCore\NawaCaptcha.AspNetCore.csproj", "{E3EE3C41-5C07-4A8D-B74E-54AF31E4B4E7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NawaGuard.AspNetCore.Tests", "tests\NawaGuard.AspNetCore.Tests\NawaGuard.AspNetCore.Tests.csproj", "{A6170A75-6DD5-4EB8-BAA9-E892E1B7A34B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NawaCaptcha.AspNetCore.Tests", "tests\NawaCaptcha.AspNetCore.Tests\NawaCaptcha.AspNetCore.Tests.csproj", "{A6170A75-6DD5-4EB8-BAA9-E892E1B7A34B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

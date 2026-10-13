@@ -1,44 +1,44 @@
-# @nawa-guard/server
+# @nawa-captcha/server
 
-**Nawa Guard** — a self-hosted, privacy-friendly and accessible puzzle CAPTCHA. A drop-in alternative to reCAPTCHA, hCaptcha and Turnstile with no third-party tracking: your server issues the challenge and verifies the answer.
+**Nawa Captcha** — a self-hosted, privacy-friendly and accessible puzzle CAPTCHA. A drop-in alternative to reCAPTCHA, hCaptcha and Turnstile with no third-party tracking: your server issues the challenge and verifies the answer.
 
 This package: Node.js server: issue and verify challenges, Express middleware.
 
-- 🧩 38 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work, an accessible text question and an audio challenge — [see them live](https://oriebalzyuot96.github.io/nawa-guard/#playground)
+- 🧩 38 challenge types you choose from (one, two or many, per action): slider jigsaws, rotate, drag to the shadow, jigsaw, hold, icon/colour/clock/symmetry grids, match pairs, tap in order, spell, order and story tiles, connect the dots, maze, math, dice, invisible proof-of-work, an accessible text question and an audio challenge — [see them live](https://oriebalzyuot96.github.io/nawa-captcha/#playground)
 - 🔒 Answers are sealed (AES-256-GCM) and never reach the browser; pass tokens are signed and single-use
 - ♿ Keyboard, touch and screen-reader friendly (text question and audio challenge); Arabic and English; RTL
 - 🎨 Premium 3D design, six themes in light and dark plus high contrast (WCAG 2.2 AA), Orca UI tokens, optional sound effects
-- 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaGuard.AspNetCore`, coming to NuGet)
+- 🖥️ Backends: Node.js / Express and ASP.NET Core (`NawaCaptcha.AspNetCore`, coming to NuGet)
 
 ## Install
 
-> **Coming to npm.** `@nawa-guard/server` is published once the `@nawa-guard` npm organisation exists. Until then, build it from the [repository](https://github.com/oriebalzyuot96/nawa-guard) (`npm install && npm run build`, then `npm pack -w @nawa-guard/server`).
+> **Coming to npm.** `@nawa-captcha/server` is published once the `@nawa-captcha` npm organisation exists. Until then, build it from the [repository](https://github.com/oriebalzyuot96/nawa-captcha) (`npm install && npm run build`, then `npm pack -w @nawa-captcha/server`).
 
 ```bash
-npm i @nawa-guard/server
+npm i @nawa-captcha/server
 # or
-yarn add @nawa-guard/server
+yarn add @nawa-captcha/server
 # or
-pnpm add @nawa-guard/server
+pnpm add @nawa-captcha/server
 ```
 
 ## Usage
 
 ```js
 import express from 'express';
-import { createNawaGuard } from '@nawa-guard/server';
-import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
+import { createNawaCaptcha } from '@nawa-captcha/server';
+import { nawaCaptchaExpress, requireCaptcha } from '@nawa-captcha/server/express';
 
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET, // ≥ 32 chars, never sent to browsers
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET, // ≥ 32 chars, never sent to browsers
   siteKeys: ['main'],
   actions: ['login'],
 });
 
 const app = express();
 // POST /captcha/challenge and POST /captcha/verify
-app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
-// Protect a route: the token comes from the X-Nawa-Guard-Token header or the nawa-guard-token field
+app.use('/captcha', express.json({ limit: '32kb' }), nawaCaptchaExpress(guard));
+// Protect a route: the token comes from the X-Nawa-Captcha-Token header or the nawa-captcha-token field
 app.post('/login', express.urlencoded({ extended: false }),
   requireCaptcha(guard, { expectedAction: 'login', maxAgeSec: 300 }),
   (req, res) => res.send('ok'));
@@ -47,8 +47,8 @@ app.post('/login', express.urlencoded({ extended: false }),
 ## Choosing puzzles
 
 ```js
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET,
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET,
   types: ['slider', 'rotate-object', 'pairs', 'maze'], // allow-list: one, two or many
   mode: 'random',                                      // 'random' | 'sequence' | 'adaptive' (default)
   weights: { maze: 2 },
@@ -57,10 +57,10 @@ const guard = createNawaGuard({
 // Routes can demand more: requireCaptcha(guard, { expectedAction: 'signup', allowedTypes: ['maze', 'spell'], minSteps: 2 })
 ```
 
-The browser can narrow the list (`<nawa-guard types="slider,maze">`) but never widen it. With `steps` > 1, `POST /verify` returns `{ next }` until the last puzzle; the pass token then lists every solved type in `stp`. Every type, its keyboard operation and its blind-guess rate are in the [main README](https://github.com/oriebalzyuot96/nawa-guard#puzzle-types).
+The browser can narrow the list (`<nawa-captcha types="slider,maze">`) but never widen it. With `steps` > 1, `POST /verify` returns `{ next }` until the last puzzle; the pass token then lists every solved type in `stp`. Every type, its keyboard operation and its blind-guess rate are in the [main README](https://github.com/oriebalzyuot96/nawa-captcha#puzzle-types).
 
-Then verify on your backend before trusting the request — see the [full guide](https://github.com/oriebalzyuot96/nawa-guard#readme).
+Then verify on your backend before trusting the request — see the [full guide](https://github.com/oriebalzyuot96/nawa-captcha#readme).
 
-📖 Docs: https://oriebalzyuot96.github.io/nawa-guard/ · 💻 Source: https://github.com/oriebalzyuot96/nawa-guard
+📖 Docs: https://oriebalzyuot96.github.io/nawa-captcha/ · 💻 Source: https://github.com/oriebalzyuot96/nawa-captcha
 
 MIT © oriebalzyuot96

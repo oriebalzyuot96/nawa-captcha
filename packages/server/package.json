@@ -1,7 +1,7 @@
 {
-  "name": "@nawa-guard/server",
+  "name": "@nawa-captcha/server",
   "version": "0.1.0",
-  "description": "Nawa Guard server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 37 challenge types you choose from, sealed answers, single-use pass tokens, multi-step chains, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
+  "description": "Nawa Captcha server: self-hosted, privacy-friendly puzzle CAPTCHA for Node.js. 37 challenge types you choose from, sealed answers, single-use pass tokens, multi-step chains, Express middleware. A reCAPTCHA / hCaptcha alternative with no third-party tracking.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -47,19 +47,19 @@
     "bot-protection",
     "anti-spam",
     "proof-of-work",
-    "nawa-guard",
-    "nawa-ui",
+    "nawa-captcha",
+    "orca-ui",
     "arabic",
     "rtl",
     "accessibility"
   ],
-  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "homepage": "https://oriebalzyuot96.github.io/nawa-captcha/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-captcha.git",
     "directory": "packages/server"
   },
-  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "bugs": "https://github.com/oriebalzyuot96/nawa-captcha/issues",
   "author": "oriebalzyuot96",
   "publishConfig": {
     "access": "public"

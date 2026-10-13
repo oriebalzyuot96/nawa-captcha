@@ -1,14 +1,14 @@
 {
-  "name": "@nawa-guard/angular",
+  "name": "@nawa-captcha/angular",
   "version": "0.1.0",
-  "description": "Nawa Guard for Angular: accessible, self-hosted puzzle CAPTCHA component for reactive forms — a privacy-friendly reCAPTCHA alternative.",
+  "description": "Nawa Captcha for Angular: accessible, self-hosted puzzle CAPTCHA component for reactive forms — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "scripts": {
     "build": "ng-packagr -p ng-package.json -c tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@nawa-guard/widget": "0.1.0",
+    "@nawa-captcha/widget": "0.1.0",
     "tslib": "^2.8.1"
   },
   "peerDependencies": {
@@ -42,18 +42,18 @@
     "bot-protection",
     "anti-spam",
     "proof-of-work",
-    "nawa-guard",
-    "nawa-ui",
+    "nawa-captcha",
+    "orca-ui",
     "arabic",
     "rtl"
   ],
-  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "homepage": "https://oriebalzyuot96.github.io/nawa-captcha/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-captcha.git",
     "directory": "packages/angular"
   },
-  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "bugs": "https://github.com/oriebalzyuot96/nawa-captcha/issues",
   "author": "oriebalzyuot96",
   "publishConfig": {
     "access": "public"

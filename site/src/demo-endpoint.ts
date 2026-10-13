@@ -1,11 +1,11 @@
 /*
- * Demo mode for the static site: the real @nawa-guard/server engine runs in this page (built with
+ * Demo mode for the static site: the real @nawa-captcha/server engine runs in this page (built with
  * the browser primitives) and an in-page endpoint shim answers the widget's fetch() calls to
  * DEMO_ENDPOINT. In production these two endpoints live on YOUR server, with the secret.
  */
-import { createNawaGuard, handleChallenge, handleVerify, MemoryStore, type ClientInfo, type NawaGuard, type NawaGuardOptions } from '../../packages/server/src/index.js';
+import { createNawaCaptcha, handleChallenge, handleVerify, MemoryStore, type ClientInfo, type NawaCaptcha, type NawaCaptchaOptions } from '../../packages/server/src/index.js';
 
-export const DEMO_ENDPOINT = '/__nawa-guard-demo__';
+export const DEMO_ENDPOINT = '/__nawa-captcha-demo__';
 
 export interface ExchangeLog {
   readonly path: '/challenge' | '/verify';
@@ -20,23 +20,23 @@ function randomSecret(): string {
 }
 
 export class DemoBackend {
-  guard: NawaGuard;
+  guard: NawaCaptcha;
   readonly secret = randomSecret();
   readonly store = new MemoryStore();
   readonly client: ClientInfo = { ip: '192.0.2.10', userAgent: navigator.userAgent };
   onExchange: (log: ExchangeLog) => void = () => undefined;
 
-  constructor(options: Omit<NawaGuardOptions, 'secret'>) {
+  constructor(options: Omit<NawaCaptchaOptions, 'secret'>) {
     this.guard = this.create(options);
     this.install();
   }
 
-  private create(options: Omit<NawaGuardOptions, 'secret'>): NawaGuard {
-    return createNawaGuard({ rateLimit: { windowSec: 60, challenge: 200, verify: 400 }, ...options, secret: this.secret, store: this.store });
+  private create(options: Omit<NawaCaptchaOptions, 'secret'>): NawaCaptcha {
+    return createNawaCaptcha({ rateLimit: { windowSec: 60, challenge: 200, verify: 400 }, ...options, secret: this.secret, store: this.store });
   }
 
   /** Rebuilds the engine with new options (same secret and store). */
-  configure(options: Omit<NawaGuardOptions, 'secret'>): void {
+  configure(options: Omit<NawaCaptchaOptions, 'secret'>): void {
     this.guard = this.create(options);
   }
 

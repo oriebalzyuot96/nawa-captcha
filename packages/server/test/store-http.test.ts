@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryStore, handleChallenge, handleVerify, ioredisStore, nodeRedisStore, readPassToken, solvePow } from '../src/index.js';
-import { nawaGuardExpress, requireCaptcha, type RequestLike, type ResponseLike } from '../src/express.js';
+import { nawaCaptchaExpress, requireCaptcha, type RequestLike, type ResponseLike } from '../src/express.js';
 import { CLIENT, setup } from './helpers.js';
 
 describe('MemoryStore', () => {
@@ -65,6 +65,7 @@ describe('Redis adapters (fake clients)', () => {
     expect(await s.increment('n', 1000)).toBe(1);
     expect(await s.increment('n', 1000)).toBe(2);
     expect(await s.count('n')).toBe(2);
+    // The default prefix deliberately keeps its pre-rename value so existing Redis data stays valid.
     expect([...client.data.keys()].every((k) => k.startsWith('nawa-guard:'))).toBe(true);
   });
 });
@@ -92,9 +93,14 @@ describe('HTTP handlers', () => {
   });
 
   it('reads pass tokens from header or body field', () => {
-    expect(readPassToken({ headers: { 'x-nawa-guard-token': 'h' }, body: { 'nawa-guard-token': 'b' } })).toBe('h');
-    expect(readPassToken({ headers: {}, body: { 'nawa-guard-token': 'b' } })).toBe('b');
+    expect(readPassToken({ headers: { 'x-nawa-captcha-token': 'h' }, body: { 'nawa-captcha-token': 'b' } })).toBe('h');
+    expect(readPassToken({ headers: {}, body: { 'nawa-captcha-token': 'b' } })).toBe('b');
     expect(readPassToken({ headers: {}, body: {} })).toBeUndefined();
+    // Deprecated pre-rename names still work with the defaults (and the new names win).
+    expect(readPassToken({ headers: { 'x-nawa-guard-token': 'old-h' }, body: {} })).toBe('old-h');
+    expect(readPassToken({ headers: {}, body: { 'nawa-guard-token': 'old-b' } })).toBe('old-b');
+    expect(readPassToken({ headers: { 'x-nawa-guard-token': 'old-h', 'x-nawa-captcha-token': 'new-h' }, body: {} })).toBe('new-h');
+    expect(readPassToken({ headers: { 'x-nawa-guard-token': 'old-h' }, body: {} }, 'custom', 'x-custom')).toBeUndefined();
   });
 });
 
@@ -115,7 +121,7 @@ describe('Express adapter', () => {
 
   it('serves /challenge and /verify, and requireCaptcha guards a route', async () => {
     const ctx = setup({ powBits: 8 });
-    const mw = nawaGuardExpress(ctx.guard);
+    const mw = nawaCaptchaExpress(ctx.guard);
     const base = { ip: CLIENT.ip, headers: { 'user-agent': CLIENT.userAgent } };
 
     const r1 = res();
@@ -132,13 +138,13 @@ describe('Express adapter', () => {
 
     const guardMw = requireCaptcha(ctx.guard, { expectedAction: 'login' });
     let passed = false;
-    const req: RequestLike = { ...base, method: 'POST', body: { 'nawa-guard-token': token } };
+    const req: RequestLike = { ...base, method: 'POST', body: { 'nawa-captcha-token': token } };
     await new Promise<void>((done) => guardMw(req, res(), () => ((passed = true), done())));
     expect(passed).toBe(true);
-    expect(req.nawaGuard?.act).toBe('login');
+    expect(req.nawaCaptcha?.act).toBe('login');
 
     const r3 = res();
-    guardMw({ ...base, method: 'POST', body: { 'nawa-guard-token': token } }, r3, () => {});
+    guardMw({ ...base, method: 'POST', body: { 'nawa-captcha-token': token } }, r3, () => {});
     await r3.done;
     expect(r3.statusCode).toBe(403);
     expect(JSON.parse(r3.body)).toEqual({ error: 'captcha-required', code: 'replayed' });
@@ -150,5 +156,18 @@ describe('Express adapter', () => {
     expect(r4.statusCode).toBe(405);
     mw({ ...base, method: 'GET', path: '/other' }, res(), () => (nextCalled = true));
     expect(nextCalled).toBe(true);
+  });
+});
+
+describe('rename compatibility (Nawa Guard → Nawa Captcha)', () => {
+  it('keeps the deprecated server entry points as aliases', async () => {
+    const mod = await import('../src/index.js');
+    const express = await import('../src/express.js');
+    expect(mod.createNawaGuard).toBe(mod.createNawaCaptcha);
+    expect(mod.NawaGuard).toBe(mod.NawaCaptcha);
+    expect(express.nawaGuardExpress).toBe(express.nawaCaptchaExpress);
+    expect(mod.LEGACY_TOKEN_HEADER).toBe('x-nawa-guard-token');
+    expect(mod.DEFAULT_TOKEN_HEADER).toBe('x-nawa-captcha-token');
+    expect(mod.HKDF_SALT).toBe('nawa-guard/v1'); // wire format: never renamed
   });
 });

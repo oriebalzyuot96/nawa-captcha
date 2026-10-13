@@ -3,7 +3,7 @@
  * limits and adaptive difficulty. Every operation must be atomic in a multi-instance deployment,
  * which is why the interface is two primitives rather than get/set.
  */
-export interface NawaGuardStore {
+export interface NawaCaptchaStore {
   /** Sets `key` only if absent. Resolves true when this call created it (i.e. first redemption). */
   setIfAbsent(key: string, ttlMs: number): Promise<boolean>;
   /** Increments a counter (creating it with `ttlMs` if absent) and resolves the new value. */
@@ -29,7 +29,7 @@ export interface MemoryStoreOptions {
  * balancer use Redis (or any shared atomic store), otherwise a token redeemed on instance A
  * could be replayed on instance B.
  */
-export class MemoryStore implements NawaGuardStore {
+export class MemoryStore implements NawaCaptchaStore {
   private readonly map = new Map<string, Entry>();
   private readonly max: number;
   private readonly now: () => number;
@@ -123,7 +123,8 @@ export interface NodeRedisLike {
  * Redis adapter for ioredis: `ioredisStore(new Redis(url))`. SET NX PX gives atomic one-time
  * redemption; INCR+PEXPIRE runs as a Lua script so a counter can never be left without a TTL.
  */
-export function ioredisStore(client: IoRedisLike, prefix = 'nawa-guard:'): NawaGuardStore {
+// The default key prefix keeps its pre-rename value so stores stay compatible across the upgrade.
+export function ioredisStore(client: IoRedisLike, prefix = 'nawa-guard:'): NawaCaptchaStore {
   return {
     setIfAbsent: async (key, ttlMs) => (await client.set(prefix + key, '1', 'PX', Math.max(1, Math.ceil(ttlMs)), 'NX')) === 'OK',
     increment: async (key, ttlMs) => Number(await client.eval(INCR_SCRIPT, 1, prefix + key, Math.max(1, Math.ceil(ttlMs)))),
@@ -135,7 +136,7 @@ export function ioredisStore(client: IoRedisLike, prefix = 'nawa-guard:'): NawaG
 }
 
 /** Redis adapter for node-redis v4+: `nodeRedisStore(createClient({ url }))` (after `connect()`). */
-export function nodeRedisStore(client: NodeRedisLike, prefix = 'nawa-guard:'): NawaGuardStore {
+export function nodeRedisStore(client: NodeRedisLike, prefix = 'nawa-guard:'): NawaCaptchaStore {
   return {
     setIfAbsent: async (key, ttlMs) => (await client.set(prefix + key, '1', { PX: Math.max(1, Math.ceil(ttlMs)), NX: true })) === 'OK',
     increment: async (key, ttlMs) => Number(await client.eval(INCR_SCRIPT, { keys: [prefix + key], arguments: [String(Math.max(1, Math.ceil(ttlMs)))] })),

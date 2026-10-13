@@ -1,7 +1,7 @@
 import type { ClientInfo } from './binding.js';
-import type { NawaGuard, PassTokenResult, VerifyPassTokenOptions } from './engine.js';
+import type { NawaCaptcha, PassTokenResult, VerifyPassTokenOptions } from './engine.js';
 import { verifyPassToken } from './engine.js';
-import type { NawaGuardStore } from './store.js';
+import type { NawaCaptchaStore } from './store.js';
 
 /** Framework-agnostic request: what the handlers need, nothing else. */
 export interface GuardHttpRequest {
@@ -33,7 +33,7 @@ function record(body: unknown): Record<string, unknown> | undefined {
 }
 
 /** POST /challenge  body: { siteKey?, action?, lang?, type?, types? } */
-export async function handleChallenge(guard: NawaGuard, req: GuardHttpRequest): Promise<GuardHttpResponse> {
+export async function handleChallenge(guard: NawaCaptcha, req: GuardHttpRequest): Promise<GuardHttpResponse> {
   const body = record(req.body ?? {});
   if (!body) return json(400, { success: false, error: 'invalid-input' });
   const result = await guard.createChallenge({ siteKey: body['siteKey'], action: body['action'], lang: body['lang'], type: body['type'], types: body['types'], client: req.client });
@@ -45,7 +45,7 @@ export async function handleChallenge(guard: NawaGuard, req: GuardHttpRequest): 
  * POST /verify  body: { token, answer } → { success, token (pass token), expiresAt }, or for a
  * multi-step policy { success, next: <the next challenge> } until the last step is solved.
  */
-export async function handleVerify(guard: NawaGuard, req: GuardHttpRequest): Promise<GuardHttpResponse> {
+export async function handleVerify(guard: NawaCaptcha, req: GuardHttpRequest): Promise<GuardHttpResponse> {
   const body = record(req.body);
   if (!body) return json(400, { success: false, error: 'invalid-input', retry: false });
   const result = await guard.verify({ token: body['token'], answer: body['answer'], client: req.client });
@@ -63,27 +63,41 @@ export interface PassTokenSource {
   readonly body?: unknown;
 }
 
-export const DEFAULT_TOKEN_FIELD = 'nawa-guard-token';
-export const DEFAULT_TOKEN_HEADER = 'x-nawa-guard-token';
+export const DEFAULT_TOKEN_FIELD = 'nawa-captcha-token';
+export const DEFAULT_TOKEN_HEADER = 'x-nawa-captcha-token';
+/** @deprecated Pre-rename (Nawa Guard) names, still accepted by default for this release. */
+export const LEGACY_TOKEN_FIELD = 'nawa-guard-token';
+/** @deprecated Pre-rename (Nawa Guard) names, still accepted by default for this release. */
+export const LEGACY_TOKEN_HEADER = 'x-nawa-guard-token';
 
-/** Reads a pass token from a header (preferred for JSON APIs) or a form/body field. */
+function pick(value: unknown): string | undefined {
+  const v = Array.isArray(value) ? value[0] : value;
+  return typeof v === 'string' && v.length > 0 ? v : undefined;
+}
+
+/**
+ * Reads a pass token from a header (preferred for JSON APIs) or a form/body field. With the
+ * defaults, the deprecated `X-Nawa-Guard-Token` header and `nawa-guard-token` field also work.
+ */
 export function readPassToken(src: PassTokenSource, field = DEFAULT_TOKEN_FIELD, header = DEFAULT_TOKEN_HEADER): string | undefined {
-  const h = src.headers[header.toLowerCase()];
-  const fromHeader = Array.isArray(h) ? h[0] : h;
-  if (typeof fromHeader === 'string' && fromHeader.length > 0) return fromHeader;
+  const legacy = field === DEFAULT_TOKEN_FIELD && header === DEFAULT_TOKEN_HEADER;
   const body = record(src.body);
-  const fromBody = body?.[field];
-  return typeof fromBody === 'string' && fromBody.length > 0 ? fromBody : undefined;
+  return (
+    pick(src.headers[header.toLowerCase()]) ??
+    (legacy ? pick(src.headers[LEGACY_TOKEN_HEADER]) : undefined) ??
+    pick(body?.[field]) ??
+    (legacy ? pick(body?.[LEGACY_TOKEN_FIELD]) : undefined)
+  );
 }
 
 export interface ProtectOptions extends Omit<VerifyPassTokenOptions, 'secret' | 'client' | 'store'> {
   readonly field?: string;
   readonly header?: string;
-  readonly store?: NawaGuardStore;
+  readonly store?: NawaCaptchaStore;
 }
 
 /** One call for protected routes in any framework: read + verify the pass token. */
-export async function checkPassToken(guard: NawaGuard, src: PassTokenSource & { client: ClientInfo }, opts: ProtectOptions): Promise<PassTokenResult> {
+export async function checkPassToken(guard: NawaCaptcha, src: PassTokenSource & { client: ClientInfo }, opts: ProtectOptions): Promise<PassTokenResult> {
   const token = readPassToken(src, opts.field, opts.header);
   return guard.verifyPassToken(token, { ...opts, client: src.client });
 }

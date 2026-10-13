@@ -50,15 +50,15 @@ export function isChallengeType(v: unknown): v is ChallengeType {
 /** Validates a configured type list; unknown names are a configuration error, not silently dropped. */
 export function checkTypes(list: readonly unknown[] | undefined, where: string): ChallengeType[] | undefined {
   if (list === undefined) return undefined;
-  if (!Array.isArray(list)) throw new Error(`nawa-guard: ${where} must be an array of challenge types`);
+  if (!Array.isArray(list)) throw new Error(`nawa-captcha: ${where} must be an array of challenge types`);
   const bad = list.filter((t) => !isChallengeType(t));
-  if (bad.length) throw new Error(`nawa-guard: unknown challenge type(s) in ${where}: ${bad.join(', ')}. Known: ${CHALLENGE_TYPES.join(', ')}`);
+  if (bad.length) throw new Error(`nawa-captcha: unknown challenge type(s) in ${where}: ${bad.join(', ')}. Known: ${CHALLENGE_TYPES.join(', ')}`);
   return [...new Set(list as ChallengeType[])];
 }
 
 export function checkSteps(steps: number | undefined, where: string): number | undefined {
   if (steps === undefined) return undefined;
-  if (!Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) throw new Error(`nawa-guard: ${where} must be an integer from 1 to ${MAX_STEPS}`);
+  if (!Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) throw new Error(`nawa-captcha: ${where} must be an integer from 1 to ${MAX_STEPS}`);
   return steps;
 }
 

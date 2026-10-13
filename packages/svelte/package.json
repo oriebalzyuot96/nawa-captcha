@@ -1,7 +1,7 @@
 {
-  "name": "@nawa-guard/svelte",
+  "name": "@nawa-captcha/svelte",
   "version": "0.1.0",
-  "description": "Nawa Guard for Svelte 5: accessible, self-hosted puzzle CAPTCHA component — a privacy-friendly reCAPTCHA alternative.",
+  "description": "Nawa Captcha for Svelte 5: accessible, self-hosted puzzle CAPTCHA component — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
   "svelte": "./src/index.js",
@@ -21,7 +21,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@nawa-guard/widget": "0.1.0"
+    "@nawa-captcha/widget": "0.1.0"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
@@ -47,18 +47,18 @@
     "bot-protection",
     "anti-spam",
     "proof-of-work",
-    "nawa-guard",
-    "nawa-ui",
+    "nawa-captcha",
+    "orca-ui",
     "arabic",
     "rtl"
   ],
-  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "homepage": "https://oriebalzyuot96.github.io/nawa-captcha/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-captcha.git",
     "directory": "packages/svelte"
   },
-  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "bugs": "https://github.com/oriebalzyuot96/nawa-captcha/issues",
   "author": "oriebalzyuot96",
   "publishConfig": {
     "access": "public"

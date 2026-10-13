@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Nawa Guard demo</title>
+    <title>Nawa Captcha demo</title>
     <link rel="stylesheet" href="/app.css" />
     <script type="module" src="/widget/index.js"></script>
     <script type="module" src="/app.js"></script>
@@ -12,7 +12,7 @@
     <main class="page">
       <header class="top">
         <div>
-          <h1>Nawa Guard <span class="tag">demo</span></h1>
+          <h1>Nawa Captcha <span class="tag">demo</span></h1>
           <p class="lead">Puzzle CAPTCHA with server-sealed solutions, single-use pass tokens, and an accessible text mode.</p>
         </div>
         <div class="switches" role="group" aria-label="Display options">
@@ -28,7 +28,7 @@
           <form method="post" action="/login" class="form">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" autocomplete="username" required />
-            <nawa-guard site-key="demo" endpoint="/captcha" action="login"></nawa-guard>
+            <nawa-captcha site-key="demo" endpoint="/captcha" action="login"></nawa-captcha>
             <button type="submit" class="primary" id="login-submit" disabled>Sign in</button>
           </form>
         </section>
@@ -36,15 +36,15 @@
         <section aria-labelledby="checkout-h" class="card">
           <h2 id="checkout-h">Two puzzles in a row</h2>
           <p class="muted">Server config: <code>perAction.checkout = { types: [4 types], steps: 2 }</code>. The route requires <code>minSteps: 2</code>.</p>
-          <nawa-guard id="checkout-guard" site-key="demo" endpoint="/captcha" action="checkout"></nawa-guard>
+          <nawa-captcha id="checkout-guard" site-key="demo" endpoint="/captcha" action="checkout"></nawa-captcha>
           <button type="button" class="primary" id="checkout-send" disabled>Pay (demo)</button>
           <p id="checkout-result" class="muted" role="status"></p>
         </section>
 
         <section aria-labelledby="api-h" class="card">
           <h2 id="api-h">Protected JSON API</h2>
-          <p class="muted">The token is sent in the <code>X-Nawa-Guard-Token</code> header.</p>
-          <nawa-guard id="api-guard" site-key="demo" endpoint="/captcha" action="contact" type="pow"></nawa-guard>
+          <p class="muted">The token is sent in the <code>X-Nawa-Captcha-Token</code> header.</p>
+          <nawa-captcha id="api-guard" site-key="demo" endpoint="/captcha" action="contact" type="pow"></nawa-captcha>
           <button type="button" class="primary" id="api-send" disabled>Send message</button>
           <p id="api-result" class="muted" role="status"></p>
         </section>

@@ -1,12 +1,12 @@
-import { createNawaGuard, MemoryStore, openChallenge, type ChallengeType, type NawaGuardOptions, type TracePoint } from '../src/index.js';
+import { createNawaCaptcha, MemoryStore, openChallenge, type ChallengeType, type NawaCaptchaOptions, type TracePoint } from '../src/index.js';
 
 export const SECRET = 'test-secret-0123456789-abcdefghijklmnop';
 export const CLIENT = { ip: '203.0.113.7', userAgent: 'Mozilla/5.0 (Vitest)' } as const;
 
-export function setup(overrides: Partial<NawaGuardOptions> = {}) {
+export function setup(overrides: Partial<NawaCaptchaOptions> = {}) {
   const clock = { now: 1_800_000_000_000 };
   const store = new MemoryStore({ now: () => clock.now });
-  const guard = createNawaGuard({ secret: SECRET, allowClientType: true, rateLimit: false, store, now: () => clock.now, ...overrides });
+  const guard = createNawaCaptcha({ secret: SECRET, allowClientType: true, rateLimit: false, store, now: () => clock.now, ...overrides });
   return { guard, store, clock };
 }
 

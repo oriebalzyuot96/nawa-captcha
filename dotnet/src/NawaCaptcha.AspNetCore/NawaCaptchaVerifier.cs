@@ -7,25 +7,25 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 
-namespace NawaGuard.AspNetCore;
+namespace NawaCaptcha.AspNetCore;
 
-/// <summary>Verifies Nawa Guard pass tokens issued by the Node server (<c>@nawa-guard/server</c>).</summary>
-public interface INawaGuardVerifier
+/// <summary>Verifies Nawa Captcha pass tokens issued by the Node server (<c>@nawa-captcha/server</c>).</summary>
+public interface INawaCaptchaVerifier
 {
     /// <summary>
     /// Verifies signature, expiry, max age, action, site key, allowed types, client binding, and
     /// redeems the token (single use). <paramref name="client"/> is required for bound tokens.
     /// </summary>
-    Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, CancellationToken cancellationToken = default);
+    Task<NawaCaptchaResult> VerifyAsync(string? token, string expectedAction, NawaCaptchaClient? client, CancellationToken cancellationToken = default);
 
     /// <summary>Reads the token from the configured header or form field and the client from the request, then verifies.</summary>
-    Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default);
+    Task<NawaCaptchaResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default);
 
     /// <summary>As above, with per-route <paramref name="requirements"/> (allowed types, minimum steps) overriding the options.</summary>
-    Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default);
+    Task<NawaCaptchaResult> VerifyAsync(string? token, string expectedAction, NawaCaptchaClient? client, NawaCaptchaRequirements? requirements, CancellationToken cancellationToken = default);
 
     /// <summary>Reads token and client from the request, then verifies with per-route <paramref name="requirements"/>.</summary>
-    Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default);
+    Task<NawaCaptchaResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaCaptchaRequirements? requirements, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -36,35 +36,37 @@ public interface INawaGuardVerifier
 /// <item>token = "ngp1." + kid + "." + b64url(JSON) + "." + b64url(HMAC-SHA256(K_pass, "ngp1." + kid + "." + b64url(JSON)))</item>
 /// </list>
 /// </summary>
-public sealed partial class NawaGuardVerifier : INawaGuardVerifier
+#pragma warning disable CS0618 // also answers the deprecated INawaGuardVerifier for this release
+public sealed partial class NawaCaptchaVerifier : INawaCaptchaVerifier, INawaGuardVerifier
+#pragma warning restore CS0618
 {
-    public const string HttpContextItemKey = "NawaGuard.Claims";
+    public const string HttpContextItemKey = "NawaCaptcha.Claims";
     private const string Prefix = "ngp1";
     private const int MaxTokenLength = 8192;
     private const int MaxUserAgentLength = 512;
     private static readonly byte[] HkdfSalt = Encoding.UTF8.GetBytes("nawa-guard/v1");
     private static readonly string[] BindModes = { "none", "ip", "ua", "ip+ua" };
 
-    private readonly NawaGuardOptions _options;
-    private readonly INawaGuardReplayStore _replay;
+    private readonly NawaCaptchaOptions _options;
+    private readonly INawaCaptchaReplayStore _replay;
     private readonly TimeProvider _time;
     private readonly Dictionary<string, (byte[] Pass, byte[] Bind)> _keys = new(StringComparer.Ordinal);
 
-    public NawaGuardVerifier(IOptions<NawaGuardOptions> options, INawaGuardReplayStore replay, TimeProvider time)
+    public NawaCaptchaVerifier(IOptions<NawaCaptchaOptions> options, INawaCaptchaReplayStore replay, TimeProvider time)
     {
         _options = options.Value;
         _replay = replay;
         _time = time;
         if (_options.Secrets.Count == 0)
         {
-            throw new InvalidOperationException("NawaGuard: configure at least one secret (NawaGuardOptions.Secret or Secrets).");
+            throw new InvalidOperationException("NawaCaptcha: configure at least one secret (NawaCaptchaOptions.Secret or Secrets).");
         }
 
         foreach (var name in (_options.AllowedTypes ?? new()).Concat(_options.ActionAllowedTypes.Values.SelectMany(l => l)))
         {
-            if (!NawaGuardChallengeTypes.All.Contains(name, StringComparer.Ordinal))
+            if (!NawaCaptchaChallengeTypes.All.Contains(name, StringComparer.Ordinal))
             {
-                throw new InvalidOperationException($"NawaGuard: unknown challenge type '{name}' in AllowedTypes. Known: {string.Join(", ", NawaGuardChallengeTypes.All)}.");
+                throw new InvalidOperationException($"NawaCaptcha: unknown challenge type '{name}' in AllowedTypes. Known: {string.Join(", ", NawaCaptchaChallengeTypes.All)}.");
             }
         }
 
@@ -72,12 +74,12 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
         {
             if (!KidRegex().IsMatch(s.Kid))
             {
-                throw new InvalidOperationException($"NawaGuard: invalid kid '{s.Kid}'.");
+                throw new InvalidOperationException($"NawaCaptcha: invalid kid '{s.Kid}'.");
             }
 
             if (s.Secret.Length < 32)
             {
-                throw new InvalidOperationException($"NawaGuard: secret for kid '{s.Kid}' must be at least 32 characters.");
+                throw new InvalidOperationException($"NawaCaptcha: secret for kid '{s.Kid}' must be at least 32 characters.");
             }
 
             var ikm = Encoding.UTF8.GetBytes(s.Secret);
@@ -85,42 +87,42 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
         }
     }
 
-    public Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default)
+    public Task<NawaCaptchaResult> VerifyAsync(HttpContext httpContext, string expectedAction, CancellationToken cancellationToken = default)
     {
         return VerifyAsync(ReadToken(httpContext), expectedAction, ClientOf(httpContext), null, cancellationToken);
     }
 
-    public Task<NawaGuardResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default)
+    public Task<NawaCaptchaResult> VerifyAsync(HttpContext httpContext, string expectedAction, NawaCaptchaRequirements? requirements, CancellationToken cancellationToken = default)
     {
         return VerifyAsync(ReadToken(httpContext), expectedAction, ClientOf(httpContext), requirements, cancellationToken);
     }
 
-    public Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, CancellationToken cancellationToken = default)
+    public Task<NawaCaptchaResult> VerifyAsync(string? token, string expectedAction, NawaCaptchaClient? client, CancellationToken cancellationToken = default)
     {
         return VerifyAsync(token, expectedAction, client, null, cancellationToken);
     }
 
-    public async Task<NawaGuardResult> VerifyAsync(string? token, string expectedAction, NawaGuardClient? client, NawaGuardRequirements? requirements, CancellationToken cancellationToken = default)
+    public async Task<NawaCaptchaResult> VerifyAsync(string? token, string expectedAction, NawaCaptchaClient? client, NawaCaptchaRequirements? requirements, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(token))
         {
-            return NawaGuardResult.Fail(NawaGuardError.MissingToken);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.MissingToken);
         }
 
         if (token.Length > MaxTokenLength)
         {
-            return NawaGuardResult.Fail(NawaGuardError.Malformed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Malformed);
         }
 
         var parts = token.Split('.');
         if (parts.Length != 4 || parts[0] != Prefix || !KidRegex().IsMatch(parts[1]) || !B64UrlRegex().IsMatch(parts[2]) || !B64UrlRegex().IsMatch(parts[3]))
         {
-            return NawaGuardResult.Fail(NawaGuardError.Malformed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Malformed);
         }
 
         if (!_keys.TryGetValue(parts[1], out var keys))
         {
-            return NawaGuardResult.Fail(NawaGuardError.UnknownKey);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.UnknownKey);
         }
 
         byte[] signature;
@@ -132,14 +134,14 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
         }
         catch (FormatException)
         {
-            return NawaGuardResult.Fail(NawaGuardError.Malformed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Malformed);
         }
 
         // Signature first: nothing in the payload is trusted, or even parsed, before it verifies.
         var expected = HMACSHA256.HashData(keys.Pass, Encoding.ASCII.GetBytes($"{parts[0]}.{parts[1]}.{parts[2]}"));
         if (!CryptographicOperations.FixedTimeEquals(expected, signature))
         {
-            return NawaGuardResult.Fail(NawaGuardError.BadSignature);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.BadSignature);
         }
 
         PassTokenClaims? claims;
@@ -149,38 +151,38 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
         }
         catch (JsonException)
         {
-            return NawaGuardResult.Fail(NawaGuardError.Malformed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Malformed);
         }
 
         if (claims is null || claims.Version != 1 || claims.Jti.Length == 0 || Array.IndexOf(BindModes, claims.BindMode) < 0 || claims.Steps is { Count: 0 or > 5 })
         {
-            return NawaGuardResult.Fail(NawaGuardError.Malformed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Malformed);
         }
 
         var now = _time.GetUtcNow().ToUnixTimeSeconds();
         if (claims.IssuedAt > now + _options.ClockSkewSeconds)
         {
-            return NawaGuardResult.Fail(NawaGuardError.NotYetValid);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.NotYetValid);
         }
 
         if (now >= claims.ExpiresAt)
         {
-            return NawaGuardResult.Fail(NawaGuardError.Expired);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Expired);
         }
 
         if (_options.MaxAgeSeconds is { } maxAge && now - claims.IssuedAt > maxAge)
         {
-            return NawaGuardResult.Fail(NawaGuardError.TooOld);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.TooOld);
         }
 
         if (!string.Equals(claims.Action, expectedAction, StringComparison.Ordinal))
         {
-            return NawaGuardResult.Fail(NawaGuardError.ActionMismatch);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.ActionMismatch);
         }
 
         if (_options.ExpectedSiteKey is { } site && !string.Equals(claims.SiteKey, site, StringComparison.Ordinal))
         {
-            return NawaGuardResult.Fail(NawaGuardError.SiteMismatch);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.SiteMismatch);
         }
 
         // Route requirement, then the per-action list, then the global list. For a multi-step token at
@@ -190,12 +192,12 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
             ?? _options.AllowedTypes;
         if (allowed is { Count: > 0 } && !claims.SolvedTypes.Any(t => allowed.Contains(t, StringComparer.Ordinal)))
         {
-            return NawaGuardResult.Fail(NawaGuardError.TypeNotAllowed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.TypeNotAllowed);
         }
 
         if ((requirements?.MinSteps ?? _options.MinSteps) is { } minSteps && claims.SolvedTypes.Count < minSteps)
         {
-            return NawaGuardResult.Fail(NawaGuardError.TooFewSteps);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.TooFewSteps);
         }
 
         if (claims.BindMode != "none")
@@ -203,56 +205,87 @@ public sealed partial class NawaGuardVerifier : INawaGuardVerifier
             var material = client is null ? null : BindingMaterial(claims.BindMode, client);
             if (material is null || claims.Binding is null)
             {
-                return NawaGuardResult.Fail(NawaGuardError.ClientMismatch);
+                return NawaCaptchaResult.Fail(NawaCaptchaError.ClientMismatch);
             }
 
             var bind = WebEncoders.Base64UrlEncode(HMACSHA256.HashData(keys.Bind, Encoding.UTF8.GetBytes(material)));
             if (!CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(bind), Encoding.ASCII.GetBytes(claims.Binding)))
             {
-                return NawaGuardResult.Fail(NawaGuardError.ClientMismatch);
+                return NawaCaptchaResult.Fail(NawaCaptchaError.ClientMismatch);
             }
         }
 
         var ttl = TimeSpan.FromSeconds(Math.Max(1, claims.ExpiresAt - now + _options.ClockSkewSeconds));
         if (!await _replay.TryRedeemAsync(claims.Jti, ttl, cancellationToken).ConfigureAwait(false))
         {
-            return NawaGuardResult.Fail(NawaGuardError.Replayed);
+            return NawaCaptchaResult.Fail(NawaCaptchaError.Replayed);
         }
 
-        return NawaGuardResult.Ok(claims);
+        return NawaCaptchaResult.Ok(claims);
     }
 
-    /// <summary>Header first (JSON APIs), then the form field (classic posts). JSON bodies are not read.</summary>
+    /// <summary>
+    /// Header first (JSON APIs), then the form field (classic posts). JSON bodies are not read. With
+    /// <see cref="NawaCaptchaOptions.AcceptLegacyNames"/> the pre-rename <c>X-Nawa-Guard-Token</c> header and
+    /// <c>nawa-guard-token</c> field are accepted too.
+    /// </summary>
     public string? ReadToken(HttpContext httpContext)
     {
-        var header = httpContext.Request.Headers[_options.HeaderName].ToString();
-        if (!string.IsNullOrEmpty(header))
+        foreach (var name in HeaderNames())
         {
-            return header;
+            var header = httpContext.Request.Headers[name].ToString();
+            if (!string.IsNullOrEmpty(header))
+            {
+                return header;
+            }
         }
 
-        if (httpContext.Request.HasFormContentType && httpContext.Request.Form.TryGetValue(_options.FormFieldName, out var value))
+        if (httpContext.Request.HasFormContentType)
         {
-            return value.ToString();
+            foreach (var field in FieldNames())
+            {
+                if (httpContext.Request.Form.TryGetValue(field, out var value) && !string.IsNullOrEmpty(value.ToString()))
+                {
+                    return value.ToString();
+                }
+            }
         }
 
         return null;
+    }
+
+    private IEnumerable<string> HeaderNames()
+    {
+        yield return _options.HeaderName;
+        if (_options.AcceptLegacyNames)
+        {
+            yield return NawaCaptchaOptions.LegacyHeaderName;
+        }
+    }
+
+    private IEnumerable<string> FieldNames()
+    {
+        yield return _options.FormFieldName;
+        if (_options.AcceptLegacyNames)
+        {
+            yield return NawaCaptchaOptions.LegacyFormFieldName;
+        }
     }
 
     /// <summary>
     /// The client as the Node server saw it. Behind a reverse proxy, run UseForwardedHeaders() first so
     /// RemoteIpAddress is the browser's address (and configure Express "trust proxy" the same way).
     /// </summary>
-    public static NawaGuardClient ClientOf(HttpContext httpContext)
+    public static NawaCaptchaClient ClientOf(HttpContext httpContext)
     {
         var ip = httpContext.Connection.RemoteIpAddress;
-        return new NawaGuardClient(
+        return new NawaCaptchaClient(
             ip is null ? null : (ip.IsIPv4MappedToIPv6 ? ip.MapToIPv4() : ip).ToString(),
             httpContext.Request.Headers.UserAgent.ToString());
     }
 
-    /// <summary>Byte-for-byte the same material as <c>bindingMaterial()</c> in <c>@nawa-guard/server</c>.</summary>
-    public static string? BindingMaterial(string mode, NawaGuardClient client)
+    /// <summary>Byte-for-byte the same material as <c>bindingMaterial()</c> in <c>@nawa-captcha/server</c>.</summary>
+    public static string? BindingMaterial(string mode, NawaCaptchaClient client)
     {
         var ip = NormalizeIp(client.Ip);
         var ua = (client.UserAgent ?? string.Empty).Trim();

@@ -1,6 +1,6 @@
 export {
-  NawaGuard,
-  createNawaGuard,
+  NawaCaptcha,
+  createNawaCaptcha,
   verifyPassToken,
   type ActionPolicy,
   type AdaptiveOptions,
@@ -8,7 +8,7 @@ export {
   type ChallengeRequest,
   type ChallengeResponse,
   type GuardEvent,
-  type NawaGuardOptions,
+  type NawaCaptchaOptions,
   type PassTokenError,
   type PassTokenResult,
   type PublicVerifyError,
@@ -20,7 +20,7 @@ export {
   type VerifyRequest,
   type VerifyResult,
 } from './engine.js';
-export { MemoryStore, ioredisStore, nodeRedisStore, type IoRedisLike, type MemoryStoreOptions, type NawaGuardStore, type NodeRedisLike } from './store.js';
+export { MemoryStore, ioredisStore, nodeRedisStore, type IoRedisLike, type MemoryStoreOptions, type NawaCaptchaStore, type NodeRedisLike } from './store.js';
 export { createKeyring, deriveKey, HKDF_SALT, type Keyring, type SecretEntry } from './crypto.js';
 export { cryptoRng, seededRng, type Rng } from './rng.js';
 export { DEFAULT_LADDER, DEFAULT_POOL, MAX_STEPS, parseClientTypes, type ResolvedPolicy } from './selection.js';
@@ -44,3 +44,17 @@ export {
 } from './http.js';
 export * from './puzzles/index.js';
 export * from './types.js';
+
+// ------------------------------------------------------------------ deprecated aliases
+// Nawa Guard was renamed to Nawa Captcha. The old names keep working for this release.
+export {
+  /** @deprecated Renamed to {@link NawaCaptcha}. */
+  NawaCaptcha as NawaGuard,
+  /** @deprecated Renamed to {@link createNawaCaptcha}. */
+  createNawaCaptcha as createNawaGuard,
+  /** @deprecated Renamed to NawaCaptchaOptions. */
+  type NawaCaptchaOptions as NawaGuardOptions,
+} from './engine.js';
+/** @deprecated Renamed to NawaCaptchaStore. */
+export type { NawaCaptchaStore as NawaGuardStore } from './store.js';
+export { LEGACY_TOKEN_FIELD, LEGACY_TOKEN_HEADER } from './http.js';

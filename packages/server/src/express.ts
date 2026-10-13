@@ -1,5 +1,5 @@
 import type { ClientInfo } from './binding.js';
-import type { NawaGuard, PassTokenClaims } from './index.js';
+import type { NawaCaptcha, PassTokenClaims } from './index.js';
 import { MAX_BODY_BYTES, checkPassToken, handleChallenge, handleVerify, type GuardHttpResponse, type ProtectOptions } from './http.js';
 
 /*
@@ -16,6 +16,8 @@ export interface RequestLike {
   headers: Record<string, string | string[] | undefined>;
   socket?: { remoteAddress?: string };
   on?(event: 'data' | 'end' | 'error', cb: (arg?: unknown) => void): unknown;
+  nawaCaptcha?: PassTokenClaims;
+  /** @deprecated Same claims as `nawaCaptcha` (pre-rename name). */
   nawaGuard?: PassTokenClaims;
 }
 
@@ -86,10 +88,10 @@ function readJson(req: RequestLike): Promise<unknown> {
 class PayloadTooLarge extends Error {}
 
 /**
- * Mount under any prefix: `app.use('/captcha', nawaGuardExpress(guard))` serves
+ * Mount under any prefix: `app.use('/captcha', nawaCaptchaExpress(guard))` serves
  * `POST /captcha/challenge` and `POST /captcha/verify`.
  */
-export function nawaGuardExpress(guard: NawaGuard, options: ExpressAdapterOptions = {}): Middleware {
+export function nawaCaptchaExpress(guard: NawaCaptcha, options: ExpressAdapterOptions = {}): Middleware {
   const getClient = options.getClient ?? defaultClient;
   return (req, res, next) => {
     const path = req.path ?? new URL(req.url ?? '/', 'http://localhost').pathname;
@@ -116,15 +118,16 @@ export interface RequireCaptchaOptions extends ProtectOptions, ExpressAdapterOpt
 
 /**
  * Guards a route: `app.post('/login', express.urlencoded(), requireCaptcha(guard, { expectedAction: 'login' }), handler)`.
- * The token is read from the `X-Nawa-Guard-Token` header or the `nawa-guard-token` body field,
- * verified (signature, expiry, action, binding) and redeemed once. Claims land on `req.nawaGuard`.
+ * The token is read from the `X-Nawa-Captcha-Token` header or the `nawa-captcha-token` body field,
+ * verified (signature, expiry, action, binding) and redeemed once. Claims land on `req.nawaCaptcha`.
  */
-export function requireCaptcha(guard: NawaGuard, options: RequireCaptchaOptions): Middleware {
+export function requireCaptcha(guard: NawaCaptcha, options: RequireCaptchaOptions): Middleware {
   const getClient = options.getClient ?? defaultClient;
   return (req, res, next) => {
     checkPassToken(guard, { headers: req.headers, body: req.body, client: getClient(req) }, options)
       .then((result) => {
         if (result.ok) {
+          req.nawaCaptcha = result.claims;
           req.nawaGuard = result.claims;
           return next();
         }
@@ -134,3 +137,6 @@ export function requireCaptcha(guard: NawaGuard, options: RequireCaptchaOptions)
       .catch(next);
   };
 }
+
+/** @deprecated Renamed to {@link nawaCaptchaExpress} (Nawa Guard is now Nawa Captcha). */
+export const nawaGuardExpress = nawaCaptchaExpress;

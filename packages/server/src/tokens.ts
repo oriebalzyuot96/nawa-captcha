@@ -57,7 +57,7 @@ export interface PassTokenClaims {
 export function sealChallenge(keys: Keyring, claims: ChallengeClaims): string {
   const kid = keys.activeKid;
   const key = keys.key(kid, 'challenge-token');
-  if (!key) throw new Error('nawa-guard: active key missing');
+  if (!key) throw new Error('nawa-captcha: active key missing');
   const aad = `${CHALLENGE_PREFIX}.${kid}`;
   const { iv, data } = seal(key, JSON.stringify(claims), aad);
   return `${aad}.${b64url(iv)}.${b64url(data)}`;
@@ -92,7 +92,7 @@ export function openChallenge(keys: Keyring, token: string): { claims: Challenge
 export function signPassToken(keys: Keyring, claims: PassTokenClaims): string {
   const kid = keys.activeKid;
   const key = keys.key(kid, 'pass-token');
-  if (!key) throw new Error('nawa-guard: active key missing');
+  if (!key) throw new Error('nawa-captcha: active key missing');
   const head = `${PASS_PREFIX}.${kid}.${b64url(utf8(JSON.stringify(claims)))}`;
   return `${head}.${b64url(hmac(key, head))}`;
 }

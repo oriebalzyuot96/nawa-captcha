@@ -45,9 +45,9 @@ describe('themes: resolution', () => {
 describe('themes: CSS', () => {
   const css = themeCss();
 
-  it('resolves --nawa-guard-* → preset → Orca UI (--oc-*) → legacy Nawa UI (--nw-*) → default, for every token', () => {
+  it('resolves --nawa-captcha-* (legacy --nawa-guard-*) → preset → Orca UI (--oc-*) → legacy Nawa UI (--nw-*) → default, for every token', () => {
     for (const [, name] of TOKENS) {
-      expect(css).toContain(`--_${name}:var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name})))));`);
+      expect(css).toContain(`--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name}))))));`);
     }
   });
 

@@ -1,7 +1,7 @@
 import { aesGcmDecrypt, aesGcmEncrypt, fromBase64, hkdfSha256, hmacSha256, randomBytes, sha256 as sha256Bytes, timingSafeEqual } from './primitives.js';
 import { bytesToB64url, cryptoRng } from './rng.js';
 
-/** HKDF salt shared by every Nawa Guard implementation (Node, .NET). Changing it breaks interop. */
+/** HKDF salt shared by every Nawa Captcha implementation (Node, .NET). Changing it breaks interop. */
 export const HKDF_SALT = 'nawa-guard/v1';
 
 export type KeyPurpose = 'challenge-token' | 'pass-token' | 'client-binding';
@@ -44,14 +44,14 @@ export function deriveKey(secret: string, purpose: KeyPurpose): Uint8Array {
  */
 export function createKeyring(secrets: string | readonly SecretEntry[]): Keyring {
   const list: readonly SecretEntry[] = typeof secrets === 'string' ? [{ kid: 'k1', secret: secrets }] : secrets;
-  if (list.length === 0) throw new Error('nawa-guard: at least one secret is required');
+  if (list.length === 0) throw new Error('nawa-captcha: at least one secret is required');
   const keys = new Map<string, Map<KeyPurpose, Uint8Array>>();
   for (const { kid, secret } of list) {
-    if (!KID_RE.test(kid)) throw new Error(`nawa-guard: invalid kid "${kid}" (1-16 chars of A-Z a-z 0-9 _ -)`);
+    if (!KID_RE.test(kid)) throw new Error(`nawa-captcha: invalid kid "${kid}" (1-16 chars of A-Z a-z 0-9 _ -)`);
     if (typeof secret !== 'string' || secret.length < MIN_SECRET_LENGTH) {
-      throw new Error(`nawa-guard: secret for kid "${kid}" must be at least ${MIN_SECRET_LENGTH} characters`);
+      throw new Error(`nawa-captcha: secret for kid "${kid}" must be at least ${MIN_SECRET_LENGTH} characters`);
     }
-    if (keys.has(kid)) throw new Error(`nawa-guard: duplicate kid "${kid}"`);
+    if (keys.has(kid)) throw new Error(`nawa-captcha: duplicate kid "${kid}"`);
     keys.set(
       kid,
       new Map<KeyPurpose, Uint8Array>([
@@ -62,7 +62,7 @@ export function createKeyring(secrets: string | readonly SecretEntry[]): Keyring
     );
   }
   const first = list[0];
-  if (!first) throw new Error('nawa-guard: at least one secret is required');
+  if (!first) throw new Error('nawa-captcha: at least one secret is required');
   return {
     activeKid: first.kid,
     key: (kid, purpose) => keys.get(kid)?.get(purpose),

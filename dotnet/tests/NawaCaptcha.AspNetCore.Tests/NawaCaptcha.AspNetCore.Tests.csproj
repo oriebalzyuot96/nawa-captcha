@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NawaGuard.AspNetCore\NawaGuard.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\NawaCaptcha.AspNetCore\NawaCaptcha.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

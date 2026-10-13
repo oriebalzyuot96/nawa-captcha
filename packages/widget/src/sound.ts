@@ -6,7 +6,7 @@
  *   visitor's own toggle choice is remembered per site (localStorage, failures ignored).
  * - Never makes a sound before the visitor has interacted with the widget (a trusted pointer or
  *   key event): the AudioContext is not even created until then.
- * - `muted` on the element, or `setNawaGuardMuted(true)` for the whole app, silences everything.
+ * - `muted` on the element, or `setNawaCaptchaMuted(true)` for the whole app, silences everything.
  * - Sound is never the only signal: every state change is also announced in the live region.
  */
 
@@ -41,21 +41,22 @@ export interface SoundEnv {
   storage?: () => StorageLike | undefined;
 }
 
-export const SOUND_STORAGE_KEY = 'nawa-guard:sound';
+export const SOUND_STORAGE_KEY = 'nawa-captcha:sound';
+const LEGACY_STORAGE_KEY = 'nawa-guard:sound';
 
 // ------------------------------------------------------------------------------- app-level mute
 
 let appMuted = false;
 const muteListeners = new Set<() => void>();
 
-/** Mutes (or unmutes) every Nawa Guard widget on the page, e.g. from your app's own sound setting. */
-export function setNawaGuardMuted(muted: boolean): void {
+/** Mutes (or unmutes) every Nawa Captcha widget on the page, e.g. from your app's own sound setting. */
+export function setNawaCaptchaMuted(muted: boolean): void {
   appMuted = !!muted;
   for (const l of muteListeners) l();
 }
 
-export function isNawaGuardMuted(): boolean {
-  return appMuted || (typeof document !== 'undefined' && document.documentElement?.hasAttribute('data-nawa-guard-muted'));
+export function isNawaCaptchaMuted(): boolean {
+  return appMuted || (typeof document !== 'undefined' && (document.documentElement?.hasAttribute('data-nawa-captcha-muted') || document.documentElement?.hasAttribute('data-nawa-guard-muted')));
 }
 
 // ------------------------------------------------------------------------------- defaults
@@ -124,7 +125,7 @@ export class SoundEngine {
 
   /** True when a cue would actually be heard right now. */
   get audible(): boolean {
-    return this.#enabled && !this.muted && !isNawaGuardMuted() && this.#unlocked && this.#volume > 0;
+    return this.#enabled && !this.muted && !isNawaCaptchaMuted() && this.#unlocked && this.#volume > 0;
   }
 
   /** Whether the AudioContext exists (it is only created after a user gesture). */
@@ -177,7 +178,8 @@ export class SoundEngine {
 
   #read(): Stored {
     try {
-      const raw = this.#env.storage()?.getItem(SOUND_STORAGE_KEY);
+      const store = this.#env.storage();
+      const raw = store?.getItem(SOUND_STORAGE_KEY) ?? store?.getItem(LEGACY_STORAGE_KEY);
       const v = raw ? (JSON.parse(raw) as unknown) : undefined;
       return v && typeof v === 'object' ? (v as Stored) : {};
     } catch {

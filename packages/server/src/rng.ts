@@ -51,7 +51,7 @@ function build(next: () => number, bytes: (n: number) => Uint8Array, intImpl?: (
     },
     pick(items) {
       const item = items[rng.int(0, items.length)];
-      if (item === undefined) throw new Error('nawa-guard: pick from empty list');
+      if (item === undefined) throw new Error('nawa-captcha: pick from empty list');
       return item;
     },
     shuffle(items) {

@@ -1,7 +1,7 @@
 {
-  "name": "@nawa-guard/react",
+  "name": "@nawa-captcha/react",
   "version": "0.1.0",
-  "description": "Nawa Guard for React: accessible, self-hosted puzzle CAPTCHA component and hook — a privacy-friendly reCAPTCHA alternative.",
+  "description": "Nawa Captcha for React: accessible, self-hosted puzzle CAPTCHA component and hook — a privacy-friendly reCAPTCHA alternative.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,7 +21,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@nawa-guard/widget": "0.1.0"
+    "@nawa-captcha/widget": "0.1.0"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -47,18 +47,18 @@
     "bot-protection",
     "anti-spam",
     "proof-of-work",
-    "nawa-guard",
-    "nawa-ui",
+    "nawa-captcha",
+    "orca-ui",
     "arabic",
     "rtl"
   ],
-  "homepage": "https://oriebalzyuot96.github.io/nawa-guard/",
+  "homepage": "https://oriebalzyuot96.github.io/nawa-captcha/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oriebalzyuot96/nawa-guard.git",
+    "url": "git+https://github.com/oriebalzyuot96/nawa-captcha.git",
     "directory": "packages/react"
   },
-  "bugs": "https://github.com/oriebalzyuot96/nawa-guard/issues",
+  "bugs": "https://github.com/oriebalzyuot96/nawa-captcha/issues",
   "author": "oriebalzyuot96",
   "publishConfig": {
     "access": "public"

@@ -8,14 +8,14 @@ import { themeCss } from './themes.js';
  * - Motion: subtle perspective tilt and parallax (driven by --_rx/--_ry/--_px/--_py from JS),
  *   piece lift/settle, a success burst with a drawn checkmark, an error shake. All of it is off
  *   under prefers-reduced-motion; high contrast and forced colours drop decoration entirely.
- * - Colours come from the theme layer (themes.ts), which resolves --nawa-guard-* → preset →
+ * - Colours come from the theme layer (themes.ts), which resolves --nawa-captcha-* → preset →
  *   Orca UI --oc-* → legacy Nawa UI --nw-* → built-in default.
  */
 export const STYLES = /* css */ `
 :host {
   display: block;
   max-inline-size: 380px;
-  font-family: var(--nawa-guard-font, var(--oc-font, var(--nw-font, system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif)));
+  font-family: var(--nawa-captcha-font, var(--nawa-guard-font, var(--oc-font, var(--nw-font, system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif))));
   font-size: 0.95rem;
   line-height: 1.45;
   perspective: 1100px;
@@ -26,8 +26,8 @@ export const STYLES = /* css */ `
 [hidden] { display: none !important; }
 ${themeCss()}
 .ng {
-  --_radius: var(--nawa-guard-radius, var(--oc-radius-lg, var(--oc-radius, var(--nw-radius, 18px))));
-  --_radius-sm: var(--nawa-guard-radius-sm, var(--oc-radius-sm, var(--nw-radius-sm, 12px)));
+  --_radius: var(--nawa-captcha-radius, var(--nawa-guard-radius, var(--oc-radius-lg, var(--oc-radius, var(--nw-radius, 18px)))));
+  --_radius-sm: var(--nawa-captcha-radius-sm, var(--nawa-guard-radius-sm, var(--oc-radius-sm, var(--nw-radius-sm, 12px))));
   --_ease: var(--oc-ease, var(--nw-ease, cubic-bezier(0.2, 0.8, 0.2, 1)));
   --_spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --_sh: 24 14 64;
@@ -274,7 +274,7 @@ label { font-weight: 600; font-size: 0.88em; }
 .draw .tap circle { fill: var(--_primary); stroke: #fff; stroke-width: 2; filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45)); }
 .draw .tap .tap-ring { fill: none; stroke: var(--_primary); stroke-width: 2; filter: none; transform-box: fill-box; transform-origin: center; animation: ng-ripple 0.6s var(--_ease) forwards; }
 @keyframes ng-ripple { from { transform: scale(1); opacity: 0.9; } to { transform: scale(2.6); opacity: 0; } }
-.draw .tap text { fill: var(--_on-primary); font: 700 11px var(--nawa-guard-font, system-ui, sans-serif); }
+.draw .tap text { fill: var(--_on-primary); font: 700 11px var(--nawa-captcha-font, system-ui, sans-serif); }
 
 /* ---------------------------------------------------------------- inputs (recessed) */
 input[type="text"] {

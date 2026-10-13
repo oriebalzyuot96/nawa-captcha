@@ -1,8 +1,8 @@
 {
-  "name": "nawa-guard-monorepo",
+  "name": "nawa-captcha-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "Nawa Guard: privacy-friendly, accessible puzzle CAPTCHA (30+ puzzle types) with server-sealed solutions.",
+  "description": "Nawa Captcha: privacy-friendly, accessible puzzle CAPTCHA (30+ puzzle types) with server-sealed solutions.",
   "license": "MIT",
   "type": "module",
   "workspaces": [
@@ -15,12 +15,12 @@
     "demo"
   ],
   "scripts": {
-    "build": "npm run build -w @nawa-guard/server -w @nawa-guard/widget -w @nawa-guard/react -w @nawa-guard/vue -w @nawa-guard/angular",
-    "typecheck": "npm run build -w @nawa-guard/widget && npm run typecheck --workspaces --if-present && tsc -p tsconfig.test.json",
+    "build": "npm run build -w @nawa-captcha/server -w @nawa-captcha/widget -w @nawa-captcha/react -w @nawa-captcha/vue -w @nawa-captcha/angular",
+    "typecheck": "npm run build -w @nawa-captcha/widget && npm run typecheck --workspaces --if-present && tsc -p tsconfig.test.json",
     "test": "vitest run",
-    "test:dotnet": "dotnet test dotnet/NawaGuard.sln",
-    "demo": "npm run build -w @nawa-guard/server -w @nawa-guard/widget && node demo/server.mjs",
-    "fixture:dotnet": "npm run build -w @nawa-guard/server && node scripts/make-dotnet-fixture.mjs",
+    "test:dotnet": "dotnet test dotnet/NawaCaptcha.sln",
+    "demo": "npm run build -w @nawa-captcha/server -w @nawa-captcha/widget && node demo/server.mjs",
+    "fixture:dotnet": "npm run build -w @nawa-captcha/server && node scripts/make-dotnet-fixture.mjs",
     "build:site": "node scripts/build-site.mjs",
     "check:contrast": "node scripts/check-contrast.mjs"
   },

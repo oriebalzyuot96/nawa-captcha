@@ -1,4 +1,4 @@
-# Contributing to Nawa Guard
+# Contributing to Nawa Captcha
 
 Thanks for helping! Bug reports, new puzzle types, translations and framework wrappers are all welcome.
 
@@ -9,7 +9,7 @@ npm install
 npm run typecheck
 npm test
 npm run demo          # http://localhost:5180
-dotnet test dotnet/NawaGuard.sln   # .NET verifier (needs the .NET 8 SDK)
+dotnet test dotnet/NawaCaptcha.sln   # .NET verifier (needs the .NET 8 SDK)
 ```
 
 ## Guidelines
@@ -24,7 +24,7 @@ dotnet test dotnet/NawaGuard.sln   # .NET verifier (needs the .NET 8 SDK)
 
 1. Create `packages/server/src/puzzles/<type>.ts` exporting a `PuzzleDefinition`: draw with the rasterizer (`render/`), use only the `rng` you are given (so tests can seed it), seal the answer in `solution`, and reuse a widget view (`slide`, `drag`, `rotate`, `swap`, `hold`, `grid`, `pairs`, `taps`, `order`, `path`, `text`) where you can.
 2. Register it in `CHALLENGE_TYPES` (`types.ts`), `puzzles/index.ts`, `catalog.ts` (names and blind-guess rate) and `i18n.ts` (prompts in Arabic and English).
-3. Add it to `NawaGuardChallengeTypes.All` in the .NET package and run `npm run fixture:dotnet` (a test compares the lists).
+3. Add it to `NawaCaptchaChallengeTypes.All` in the .NET package and run `npm run fixture:dotnet` (a test compares the lists).
 4. Add correct/incorrect answers to `packages/server/test/answers.ts`; the generic tests then cover determinism, payload leaks, keyboard solvability and wrong answers. Run `npm run build:site` to refresh the site tables.
 
 ## Translations

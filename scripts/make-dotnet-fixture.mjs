@@ -1,22 +1,22 @@
-// Generates dotnet/tests/NawaGuard.AspNetCore.Tests/fixtures/pass-tokens.json from the real Node
+// Generates dotnet/tests/NawaCaptcha.AspNetCore.Tests/fixtures/pass-tokens.json from the real Node
 // engine, so the .NET verifier is tested against tokens it did not produce itself.
-// Run after `npm run build -w @nawa-guard/server`. The secrets below are random test-only values.
+// Run after `npm run build -w @nawa-captcha/server`. The secrets below are random test-only values.
 import { randomBytes } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHALLENGE_TYPES, MemoryStore, createNawaGuard, openChallenge, solvePow } from '../packages/server/dist/index.js';
+import { CHALLENGE_TYPES, MemoryStore, createNawaCaptcha, openChallenge, solvePow } from '../packages/server/dist/index.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const out = join(root, 'dotnet', 'tests', 'NawaGuard.AspNetCore.Tests', 'fixtures', 'pass-tokens.json');
+const out = join(root, 'dotnet', 'tests', 'NawaCaptcha.AspNetCore.Tests', 'fixtures', 'pass-tokens.json');
 
 const nowMs = 1_900_000_000_000;
-const client = { ip: '::ffff:203.0.113.7', userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NawaGuardFixture/1.0' };
+const client = { ip: '::ffff:203.0.113.7', userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NawaCaptchaFixture/1.0' };
 const k1 = { kid: 'k1', secret: `test-only-${randomBytes(24).toString('base64url')}` };
 const k2 = { kid: 'k2', secret: `test-only-${randomBytes(24).toString('base64url')}` };
 
 async function passToken(secrets, bind, action) {
-  const guard = createNawaGuard({ secret: secrets, bind, powBits: 8, allowClientType: true, rateLimit: false, store: new MemoryStore(), now: () => nowMs });
+  const guard = createNawaCaptcha({ secret: secrets, bind, powBits: 8, allowClientType: true, rateLimit: false, store: new MemoryStore(), now: () => nowMs });
   const ch = await guard.createChallenge({ type: 'pow', siteKey: 'fixture-site', action, lang: 'en', client });
   if (!ch.ok) throw new Error(ch.error);
   const r = await guard.verify({ token: ch.challenge.token, answer: { nonce: solvePow(ch.challenge.data.salt, ch.challenge.data.bits) }, client });
@@ -26,7 +26,7 @@ async function passToken(secrets, bind, action) {
 
 /** Two puzzles in a row (pow, then math): the pass token carries stp = ['pow', 'math']. */
 async function multiStepToken(secrets) {
-  const guard = createNawaGuard({ secret: secrets, bind: 'none', powBits: 8, types: ['pow', 'math'], mode: 'sequence', steps: 2, minSolveMs: { math: 0 }, rateLimit: false, store: new MemoryStore(), now: () => nowMs });
+  const guard = createNawaCaptcha({ secret: secrets, bind: 'none', powBits: 8, types: ['pow', 'math'], mode: 'sequence', steps: 2, minSolveMs: { math: 0 }, rateLimit: false, store: new MemoryStore(), now: () => nowMs });
   const ch = await guard.createChallenge({ siteKey: 'fixture-site', action: 'checkout', lang: 'en', client });
   if (!ch.ok) throw new Error(ch.error);
   const step1 = await guard.verify({ token: ch.challenge.token, answer: { nonce: solvePow(ch.challenge.data.salt, ch.challenge.data.bits) }, client });

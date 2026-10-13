@@ -15,7 +15,7 @@ export const PLATFORM = 'browser' as const;
 const webcrypto = (globalThis as { crypto?: { getRandomValues<T extends ArrayBufferView>(a: T): T } }).crypto;
 
 export function randomBytes(n: number): Uint8Array {
-  if (!webcrypto) throw new Error('nawa-guard: crypto.getRandomValues is not available');
+  if (!webcrypto) throw new Error('nawa-captcha: crypto.getRandomValues is not available');
   const out = new Uint8Array(n);
   for (let i = 0; i < n; i += 65536) webcrypto.getRandomValues(out.subarray(i, Math.min(n, i + 65536)));
   return out;
@@ -24,7 +24,7 @@ export function randomBytes(n: number): Uint8Array {
 /** Uniform integer in [min, maxExclusive) by rejection sampling (no modulo bias). */
 export function randomInt(min: number, maxExclusive: number): number {
   const range = maxExclusive - min;
-  if (!(range > 0) || range > 2 ** 32) throw new RangeError('nawa-guard: bad randomInt range');
+  if (!(range > 0) || range > 2 ** 32) throw new RangeError('nawa-captcha: bad randomInt range');
   const limit = Math.floor(2 ** 32 / range) * range;
   const buf = new Uint32Array(1);
   for (;;) {
@@ -147,7 +147,7 @@ const SBOX = new Uint8Array(256);
 const xtime = (b: number): number => ((b << 1) ^ (b & 0x80 ? 0x1b : 0)) & 0xff;
 
 function expandKey(key: Uint8Array): Uint8Array {
-  if (key.length !== 32) throw new Error('nawa-guard: AES-256 needs a 32-byte key');
+  if (key.length !== 32) throw new Error('nawa-captcha: AES-256 needs a 32-byte key');
   const w = new Uint8Array(240);
   w.set(key);
   let rcon = 1;
@@ -244,7 +244,7 @@ function ctr(w: Uint8Array, j0: Uint8Array, data: Uint8Array): Uint8Array {
 }
 
 function gcmSetup(key: Uint8Array, iv: Uint8Array): { w: Uint8Array; h: Uint8Array; j0: Uint8Array } {
-  if (iv.length !== 12) throw new Error('nawa-guard: GCM needs a 12-byte IV');
+  if (iv.length !== 12) throw new Error('nawa-captcha: GCM needs a 12-byte IV');
   const w = expandKey(key);
   const h = encryptBlock(w, new Uint8Array(16));
   const j0 = new Uint8Array(16);

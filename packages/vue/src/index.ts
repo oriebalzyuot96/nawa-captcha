@@ -1,17 +1,17 @@
 import { defineComponent, h, onBeforeUnmount, onMounted, ref, watch, type PropType } from 'vue';
-import '@nawa-guard/widget';
-import type { NawaGuardElement, NawaGuardErrorDetail, NawaGuardVerifiedDetail } from '@nawa-guard/widget';
+import '@nawa-captcha/widget';
+import type { NawaCaptchaElement, NawaCaptchaErrorDetail, NawaCaptchaVerifiedDetail } from '@nawa-captcha/widget';
 
-export type { NawaGuardErrorDetail, NawaGuardVerifiedDetail };
+export type { NawaCaptchaErrorDetail, NawaCaptchaVerifiedDetail };
 
 /**
- * <NawaGuard v-model="token" action="login" lang="ar" @verified="…" />
+ * <NawaCaptcha v-model="token" action="login" lang="ar" @verified="…" />
  *
  * `v-model` holds the pass token ('' until verified). Setting it back to '' (e.g. after a
  * failed submit, since tokens are single-use) makes the widget load a fresh challenge.
  */
-export const NawaGuard = defineComponent({
-  name: 'NawaGuard',
+export const NawaCaptcha = defineComponent({
+  name: 'NawaCaptcha',
   props: {
     modelValue: { type: String, default: '' },
     siteKey: { type: String, default: undefined },
@@ -32,16 +32,16 @@ export const NawaGuard = defineComponent({
   },
   emits: {
     'update:modelValue': (token: string) => typeof token === 'string',
-    verified: (detail: NawaGuardVerifiedDetail) => !!detail,
+    verified: (detail: NawaCaptchaVerifiedDetail) => !!detail,
     expired: () => true,
-    error: (detail: NawaGuardErrorDetail) => !!detail,
+    error: (detail: NawaCaptchaErrorDetail) => !!detail,
   },
   setup(props, { emit, expose }) {
-    const el = ref<NawaGuardElement | null>(null);
+    const el = ref<NawaCaptchaElement | null>(null);
     let current = '';
 
     const onVerified = (e: Event): void => {
-      const detail = (e as CustomEvent<NawaGuardVerifiedDetail>).detail;
+      const detail = (e as CustomEvent<NawaCaptchaVerifiedDetail>).detail;
       current = detail.token;
       emit('update:modelValue', detail.token);
       emit('verified', detail);
@@ -54,18 +54,18 @@ export const NawaGuard = defineComponent({
     const onError = (e: Event): void => {
       current = '';
       emit('update:modelValue', '');
-      emit('error', (e as CustomEvent<NawaGuardErrorDetail>).detail);
+      emit('error', (e as CustomEvent<NawaCaptchaErrorDetail>).detail);
     };
 
     onMounted(() => {
-      el.value?.addEventListener('nawa-guard:verified', onVerified);
-      el.value?.addEventListener('nawa-guard:expired', onExpired);
-      el.value?.addEventListener('nawa-guard:error', onError);
+      el.value?.addEventListener('nawa-captcha:verified', onVerified);
+      el.value?.addEventListener('nawa-captcha:expired', onExpired);
+      el.value?.addEventListener('nawa-captcha:error', onError);
     });
     onBeforeUnmount(() => {
-      el.value?.removeEventListener('nawa-guard:verified', onVerified);
-      el.value?.removeEventListener('nawa-guard:expired', onExpired);
-      el.value?.removeEventListener('nawa-guard:error', onError);
+      el.value?.removeEventListener('nawa-captcha:verified', onVerified);
+      el.value?.removeEventListener('nawa-captcha:expired', onExpired);
+      el.value?.removeEventListener('nawa-captcha:error', onError);
     });
     watch(
       () => props.modelValue,
@@ -85,7 +85,7 @@ export const NawaGuard = defineComponent({
     expose({ reset });
 
     return () =>
-      h('nawa-guard', {
+      h('nawa-captcha', {
         ref: el,
         'site-key': props.siteKey,
         endpoint: props.endpoint,
@@ -103,4 +103,7 @@ export const NawaGuard = defineComponent({
   },
 });
 
-export default NawaGuard;
+/** @deprecated Renamed to {@link NawaCaptcha} (Nawa Guard is now Nawa Captcha). */
+export const NawaGuard = NawaCaptcha;
+
+export default NawaCaptcha;

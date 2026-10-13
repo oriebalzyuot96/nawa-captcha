@@ -1,20 +1,20 @@
-# Nawa Guard
+# Nawa Captcha
 
-> Open-source, self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile. Your server issues challenges and verifies pass tokens; nothing is sent to a third party.
+> Open-source, self-hosted, accessible puzzle CAPTCHA (formerly Nawa Guard) with 30+ puzzle types, an audio challenge and six themes. A privacy-friendly alternative to reCAPTCHA, hCaptcha and Cloudflare Turnstile. Your server issues challenges and verifies pass tokens; nothing is sent to a third party.
 
-- Source: https://github.com/oriebalzyuot96/nawa-guard
-- Live playground (runs the real engine in the browser, demo mode): https://oriebalzyuot96.github.io/nawa-guard/#playground
+- Source: https://github.com/oriebalzyuot96/nawa-captcha
+- Live playground (runs the real engine in the browser, demo mode): https://oriebalzyuot96.github.io/nawa-captcha/#playground
 - License: MIT
 
 ## Packages
-- @nawa-guard/server: Node.js (≥18) challenge engine, verification, single-use pass tokens, Express middleware (`nawaGuardExpress`, `requireCaptcha`). Zero runtime dependencies.
-- @nawa-guard/widget: `<nawa-guard>` Web Component (keyboard, touch, screen-reader alternative, Arabic/English, RTL, themes).
-- @nawa-guard/react, @nawa-guard/vue, @nawa-guard/svelte, @nawa-guard/angular: framework wrappers.
-- NawaGuard.AspNetCore (NuGet): `AddNawaGuard()`, `[RequireNawaGuard]`, `.RequireNawaGuard()` to verify pass tokens in ASP.NET Core.
-- Packages are coming to npm (@nawa-guard scope) and NuGet; until then build from source (`npm install && npm run build`).
+- @nawa-captcha/server: Node.js (≥18) challenge engine, verification, single-use pass tokens, Express middleware (`nawaCaptchaExpress`, `requireCaptcha`). Zero runtime dependencies.
+- @nawa-captcha/widget: `<nawa-captcha>` Web Component (keyboard, touch, screen-reader alternative, Arabic/English, RTL, themes).
+- @nawa-captcha/react, @nawa-captcha/vue, @nawa-captcha/svelte, @nawa-captcha/angular: framework wrappers.
+- NawaCaptcha.AspNetCore (NuGet): `AddNawaCaptcha()`, `[RequireNawaCaptcha]`, `.RequireNawaCaptcha()` to verify pass tokens in ASP.NET Core.
+- Packages are coming to npm (@nawa-captcha scope) and NuGet; until then build from source (`npm install && npm run build`).
 
 ## Choosing puzzles
-`createNawaGuard({ types: [...], weights, mode: 'random' | 'sequence' | 'adaptive', steps: 1-3, perAction: { login: ['pow', 'slider'] } })`. The widget's `types="a,b"` attribute (and the wrappers' `types` prop) can only narrow the server's allow-list. Multi-step pass tokens list every solved type in the `stp` claim; verifiers accept `allowedTypes` (at least one solved step must match) and `minSteps`.
+`createNawaCaptcha({ types: [...], weights, mode: 'random' | 'sequence' | 'adaptive', steps: 1-3, perAction: { login: ['pow', 'slider'] } })`. The widget's `types="a,b"` attribute (and the wrappers' `types` prop) can only narrow the server's allow-list. Multi-step pass tokens list every solved type in the `stp` claim; verifiers accept `allowedTypes` (at least one solved step must match) and `minSteps`.
 
 ## Challenge types
 <!-- types:start -->

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace NawaGuard.AspNetCore.Tests;
+namespace NawaCaptcha.AspNetCore.Tests;
 
 /// <summary>Verifies tokens produced by the Node implementation (fixtures/pass-tokens.json).</summary>
 public sealed class PassTokenInteropTests
@@ -27,18 +27,18 @@ public sealed class PassTokenInteropTests
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures", "pass-tokens.json")),
         new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 
-    private static NawaGuardClient Client => new(Data.Client.Ip, Data.Client.UserAgent);
+    private static NawaCaptchaClient Client => new(Data.Client.Ip, Data.Client.UserAgent);
 
-    private static (NawaGuardVerifier Verifier, FixedTime Clock) Create(Action<NawaGuardOptions>? configure = null, params string[] kids)
+    private static (NawaCaptchaVerifier Verifier, FixedTime Clock) Create(Action<NawaCaptchaOptions>? configure = null, params string[] kids)
     {
-        var options = new NawaGuardOptions
+        var options = new NawaCaptchaOptions
         {
-            Secrets = (kids.Length == 0 ? new[] { "k1" } : kids).Select(k => new NawaGuardSecret(k, Data.Secrets[k])).ToList(),
+            Secrets = (kids.Length == 0 ? new[] { "k1" } : kids).Select(k => new NawaCaptchaSecret(k, Data.Secrets[k])).ToList(),
             ExpectedSiteKey = Data.SiteKey,
         };
         configure?.Invoke(options);
         var clock = new FixedTime { Now = DateTimeOffset.FromUnixTimeMilliseconds(Data.NowUnixMs).AddSeconds(3) };
-        return (new NawaGuardVerifier(Options.Create(options), new InMemoryReplayStore(clock), clock), clock);
+        return (new NawaCaptchaVerifier(Options.Create(options), new InMemoryReplayStore(clock), clock), clock);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class PassTokenInteropTests
         Assert.Equal("ip+ua", first.Claims.BindMode);
 
         var second = await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", Client);
-        Assert.Equal(NawaGuardError.Replayed, second.Error);
+        Assert.Equal(NawaCaptchaError.Replayed, second.Error);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class PassTokenInteropTests
     {
         // Node bound the token to "::ffff:203.0.113.7"; .NET sees the IPv4 form.
         var (verifier, _) = Create();
-        var result = await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", new NawaGuardClient("::FFFF:" + Data.Client.Ip, Data.Client.UserAgent));
+        var result = await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", new NawaCaptchaClient("::FFFF:" + Data.Client.Ip, Data.Client.UserAgent));
         Assert.True(result.Success, result.Error.ToCode());
     }
 
@@ -68,19 +68,19 @@ public sealed class PassTokenInteropTests
     public async Task Rejects_wrong_action_client_and_tampering()
     {
         var (verifier, _) = Create();
-        Assert.Equal(NawaGuardError.ActionMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "checkout", Client)).Error);
-        Assert.Equal(NawaGuardError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", Client with { UserAgent = "curl/8.0" })).Error);
-        Assert.Equal(NawaGuardError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", Client with { Ip = "198.51.100.9" })).Error);
-        Assert.Equal(NawaGuardError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", null)).Error);
+        Assert.Equal(NawaCaptchaError.ActionMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "checkout", Client)).Error);
+        Assert.Equal(NawaCaptchaError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", Client with { UserAgent = "curl/8.0" })).Error);
+        Assert.Equal(NawaCaptchaError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", Client with { Ip = "198.51.100.9" })).Error);
+        Assert.Equal(NawaCaptchaError.ClientMismatch, (await verifier.VerifyAsync(Data.Tokens["boundLogin"], "login", null)).Error);
 
         var parts = Data.Tokens["boundLogin"].Split('.');
         var json = Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(parts[2]));
         parts[2] = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(json.Replace("\"login\"", "\"admin\"")));
-        Assert.Equal(NawaGuardError.BadSignature, (await verifier.VerifyAsync(string.Join('.', parts), "admin", Client)).Error);
+        Assert.Equal(NawaCaptchaError.BadSignature, (await verifier.VerifyAsync(string.Join('.', parts), "admin", Client)).Error);
 
-        Assert.Equal(NawaGuardError.MissingToken, (await verifier.VerifyAsync(null, "login", Client)).Error);
-        Assert.Equal(NawaGuardError.Malformed, (await verifier.VerifyAsync("ngp1.k1.abc", "login", Client)).Error);
-        Assert.Equal(NawaGuardError.Malformed, (await verifier.VerifyAsync("ngp1.k1.a+b.c", "login", Client)).Error);
+        Assert.Equal(NawaCaptchaError.MissingToken, (await verifier.VerifyAsync(null, "login", Client)).Error);
+        Assert.Equal(NawaCaptchaError.Malformed, (await verifier.VerifyAsync("ngp1.k1.abc", "login", Client)).Error);
+        Assert.Equal(NawaCaptchaError.Malformed, (await verifier.VerifyAsync("ngp1.k1.a+b.c", "login", Client)).Error);
     }
 
     [Fact]
@@ -88,21 +88,21 @@ public sealed class PassTokenInteropTests
     {
         var (expiredVerifier, clock) = Create();
         clock.Now = clock.Now.AddMinutes(10);
-        Assert.Equal(NawaGuardError.Expired, (await expiredVerifier.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
+        Assert.Equal(NawaCaptchaError.Expired, (await expiredVerifier.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
 
         var (aged, agedClock) = Create(o => o.MaxAgeSeconds = 30);
         agedClock.Now = agedClock.Now.AddSeconds(60);
-        Assert.Equal(NawaGuardError.TooOld, (await aged.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
+        Assert.Equal(NawaCaptchaError.TooOld, (await aged.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
 
         var (site, _) = Create(o => o.ExpectedSiteKey = "other-site");
-        Assert.Equal(NawaGuardError.SiteMismatch, (await site.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
+        Assert.Equal(NawaCaptchaError.SiteMismatch, (await site.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
 
         var (typed, _) = Create(o => o.AllowedTypes = new() { "slider", "icons" });
-        Assert.Equal(NawaGuardError.TypeNotAllowed, (await typed.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
+        Assert.Equal(NawaCaptchaError.TypeNotAllowed, (await typed.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
 
         var (early, earlyClock) = Create();
         earlyClock.Now = earlyClock.Now.AddMinutes(-5);
-        Assert.Equal(NawaGuardError.NotYetValid, (await early.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
+        Assert.Equal(NawaCaptchaError.NotYetValid, (await early.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Error);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class PassTokenInteropTests
     public async Task Supports_key_rotation_by_kid()
     {
         var (onlyOld, _) = Create(null, "k1");
-        Assert.Equal(NawaGuardError.UnknownKey, (await onlyOld.VerifyAsync(Data.Tokens["rotatedK2"], "login", Client)).Error);
+        Assert.Equal(NawaCaptchaError.UnknownKey, (await onlyOld.VerifyAsync(Data.Tokens["rotatedK2"], "login", Client)).Error);
 
         var (rotated, _) = Create(null, "k2", "k1");
         var result = await rotated.VerifyAsync(Data.Tokens["rotatedK2"], "login", Client);
@@ -132,7 +132,7 @@ public sealed class PassTokenInteropTests
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton<TimeProvider>(clock)
-            .AddNawaGuard(o => o.Secret = Data.Secrets["k1"])
+            .AddNawaCaptcha(o => o.Secret = Data.Secrets["k1"])
             .BuildServiceProvider();
 
         HttpContext Request()
@@ -140,11 +140,11 @@ public sealed class PassTokenInteropTests
             var http = new DefaultHttpContext { RequestServices = services };
             http.Connection.RemoteIpAddress = IPAddress.Parse("::ffff:" + Data.Client.Ip);
             http.Request.Headers.UserAgent = Data.Client.UserAgent;
-            http.Request.Headers["X-Nawa-Guard-Token"] = Data.Tokens["boundLogin"];
+            http.Request.Headers["X-Nawa-Captcha-Token"] = Data.Tokens["boundLogin"];
             return http;
         }
 
-        var filter = new NawaGuardEndpointFilter("login");
+        var filter = new NawaCaptchaEndpointFilter("login");
         var reached = false;
         EndpointFilterDelegate next = _ =>
         {
@@ -167,7 +167,7 @@ public sealed class PassTokenInteropTests
     [Fact]
     public void Knows_every_challenge_type_the_node_server_issues()
     {
-        Assert.Equal(Data.ChallengeTypes, NawaGuardChallengeTypes.All);
+        Assert.Equal(Data.ChallengeTypes, NawaCaptchaChallengeTypes.All);
         Assert.Throws<InvalidOperationException>(() => Create(o => o.AllowedTypes = new() { "sliders" }));
         Assert.Throws<InvalidOperationException>(() => Create(o => o.ActionAllowedTypes["login"] = new() { "nope" }));
     }
@@ -186,10 +186,10 @@ public sealed class PassTokenInteropTests
         Assert.True((await mathOnly.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Success);
 
         var (sliderOnly, _) = Create(o => o.AllowedTypes = new() { "slider" });
-        Assert.Equal(NawaGuardError.TypeNotAllowed, (await sliderOnly.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
+        Assert.Equal(NawaCaptchaError.TypeNotAllowed, (await sliderOnly.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
 
         var (threeSteps, _) = Create(o => o.MinSteps = 3);
-        Assert.Equal(NawaGuardError.TooFewSteps, (await threeSteps.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
+        Assert.Equal(NawaCaptchaError.TooFewSteps, (await threeSteps.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null)).Error);
     }
 
     [Fact]
@@ -204,12 +204,12 @@ public sealed class PassTokenInteropTests
         Assert.True((await perAction.VerifyAsync(Data.Tokens["unboundContact"], "contact", null)).Success);
 
         var (route, _) = Create();
-        var single = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaGuardRequirements(MinSteps: 2));
-        Assert.Equal(NawaGuardError.TooFewSteps, single.Error);
+        var single = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaCaptchaRequirements(MinSteps: 2));
+        Assert.Equal(NawaCaptchaError.TooFewSteps, single.Error);
         Assert.Equal("too-few-steps", single.Error.ToCode());
-        var typed = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaGuardRequirements(AllowedTypes: new[] { "maze" }));
-        Assert.Equal(NawaGuardError.TypeNotAllowed, typed.Error);
-        Assert.True((await route.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null, new NawaGuardRequirements(new[] { "pow" }, 2))).Success);
+        var typed = await route.VerifyAsync(Data.Tokens["unboundContact"], "contact", null, new NawaCaptchaRequirements(AllowedTypes: new[] { "maze" }));
+        Assert.Equal(NawaCaptchaError.TypeNotAllowed, typed.Error);
+        Assert.True((await route.VerifyAsync(Data.Tokens["multiStepCheckout"], "checkout", null, new NawaCaptchaRequirements(new[] { "pow" }, 2))).Success);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public sealed class PassTokenInteropTests
     [Fact]
     public void Options_validation_rejects_weak_secrets()
     {
-        var services = new ServiceCollection().AddNawaGuard(o => o.Secret = "short").BuildServiceProvider();
-        Assert.Throws<OptionsValidationException>(() => services.GetRequiredService<IOptions<NawaGuardOptions>>().Value);
+        var services = new ServiceCollection().AddNawaCaptcha(o => o.Secret = "short").BuildServiceProvider();
+        Assert.Throws<OptionsValidationException>(() => services.GetRequiredService<IOptions<NawaCaptchaOptions>>().Value);
     }
 }

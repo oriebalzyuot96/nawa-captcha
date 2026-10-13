@@ -162,7 +162,7 @@ function options() {
 }
 
 const backend = new DemoBackend(options());
-// Define <nawa-guard> only now, so the widgets' first request already reaches the in-page endpoint.
+// Define <nawa-captcha> only now, so the widgets' first request already reaches the in-page endpoint.
 await import('../../packages/widget/src/index.js');
 
 // ------------------------------------------------------------------------------- rendering
@@ -235,21 +235,21 @@ function renderControls(): void {
 function renderConfig(): void {
   const types = [...state.selected].map((x) => `'${x}'`).join(', ');
   const lines = [
-    `import { createNawaGuard } from '@nawa-guard/server';`,
+    `import { createNawaCaptcha } from '@nawa-captcha/server';`,
     ``,
-    `const guard = createNawaGuard({`,
-    `  secret: process.env.NAWA_GUARD_SECRET,`,
+    `const guard = createNawaCaptcha({`,
+    `  secret: process.env.NAWA_CAPTCHA_SECRET,`,
     `  types: [${types}],`,
     `  mode: '${state.mode}',`,
     ...(state.steps > 1 ? [`  steps: ${state.steps},`] : []),
     `});`,
     ``,
-    `<nawa-guard site-key="main" endpoint="/captcha"`,
+    `<nawa-captcha site-key="main" endpoint="/captcha"`,
     `            action="${ACTION}" lang="${state.lang}"`,
     ...(state.wtheme !== 'auto' ? [`            theme="${state.wtheme}"`] : []),
     ...(state.appear !== 'page' ? [`            appearance="${state.appear}"`] : []),
     ...(state.sound ? [`            sound`] : []),
-    `></nawa-guard>`,
+    `></nawa-captcha>`,
   ];
   $('#pg-config').textContent = lines.join('\n');
 }
@@ -357,7 +357,7 @@ segmented('#pg-lang', (v) => {
 segmented('#pg-theme', (v) => {
   document.documentElement.dataset['theme'] = v;
   try {
-    localStorage.setItem('nawa-guard-theme', v);
+    localStorage.setItem('nawa-captcha-theme', v);
   } catch {
     // storage unavailable: the choice just is not remembered
   }
@@ -403,11 +403,11 @@ $<HTMLInputElement>('#pg-level').addEventListener('change', (e) => {
   state.level = Number((e.target as HTMLInputElement).value);
   apply();
 });
-widget.addEventListener('nawa-guard:verified', () => ($<HTMLButtonElement>('#pg-submit').disabled = false));
-widget.addEventListener('nawa-guard:expired', () => ($<HTMLButtonElement>('#pg-submit').disabled = true));
+widget.addEventListener('nawa-captcha:verified', () => ($<HTMLButtonElement>('#pg-submit').disabled = false));
+widget.addEventListener('nawa-captcha:expired', () => ($<HTMLButtonElement>('#pg-submit').disabled = true));
 $('#pg-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  log('Form submitted with the pass token in the hidden field "nawa-guard-token".', 'ok');
+  log('Form submitted with the pass token in the hidden field "nawa-captcha-token".', 'ok');
 });
 
 apply(false);

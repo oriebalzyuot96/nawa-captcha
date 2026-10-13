@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { setNawaGuardMuted, SOUND_STORAGE_KEY, SoundEngine, type AudioContextLike, type StorageLike } from '../src/sound.js';
+import { setNawaCaptchaMuted, SOUND_STORAGE_KEY, SoundEngine, type AudioContextLike, type StorageLike } from '../src/sound.js';
 
 /** A fake AudioContext that records what was scheduled. */
 function fakeContext() {
@@ -31,7 +31,7 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { da
 
 const trusted = { isTrusted: true };
 
-afterEach(() => setNawaGuardMuted(false));
+afterEach(() => setNawaCaptchaMuted(false));
 
 describe('sound: gating', () => {
   it('is off by default and never creates an AudioContext on its own', () => {
@@ -75,10 +75,10 @@ describe('sound: gating', () => {
     s.muted = true;
     expect(s.play('snap')).toBe(false);
     s.muted = false;
-    setNawaGuardMuted(true);
+    setNawaCaptchaMuted(true);
     expect(s.audible).toBe(false);
     expect(s.play('snap')).toBe(false);
-    setNawaGuardMuted(false);
+    setNawaCaptchaMuted(false);
     s.setVolume(0);
     expect(s.play('snap')).toBe(false);
     s.setVolume(0.5);
@@ -90,10 +90,10 @@ describe('sound: gating', () => {
     let calls = 0;
     s.onChange = () => (calls += 1);
     const off = s.listen();
-    setNawaGuardMuted(true);
+    setNawaCaptchaMuted(true);
     expect(calls).toBe(1);
     off();
-    setNawaGuardMuted(false);
+    setNawaCaptchaMuted(false);
     expect(calls).toBe(1);
   });
 
@@ -150,5 +150,17 @@ describe('sound: persistence', () => {
     expect(s.volume).toBe(0);
     s.setVolume(Number.NaN);
     expect(s.volume).toBe(0.6);
+  });
+});
+
+describe('sound: rename compatibility', () => {
+  it('still reads a choice stored under the pre-rename key', () => {
+    const store = memoryStorage({ 'nawa-guard:sound': JSON.stringify({ on: true, volume: 0.4 }) });
+    const s = new SoundEngine({ createContext: () => undefined, storage: () => store });
+    expect(s.enabled).toBe(true);
+    expect(s.volume).toBeCloseTo(0.4);
+    s.setVolume(0.5);
+    expect(JSON.parse(store.data[SOUND_STORAGE_KEY]!)).toEqual({ on: true, volume: 0.5 });
+    expect(SOUND_STORAGE_KEY).toBe('nawa-captcha:sound');
   });
 });

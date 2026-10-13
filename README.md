@@ -1,18 +1,18 @@
-# Nawa Guard
+# Nawa Captcha
 
-[![CI](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/oriebalzyuot96/nawa-guard/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-5b34d6.svg)](LICENSE)
+[![CI](https://github.com/oriebalzyuot96/nawa-captcha/actions/workflows/ci.yml/badge.svg)](https://github.com/oriebalzyuot96/nawa-captcha/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-5b34d6.svg)](LICENSE)
 
 **Self-hosted, accessible puzzle CAPTCHA with 30+ puzzle types, an audio challenge, six themes and a premium 3D design — an open-source reCAPTCHA / hCaptcha / Turnstile alternative for React, Vue, Svelte, Angular and plain HTML, with Node.js and ASP.NET Core verification.**
 
-🌐 [Website](https://oriebalzyuot96.github.io/nawa-guard/) · 🧩 [Live playground](https://oriebalzyuot96.github.io/nawa-guard/#playground) (runs in your browser) · ⚡ [Open the Node demo in StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard)
+🌐 [Website](https://oriebalzyuot96.github.io/nawa-captcha/) · 🧩 [Live playground](https://oriebalzyuot96.github.io/nawa-captcha/#playground) (runs in your browser) · ⚡ [Open the Node demo in StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-captcha)
 
 ```bash
-npm i @nawa-guard/server @nawa-guard/widget    # or: yarn add / pnpm add
+npm i @nawa-captcha/server @nawa-captcha/widget    # or: yarn add / pnpm add
 ```
 
-> **Coming to npm.** The packages will be published under the `@nawa-guard` scope (and `NawaGuard.AspNetCore` on NuGet) once the organisation exists; `npm view @nawa-guard/server` does not find them yet. Until then, build from source: `git clone https://github.com/oriebalzyuot96/nawa-guard.git && cd nawa-guard && npm install && npm run build`, then `npm pack -w @nawa-guard/server -w @nawa-guard/widget` and install the `.tgz` files (or use a workspace / `file:` dependency).
+> **Coming to npm.** The packages will be published under the `@nawa-captcha` scope (and `NawaCaptcha.AspNetCore` on NuGet) once the organisation exists; `npm view @nawa-captcha/server` does not find them yet. Until then, build from source: `git clone https://github.com/oriebalzyuot96/nawa-captcha.git && cd nawa-captcha && npm install && npm run build`, then `npm pack -w @nawa-captcha/server -w @nawa-captcha/widget` and install the `.tgz` files (or use a workspace / `file:` dependency).
 
-**Nawa Guard** is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Nawa UI component library). It's designed around three ideas:
+**Nawa Captcha** (formerly **Nawa Guard**, see [Renamed from Nawa Guard](#renamed-from-nawa-guard)) is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Orca UI component library, formerly Nawa UI). It's designed around three ideas:
 
 1. **The client is never trusted.** Puzzles are rendered on the server as pixels. The solution is sealed inside the challenge token with AES-256-GCM and never reaches the browser in a form it can read.
 2. **Verification happens on your own backend, the way reCAPTCHA's siteverify does.** A solved puzzle produces a short-lived, single-use, HMAC-signed **pass token**. Your protected route verifies it locally with no third-party call. Node and ASP.NET Core implementations are included and interoperate.
@@ -22,18 +22,42 @@ It also looks the part: a layered, glass-like card with depth and subtle motion,
 
 | Package | What it is |
 |---|---|
-| [`@nawa-guard/server`](packages/server) | Node ≥ 18 core with zero runtime dependencies (only `node:crypto` and `node:zlib`). Handles challenges, verification, pass tokens, stores, HTTP and Express adapters. |
-| [`@nawa-guard/widget`](packages/widget) | `<nawa-guard>` Web Component: Shadow DOM, no dependencies, works under a strict CSP. |
-| [`@nawa-guard/react`](packages/react) | `<NawaGuard>` component plus a `useNawaGuard()` hook (React 18/19). |
-| [`@nawa-guard/vue`](packages/vue) | Vue 3 component with `v-model` support. |
-| [`@nawa-guard/svelte`](packages/svelte) | Svelte 5 component with a bindable `token`. |
-| [`@nawa-guard/angular`](packages/angular) | Standalone component that is also a `ControlValueAccessor` and `Validator`, for reactive forms. |
-| [`dotnet/`](dotnet) `NawaGuard.AspNetCore` | .NET 8 package with `INawaGuardVerifier`, `[RequireNawaGuard]`, `.RequireNawaGuard()` and `AddNawaGuard()`. |
+| [`@nawa-captcha/server`](packages/server) | Node ≥ 18 core with zero runtime dependencies (only `node:crypto` and `node:zlib`). Handles challenges, verification, pass tokens, stores, HTTP and Express adapters. |
+| [`@nawa-captcha/widget`](packages/widget) | `<nawa-captcha>` Web Component: Shadow DOM, no dependencies, works under a strict CSP. |
+| [`@nawa-captcha/react`](packages/react) | `<NawaCaptcha>` component plus a `useNawaCaptcha()` hook (React 18/19). |
+| [`@nawa-captcha/vue`](packages/vue) | Vue 3 component with `v-model` support. |
+| [`@nawa-captcha/svelte`](packages/svelte) | Svelte 5 component with a bindable `token`. |
+| [`@nawa-captcha/angular`](packages/angular) | Standalone component that is also a `ControlValueAccessor` and `Validator`, for reactive forms. |
+| [`dotnet/`](dotnet) `NawaCaptcha.AspNetCore` | .NET 8 package with `INawaCaptchaVerifier`, `[RequireNawaCaptcha]`, `.RequireNawaCaptcha()` and `AddNawaCaptcha()`. |
 | [`demo/`](demo) | Express demo with every puzzle type, a protected form and a protected JSON API. |
+
+## Renamed from Nawa Guard
+
+This project was called **Nawa Guard** until this release. Everything is now **Nawa Captcha**, and the old names keep working as **deprecated aliases** for this release (they will be removed in a later one):
+
+| Before (deprecated, still works) | Now |
+|---|---|
+| `@nawa-guard/*` packages | `@nawa-captcha/*` (`server`, `widget`, `react`, `vue`, `svelte`, `angular`) |
+| `<nawa-guard>` | `<nawa-captcha>` (the old tag is still registered; it keeps the old default field name) |
+| `nawa-guard:verified` / `:expired` / `:error` events | `nawa-captcha:*` (both names fire) |
+| hidden field `nawa-guard-token` | `nawa-captcha-token` (servers accept both by default) |
+| header `X-Nawa-Guard-Token` | `X-Nawa-Captcha-Token` (servers accept both by default) |
+| `--nawa-guard-*` CSS properties | `--nawa-captcha-*` (both are read) |
+| `NAWA_GUARD_SECRET` (demo) | `NAWA_CAPTCHA_SECRET` (the demo reads both) |
+| `createNawaGuard`, `NawaGuard`, `NawaGuardOptions`, `NawaGuardStore`, `nawaGuardExpress`, `req.nawaGuard` | `createNawaCaptcha`, `NawaCaptcha`, `NawaCaptchaOptions`, `NawaCaptchaStore`, `nawaCaptchaExpress`, `req.nawaCaptcha` |
+| `NawaGuardElement`, `defineNawaGuard`, `setNawaGuardMuted` | `NawaCaptchaElement`, `defineNawaCaptcha`, `setNawaCaptchaMuted` |
+| React `NawaGuard`, `useNawaGuard`; Vue/Svelte `NawaGuard` | `NawaCaptcha`, `useNawaCaptcha` |
+| Angular `<nawa-guard-captcha>` / `NawaGuardComponent` | `<nawa-captcha>` / `NawaCaptchaComponent` (the host element is the widget itself) |
+| .NET `NawaGuard.AspNetCore` (namespace + package) | `NawaCaptcha.AspNetCore`; `[Obsolete]` `INawaGuardVerifier`, `AddNawaGuard`, `[RequireNawaGuard]`, `.RequireNawaGuard()` remain |
+| .NET config section `"NawaGuard"` | `"NawaCaptcha"` (`AddNawaCaptcha(builder.Configuration)` falls back to `"NawaGuard"`) |
+
+**Unchanged on purpose (wire format):** challenge and pass tokens (`ngc1.` / `ngp1.`), the HKDF salt `nawa-guard/v1`, the replay-store key prefix (`nawa-guard:` in the Redis adapters, `nawa-guard:pass:` in .NET) and every claim name. Tokens issued before the upgrade verify after it, across Node and .NET.
+
+---
 
 ## Puzzle types
 
-38 challenge types, each in its own module under [`packages/server/src/puzzles`](packages/server/src/puzzles) with tests. Every type renders as pixels (PNG), path-only SVG or synthesized audio (WAV) on the server; the answer stays in the sealed token. Each works with mouse, touch **and** keyboard, and the accessible alternatives (`accessible` text question, `audio` challenge) are always one click away. Try them all in the [playground](https://oriebalzyuot96.github.io/nawa-guard/#playground).
+38 challenge types, each in its own module under [`packages/server/src/puzzles`](packages/server/src/puzzles) with tests. Every type renders as pixels (PNG), path-only SVG or synthesized audio (WAV) on the server; the answer stays in the sealed token. Each works with mouse, touch **and** keyboard, and the accessible alternatives (`accessible` text question, `audio` challenge) are always one click away. Try them all in the [playground](https://oriebalzyuot96.github.io/nawa-captcha/#playground).
 
 "Blind guess" is the chance that a random answer (with a fake but plausible gesture) passes a single attempt. Types with a high blind-guess rate are fine as friction on low-risk forms, or combined with others via `steps`; don't rely on them alone for sensitive actions.
 
@@ -104,8 +128,8 @@ Per type you can override `maxAttempts` and `minSolveMs`. `assessRisk()` and fai
 The server decides; the browser can only narrow its choice.
 
 ```ts
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET,
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET,
   types: ['slider', 'rotate-object', 'pairs', 'maze', 'pow'],  // allow-list (default: all)
   weights: { maze: 2, pow: 0 },                                // random weights; 0 disables
   mode: 'random',                                              // 'random' | 'sequence' | 'adaptive' (default)
@@ -115,7 +139,7 @@ const guard = createNawaGuard({
     signup: { types: ['maze', 'pairs', 'spell'], steps: 2 },   // two different puzzles in a row
     reset: { types: ['accessible', 'slider'], mode: 'sequence', powBits: 20 },
   },
-  // clientNarrowing: true,   // honour <nawa-guard types="…"> (never widens; default true)
+  // clientNarrowing: true,   // honour <nawa-captcha types="…"> (never widens; default true)
   // allowAccessible: true,   // the text alternative can always be requested (default true)
 });
 ```
@@ -129,10 +153,10 @@ const guard = createNawaGuard({
 In the browser, narrow the server's list with `types` (comma-separated). If none of the requested types is allowed, the server's own list is used:
 
 ```html
-<nawa-guard site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"></nawa-guard>
+<nawa-captcha site-key="main" endpoint="/captcha" action="login" types="slider,rotate-object"></nawa-captcha>
 ```
 
-The wrappers take a `types` prop (string or array): `<NawaGuard types={['slider', 'pairs']} />` (React), `:types="['slider']"` (Vue), `types={['slider']}` (Svelte), `[types]="['slider']"` (Angular).
+The wrappers take a `types` prop (string or array): `<NawaCaptcha types={['slider', 'pairs']} />` (React), `:types="['slider']"` (Vue), `types={['slider']}` (Svelte), `[types]="['slider']"` (Angular).
 
 On the verifying side, restrict what a route accepts:
 
@@ -141,9 +165,9 @@ await verifyPassToken(token, { secret, expectedAction: 'checkout', allowedTypes:
 ```
 
 ```csharp
-// appsettings: "NawaGuard": { "AllowedTypes": ["slider", "maze"], "ActionAllowedTypes": { "login": ["pow", "slider"] }, "MinSteps": 1 }
-app.MapPost("/pay", Pay).RequireNawaGuard("checkout", new NawaGuardRequirements(AllowedTypes: ["slider", "maze"], MinSteps: 2));
-[HttpPost("signup"), RequireNawaGuard("signup", AllowedTypes = new[] { "maze", "pairs" }, MinSteps = 2)]
+// appsettings: "NawaCaptcha": { "AllowedTypes": ["slider", "maze"], "ActionAllowedTypes": { "login": ["pow", "slider"] }, "MinSteps": 1 }
+app.MapPost("/pay", Pay).RequireNawaCaptcha("checkout", new NawaCaptchaRequirements(AllowedTypes: ["slider", "maze"], MinSteps: 2));
+[HttpPost("signup"), RequireNawaCaptcha("signup", AllowedTypes = new[] { "maze", "pairs" }, MinSteps = 2)]
 ```
 
 For a multi-step token, `allowedTypes` passes when **at least one** solved step is allowed (so `['pow', 'slider']` passes a route that excludes `pow`); `minSteps` counts the solved steps. A token for the wrong count fails with `too-few-steps`.
@@ -152,16 +176,16 @@ For a multi-step token, `allowedTypes` passes when **at least one** solved step 
 
 ## Live demo and demo mode
 
-- **[Playground](https://oriebalzyuot96.github.io/nawa-guard/#playground)** on the static site: pick any type, mix several and watch `random` / `sequence` / `adaptive` and multi-step behaviour, switch Arabic/English (RTL) and light/dark (Nawa UI tokens), and read the decoded pass token and the sealed claims.
-- **[StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard)** runs the real Node demo server (`.stackblitzrc` starts `npm run demo`): a protected form, a two-step checkout, a protected JSON API and a gallery of every type.
+- **[Playground](https://oriebalzyuot96.github.io/nawa-captcha/#playground)** on the static site: pick any type, mix several and watch `random` / `sequence` / `adaptive` and multi-step behaviour, switch Arabic/English (RTL), widget theme, appearance and sound, try the audio challenge, and read the decoded pass token and the sealed claims.
+- **[StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-captcha)** runs the real Node demo server (`.stackblitzrc` starts `npm run demo`): a protected form, a two-step checkout, a protected JSON API and a gallery of every type.
 
-GitHub Pages has no server, so the site runs in **demo mode**: [`scripts/build-site.mjs`](scripts/build-site.mjs) bundles the real `@nawa-guard/server` engine with esbuild, swapping the Node platform layer ([`primitives.ts`](packages/server/src/primitives.ts): `node:crypto`, `node:zlib`) for [`primitives.browser.ts`](packages/server/src/primitives.browser.ts) (`crypto.getRandomValues`, small SHA-256/HMAC/HKDF/AES-256-GCM implementations tested byte-for-byte against Node, and stored-block deflate for PNGs). An in-page endpoint shim ([`site/src/demo-endpoint.ts`](site/src/demo-endpoint.ts)) answers the widget's `fetch()` calls. Limits, by design:
+GitHub Pages has no server, so the site runs in **demo mode**: [`scripts/build-site.mjs`](scripts/build-site.mjs) bundles the real `@nawa-captcha/server` engine with esbuild, swapping the Node platform layer ([`primitives.ts`](packages/server/src/primitives.ts): `node:crypto`, `node:zlib`) for [`primitives.browser.ts`](packages/server/src/primitives.browser.ts) (`crypto.getRandomValues`, small SHA-256/HMAC/HKDF/AES-256-GCM implementations tested byte-for-byte against Node, and stored-block deflate for PNGs). An in-page endpoint shim ([`site/src/demo-endpoint.ts`](site/src/demo-endpoint.ts)) answers the widget's `fetch()` calls. Limits, by design:
 
 - The secret is generated in the page, so anyone can read the sealed solutions there (the playground even shows them). Demo mode is for learning and trying puzzles, never for protecting anything.
 - PNGs are stored uncompressed (larger data URLs); generation runs on the main thread (tens of ms per puzzle).
 - No rate limits across tabs, no real client IP (a fixed demo IP plus your User-Agent).
 
-The `browser` field of `@nawa-guard/server` maps the platform layer for bundlers too, so the engine also runs in workers or edge runtimes; in production it belongs on a server that keeps the secret.
+The `browser` field of `@nawa-captcha/server` maps the platform layer for bundlers too, so the engine also runs in workers or edge runtimes; in production it belongs on a server that keeps the secret.
 
 ---
 
@@ -170,8 +194,8 @@ The `browser` field of `@nawa-guard/server` maps the platform layer for bundlers
 ```mermaid
 sequenceDiagram
     autonumber
-    participant B as Browser (nawa-guard widget)
-    participant C as Captcha endpoints (@nawa-guard/server)
+    participant B as Browser (nawa-captcha widget)
+    participant C as Captcha endpoints (@nawa-captcha/server)
     participant A as Your backend (protected route)
     B->>C: POST /captcha/challenge { siteKey, action, lang, types? }
     C->>C: pick a type (allow-list, mode, level), render it as PNG/SVG, seal solution + expiry + client binding (AES-256-GCM)
@@ -180,7 +204,7 @@ sequenceDiagram
     B->>C: POST /captcha/verify { token, answer }
     C->>C: open token, check expiry, client binding, rate limit, attempts,<br/>min solve time, tolerance, trajectory heuristics, one-time id
     C-->>B: { token: "ngp1…" pass token (HMAC-signed, single use, ~120 s) }<br/>or, with steps > 1, { next: <the next challenge> }
-    B->>A: POST /login + hidden field "nawa-guard-token" or header X-Nawa-Guard-Token
+    B->>A: POST /login + hidden field "nawa-captcha-token" or header X-Nawa-Captcha-Token
     A->>A: verifyPassToken(): signature, kid, expiry, max age, action,<br/>site key, client binding, single-use redemption
     A-->>B: 200 OK, or 403 { error: "captcha-required", code }
 ```
@@ -192,16 +216,16 @@ The captcha endpoints and the protected route can be the same Node app (as in th
 ## Quick start (Node + Express)
 
 ```bash
-npm install @nawa-guard/server @nawa-guard/widget express
+npm install @nawa-captcha/server @nawa-captcha/widget express
 ```
 
 ```js
 import express from 'express';
-import { createNawaGuard } from '@nawa-guard/server';
-import { nawaGuardExpress, requireCaptcha } from '@nawa-guard/server/express';
+import { createNawaCaptcha } from '@nawa-captcha/server';
+import { nawaCaptchaExpress, requireCaptcha } from '@nawa-captcha/server/express';
 
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET, // ≥ 32 chars, from your secret store; never sent to browsers
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET, // ≥ 32 chars, from your secret store; never sent to browsers
   siteKeys: ['main'],                     // public identifiers the widget may use
   actions: ['login', 'signup', 'contact'],
 });
@@ -210,13 +234,13 @@ const app = express();
 app.set('trust proxy', 1); // only if you are behind a reverse proxy, so req.ip is the browser's IP
 
 // 1) Challenge + verify endpoints → POST /captcha/challenge, POST /captcha/verify
-app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
+app.use('/captcha', express.json({ limit: '32kb' }), nawaCaptchaExpress(guard));
 
-// 2) Protect routes. The token comes from the X-Nawa-Guard-Token header or the nawa-guard-token field.
+// 2) Protect routes. The token comes from the X-Nawa-Captcha-Token header or the nawa-captcha-token field.
 app.post('/login',
   express.urlencoded({ extended: false }),
   requireCaptcha(guard, { expectedAction: 'login', maxAgeSec: 300 }),
-  (req, res) => res.send(`ok, solved with ${req.nawaGuard.typ}`));
+  (req, res) => res.send(`ok, solved with ${req.nawaCaptcha.typ}`));
 ```
 
 Generate a secret once with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
@@ -228,11 +252,11 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 ### Plain HTML / any framework (Web Component)
 
 ```html
-<script type="module">import '@nawa-guard/widget';</script>
+<script type="module">import '@nawa-captcha/widget';</script>
 
 <form method="post" action="/login">
   <input name="email" type="email" required>
-  <nawa-guard site-key="main" endpoint="/captcha" action="login" lang="ar"></nawa-guard>
+  <nawa-captcha site-key="main" endpoint="/captcha" action="login" lang="ar"></nawa-captcha>
   <button>Sign in</button>
 </form>
 ```
@@ -243,7 +267,7 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 | `endpoint` | `/captcha` | Base URL of the two endpoints. |
 | `action` | `default` | Action name. The backend must expect the same action. |
 | `lang` | inherited `lang`, else `en` | `ar` or `en`. Arabic switches the widget to RTL. |
-| `name` | `nawa-guard-token` | Name of the hidden `<input>` (in light DOM) that is submitted with the form. |
+| `name` | `nawa-captcha-token` | Name of the hidden `<input>` (in light DOM) that is submitted with the form. |
 | `types` | (server decides) | Comma-separated types to **narrow** the server's allow-list, e.g. `slider,rotate`. Never widens it; ignored if none of them is allowed. |
 | `type` | (server decides) | One exact puzzle. Only honoured with `allowClientType: true` (galleries), except `accessible` and `audio`, which are always allowed. |
 | `dir` | from `lang` | Forces `rtl` or `ltr`. |
@@ -255,53 +279,53 @@ Generate a secret once with `node -e "console.log(require('crypto').randomBytes(
 | `tilt` | on | `tilt="off"` disables the pointer-following tilt (it is already off for touch, reduced motion and high contrast). |
 
 Events, all `bubbles` + `composed`:
-- `nawa-guard:verified` with `detail: { token, expiresInMs, type }` (after the last step of a multi-step chain)
-- `nawa-guard:expired` (the pass token lapsed and a new challenge loads)
-- `nawa-guard:error` with `detail: { error: 'network' | 'rate-limited' | 'config' }`
+- `nawa-captcha:verified` with `detail: { token, expiresInMs, type }` (after the last step of a multi-step chain)
+- `nawa-captcha:expired` (the pass token lapsed and a new challenge loads)
+- `nawa-captcha:error` with `detail: { error: 'network' | 'rate-limited' | 'config' }`
 
-API: `el.token` (`''` until verified) and `el.reset()`. Call `reset()` after you use a token, because tokens are single-use. Properties `theme`, `sound`, `volume` and `muted` mirror the attributes; `setNawaGuardMuted(true)` (exported by `@nawa-guard/widget`) mutes every widget on the page.
+API: `el.token` (`''` until verified) and `el.reset()`. Call `reset()` after you use a token, because tokens are single-use. Properties `theme`, `sound`, `volume` and `muted` mirror the attributes; `setNawaCaptchaMuted(true)` (exported by `@nawa-captcha/widget`) mutes every widget on the page.
 
 ```js
-const guard = document.querySelector('nawa-guard');
-guard.addEventListener('nawa-guard:verified', (e) => submitBtn.disabled = false);
-await fetch('/api/contact', { method: 'POST', headers: { 'X-Nawa-Guard-Token': guard.token, 'Content-Type': 'application/json' }, body });
+const guard = document.querySelector('nawa-captcha');
+guard.addEventListener('nawa-captcha:verified', (e) => submitBtn.disabled = false);
+await fetch('/api/contact', { method: 'POST', headers: { 'X-Nawa-Captcha-Token': guard.token, 'Content-Type': 'application/json' }, body });
 guard.reset();
 ```
 
 ### React
 
 ```tsx
-import { NawaGuard, useNawaGuard } from '@nawa-guard/react';
+import { NawaCaptcha, useNawaCaptcha } from '@nawa-captcha/react';
 
 export function LoginForm() {
-  const guard = useNawaGuard();
+  const guard = useNawaCaptcha();
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await fetch('/api/login', { method: 'POST', headers: { 'X-Nawa-Guard-Token': guard.token } });
+    await fetch('/api/login', { method: 'POST', headers: { 'X-Nawa-Captcha-Token': guard.token } });
     guard.reset(); // single-use
   }
   return (
     <form onSubmit={onSubmit}>
-      <NawaGuard siteKey="main" action="login" lang="ar" {...guard.bind} />
+      <NawaCaptcha siteKey="main" action="login" lang="ar" {...guard.bind} />
       <button disabled={!guard.verified}>Sign in</button>
     </form>
   );
 }
 ```
 
-`<NawaGuard>` also accepts `onVerify(token, detail)`, `onExpire()`, `onError(detail)` and a `ref` (`{ reset(), token }`).
+`<NawaCaptcha>` also accepts `onVerify(token, detail)`, `onExpire()`, `onError(detail)` and a `ref` (`{ reset(), token }`).
 
 ### Vue 3
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { NawaGuard } from '@nawa-guard/vue';
+import { NawaCaptcha } from '@nawa-captcha/vue';
 const token = ref('');
 </script>
 
 <template>
-  <NawaGuard v-model="token" site-key="main" action="login" lang="ar" @error="(d) => console.warn(d)" />
+  <NawaCaptcha v-model="token" site-key="main" action="login" lang="ar" @error="(d) => console.warn(d)" />
   <button :disabled="!token">Sign in</button>
   <!-- setting token.value = '' after a submit loads a fresh challenge -->
 </template>
@@ -311,13 +335,13 @@ const token = ref('');
 
 ```svelte
 <script lang="ts">
-  import { NawaGuard } from '@nawa-guard/svelte';
+  import { NawaCaptcha } from '@nawa-captcha/svelte';
   let token = $state('');
-  let guard: ReturnType<typeof NawaGuard>;
+  let guard: ReturnType<typeof NawaCaptcha>;
 </script>
 
-<NawaGuard bind:this={guard} bind:token siteKey="main" action="login" lang="ar" />
-<button disabled={!token} onclick={() => fetch('/api/login', { method: 'POST', headers: { 'X-Nawa-Guard-Token': token } }).finally(() => guard.reset())}>
+<NawaCaptcha bind:this={guard} bind:token siteKey="main" action="login" lang="ar" />
+<button disabled={!token} onclick={() => fetch('/api/login', { method: 'POST', headers: { 'X-Nawa-Captcha-Token': token } }).finally(() => guard.reset())}>
   Sign in
 </button>
 ```
@@ -328,15 +352,15 @@ const token = ref('');
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { NawaGuardComponent } from '@nawa-guard/angular';
+import { NawaCaptchaComponent } from '@nawa-captcha/angular';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, NawaGuardComponent],
+  imports: [ReactiveFormsModule, NawaCaptchaComponent],
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()">
       <input formControlName="email" type="email" />
-      <nawa-guard-captcha formControlName="captcha" siteKey="main" action="login" lang="ar" />
+      <nawa-captcha formControlName="captcha" siteKey="main" action="login" lang="ar" />
       <button [disabled]="form.invalid">Sign in</button>
     </form>`,
 })
@@ -346,13 +370,13 @@ export class LoginComponent {
 
   submit() {
     const { email, captcha } = this.form.getRawValue();
-    this.http.post('/api/login', { email }, { headers: { 'X-Nawa-Guard-Token': captcha } })
+    this.http.post('/api/login', { email }, { headers: { 'X-Nawa-Captcha-Token': captcha } })
       .subscribe({ complete: () => this.form.controls.captcha.reset() }); // reset → fresh challenge
   }
 }
 ```
 
-The control value is the pass token. The control reports `{ nawaGuard: true }` until the user is verified. `setDisabledState` makes the widget inert. Outputs: `(verified)`, `(expired)`, `(failed)`.
+The control value is the pass token. The control reports `{ nawaCaptcha: true }` until the user is verified. `setDisabledState` makes the widget inert. Outputs: `(verified)`, `(expired)`, `(failed)`.
 
 ### Theming
 
@@ -387,7 +411,7 @@ Every preset has a light and a dark palette; `appearance="auto|light|dark|high-c
 
 **Orca UI tokens.** With `theme="auto"` the widget reads Orca UI design tokens through the shadow boundary, so it follows your Orca UI theme (light, dark or high contrast) automatically. The legacy Nawa UI tokens (`--nw-*`, Orca UI's previous name) still work. Each colour resolves in this order:
 
-1. `--nawa-guard-<name>`: per-widget override (set it on the element or any ancestor)
+1. `--nawa-captcha-<name>`: per-widget override (set it on the element or any ancestor)
 2. the explicit preset (`theme="midnight"`…) or the high-contrast palette
 3. `--oc-<name>`: Orca UI token
 4. `--nw-<name>`: legacy Nawa UI token
@@ -400,11 +424,11 @@ Every preset has a light and a dark palette; `appearance="auto|light|dark|high-c
 | Text | `text`, `text-muted` |
 | Lines | `border`, `control-border`, `focus` |
 | Status | `success`, `success-soft`, `danger`, `danger-soft` |
-| Shape / type | `--nawa-guard-radius` / `--oc-radius` / `--nw-radius`, `radius-sm`, `font` |
+| Shape / type | `--nawa-captcha-radius` / `--oc-radius` / `--nw-radius`, `radius-sm`, `font` |
 
 ```html
-<nawa-guard theme="midnight" appearance="dark" …></nawa-guard>
-<nawa-guard style="--nawa-guard-primary:#0a7cff; --nawa-guard-radius:12px" …></nawa-guard>
+<nawa-captcha theme="midnight" appearance="dark" …></nawa-captcha>
+<nawa-captcha style="--nawa-captcha-primary:#0a7cff; --nawa-captcha-radius:12px" …></nawa-captcha>
 ```
 
 If you override colours yourself, keep them AA: the contrast pairs are listed in [`packages/widget/src/themes.ts`](packages/widget/src/themes.ts) (`CONTRAST_PAIRS`, `checkContrast()` and `contrastRatio()` are exported).
@@ -416,7 +440,7 @@ Short, soft cues synthesized with the Web Audio API (no audio files): grab, snap
 - **Off by default.** Turn it on with the `sound` attribute/property, or let visitors use the speaker button in the widget. The visitor's choice and volume are remembered per site (`localStorage`, any storage error is ignored) and beat the site default.
 - **Never before a gesture.** No `AudioContext` is created and nothing plays until the visitor has pressed a key or pointer inside the widget (trusted events only).
 - **Volume** slider in the widget footer while sound is on, or the `volume` attribute (`0`–`1`).
-- **App-level mute:** the `muted` attribute on a widget, `setNawaGuardMuted(true)` for every widget, or `data-nawa-guard-muted` on `<html>`.
+- **App-level mute:** the `muted` attribute on a widget, `setNawaCaptchaMuted(true)` for every widget, or `data-nawa-captcha-muted` on `<html>`.
 - **Never the only signal:** every state change is still announced in the live region.
 
 ### Audio challenge
@@ -427,7 +451,7 @@ For blind and low-vision visitors the accessible mode (the person icon) offers *
 - The answer is sealed in the challenge token like every other type and is never in the JSON; the clip carries it only as sound. Answers like `4 7 2 1`, `4-7-2-1` or Arabic-Indic digits are accepted; beep counts also as words (EN/AR).
 - Nothing plays until **Play** is pressed (Web Audio decode, so no `media-src` CSP entry is needed; `<audio>` fallback). Three plays per challenge, no transcript, and the result field gets focus when the clip ends.
 - An answer sooner than ~¾ of the clip (max 4 s) is refused, and it carries the same PoW tax as `accessible`.
-- Honest limits: speech recognisers can read audio CAPTCHAs, so treat `audio` as low assurance (it is in `NawaGuardChallengeTypes.LowAssurance`); the replay limit is a UX limit (the clip is in the page). The synthesized digits were checked with the Windows speech recogniser: 9 of 10 digits are recognised in clean conditions (it misses "two"), so a real listener should test the voice before you rely on it.
+- Honest limits: speech recognisers can read audio CAPTCHAs, so treat `audio` as low assurance (it is in `NawaCaptchaChallengeTypes.LowAssurance`); the replay limit is a UX limit (the clip is in the page). The synthesized digits were checked with the Windows speech recogniser: 9 of 10 digits are recognised in clean conditions (it misses "two"), so a real listener should test the voice before you rely on it.
 
 ---
 
@@ -438,10 +462,10 @@ For blind and low-vision visitors the accessible mode (the person icon) offers *
 `requireCaptcha(guard, opts)` is shown above. The standalone function needs only the secret:
 
 ```js
-import { verifyPassToken } from '@nawa-guard/server';
+import { verifyPassToken } from '@nawa-captcha/server';
 
-const result = await verifyPassToken(req.get('x-nawa-guard-token'), {
-  secret: process.env.NAWA_GUARD_SECRET,     // or [{ kid, secret }, …] during rotation
+const result = await verifyPassToken(req.get('x-nawa-captcha-token'), {
+  secret: process.env.NAWA_CAPTCHA_SECRET,     // or [{ kid, secret }, …] during rotation
   expectedAction: 'login',                   // required; tokens are not interchangeable across actions
   maxAgeSec: 120,
   client: { ip: req.ip, userAgent: req.get('user-agent') }, // required for bound tokens
@@ -460,22 +484,22 @@ The framework-agnostic handlers are `handleChallenge(guard, { body, client })` a
 
 ```csharp
 // Program.cs
-builder.Services.AddNawaGuard(builder.Configuration.GetSection("NawaGuard"));
-// appsettings / user-secrets / env:  NawaGuard__Secret=<same secret as the Node server>
-//                                    NawaGuard__ExpectedSiteKey=main, NawaGuard__MaxAgeSeconds=300
+builder.Services.AddNawaCaptcha(builder.Configuration.GetSection("NawaCaptcha"));
+// appsettings / user-secrets / env:  NawaCaptcha__Secret=<same secret as the Node server>
+//                                    NawaCaptcha__ExpectedSiteKey=main, NawaCaptcha__MaxAgeSeconds=300
 
 var app = builder.Build();
 app.UseForwardedHeaders(); // if behind a proxy: RemoteIpAddress must be the browser's IP
 
 // Minimal API
-app.MapPost("/api/contact", (ContactDto dto) => Results.Ok()).RequireNawaGuard("contact");
+app.MapPost("/api/contact", (ContactDto dto) => Results.Ok()).RequireNawaCaptcha("contact");
 
 // Controllers
-[HttpPost("login"), RequireNawaGuard("login")]
+[HttpPost("login"), RequireNawaCaptcha("login")]
 public IActionResult Login(LoginDto dto) => Ok();
 
 // Manual
-public async Task<IActionResult> Signup([FromServices] INawaGuardVerifier guard, SignupDto dto)
+public async Task<IActionResult> Signup([FromServices] INawaCaptchaVerifier guard, SignupDto dto)
 {
     var result = await guard.VerifyAsync(HttpContext, "signup");
     if (!result.Success) return Problem(statusCode: 403, title: result.Error.ToCode());
@@ -483,13 +507,13 @@ public async Task<IActionResult> Signup([FromServices] INawaGuardVerifier guard,
 }
 ```
 
-The filters read the token from `X-Nawa-Guard-Token` or from the `nawa-guard-token` form field. They don't read JSON bodies, so send the header for JSON APIs. Rejections are `403` `ProblemDetails` with `extensions.code` set to one of the error codes above. On success the claims are in `HttpContext.Items[NawaGuardVerifier.HttpContextItemKey]`.
+The filters read the token from `X-Nawa-Captcha-Token` or from the `nawa-captcha-token` form field. They don't read JSON bodies, so send the header for JSON APIs. Rejections are `403` `ProblemDetails` with `extensions.code` set to one of the error codes above. On success the claims are in `HttpContext.Items[NawaCaptchaVerifier.HttpContextItemKey]`.
 
-**Single use across instances:** the default `InMemoryReplayStore` works for one instance only. Behind a load balancer, register a shared one before `AddNawaGuard`:
+**Single use across instances:** the default `InMemoryReplayStore` works for one instance only. Behind a load balancer, register a shared one before `AddNawaCaptcha`:
 
 ```csharp
 // StackExchange.Redis
-services.AddSingleton<INawaGuardReplayStore>(sp => new DelegateReplayStore((key, ttl, _) =>
+services.AddSingleton<INawaCaptchaReplayStore>(sp => new DelegateReplayStore((key, ttl, _) =>
     sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase().StringSetAsync(key, "1", ttl, When.NotExists)));
 ```
 
@@ -537,10 +561,10 @@ Verification order: format → kid → constant-time signature check (before par
 ## Server options
 
 ```ts
-createNawaGuard({
+createNawaCaptcha({
   secret,                       // string | { kid, secret }[]   (first entry signs)
   siteKeys, actions,            // allow-lists (recommended)
-  store,                        // NawaGuardStore: MemoryStore (default), ioredisStore(client), nodeRedisStore(client)
+  store,                        // NawaCaptchaStore: MemoryStore (default), ioredisStore(client), nodeRedisStore(client)
   challengeTtlSec: 120, passTtlSec: 120,
   bind: 'ip+ua',                // 'none' | 'ip' | 'ua' | 'ip+ua'
   types,                        // allow-list of challenge types (default: all) — see "Choosing puzzles"
@@ -548,7 +572,7 @@ createNawaGuard({
   mode: 'adaptive',             // 'random' | 'sequence' | 'adaptive'
   steps: 1,                     // puzzles in a row before a pass token (1-3)
   perAction: { login: ['pow', 'slider'], signup: { types: [...], steps: 2, mode: 'random', powBits: 18 } },
-  clientNarrowing: true,        // honour <nawa-guard types="…"> (narrows only)
+  clientNarrowing: true,        // honour <nawa-captcha types="…"> (narrows only)
   allowAccessible: true,        // the text alternative can always be requested
   ladder: DEFAULT_LADDER,       // adaptive rungs: [['slider','rotate'], [+ icons, order, trace, jigsaw, pairs…], [+ maze, spell, symmetry…]]
   invisibleFirst: false,        // true → level 0 is an invisible 'pow'; visible puzzles appear after failures
@@ -581,13 +605,13 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 
 **No oracle for bots.** The browser only learns `failed`, `expired`, `invalid-token`, `invalid-input` or `rate-limited`. The precise reason (`too-fast`, `bot-suspected:constant-velocity`, `client-mismatch`, …) only goes to your `onEvent` logger.
 
-**Secret rotation with key IDs.** Configure `[{ kid: 'k2', secret: new }, { kid: 'k1', secret: old }]`. New tokens are issued under `k2`, and outstanding `k1` tokens keep verifying. Remove `k1` after `max(challengeTtlSec, passTtlSec)`. The secret is dedicated to Nawa Guard and is never derived from your JWT key. Purpose-separated HKDF subkeys mean a challenge key can't sign a pass token.
+**Secret rotation with key IDs.** Configure `[{ kid: 'k2', secret: new }, { kid: 'k1', secret: old }]`. New tokens are issued under `k2`, and outstanding `k1` tokens keep verifying. Remove `k1` after `max(challengeTtlSec, passTtlSec)`. The secret is dedicated to Nawa Captcha and is never derived from your JWT key. Purpose-separated HKDF subkeys mean a challenge key can't sign a pass token.
 
 **Input validation.** Every endpoint validates shape, type, size and range: token length ≤ 8 KB, trails ≤ 800 points with finite numbers and monotonic time, enumerated types and actions, bounded strings, and a 32 KB body limit in the Express adapter. Responses are `Cache-Control: no-store` and `nosniff`. There is no `eval` and no `innerHTML` with server data. The widget only accepts `data:image/png|svg+xml;base64` images, and SVGs are displayed through `<img>` so they can't run script.
 
-**What the heuristics can and can't stop.** The pointer-trajectory checks look at sample count, duration, timing regularity, speed variation and entropy, off-axis wobble and the heading noise of freehand strokes. They also check that the trail's travel agrees with the submitted answer. They reliably reject cheap automation: synthetic straight-line, constant-speed or instant drags. In the demo, a scripted browser-automation drag was rejected as `too-few-samples`. They **can't** stop a determined attacker who replays recorded human trajectories, uses computer vision to find the gap or angle, or pays a human solving service. Keyboard input is deliberately judged leniently for accessibility, which also gives bots a weaker path. Treat Nawa Guard as **cost-raising friction**, layered with rate limits, account lockout, `assessRisk` and monitoring of `onEvent` solve rates. No CAPTCHA, including this one, is proof of humanity.
+**What the heuristics can and can't stop.** The pointer-trajectory checks look at sample count, duration, timing regularity, speed variation and entropy, off-axis wobble and the heading noise of freehand strokes. They also check that the trail's travel agrees with the submitted answer. They reliably reject cheap automation: synthetic straight-line, constant-speed or instant drags. In the demo, a scripted browser-automation drag was rejected as `too-few-samples`. They **can't** stop a determined attacker who replays recorded human trajectories, uses computer vision to find the gap or angle, or pays a human solving service. Keyboard input is deliberately judged leniently for accessibility, which also gives bots a weaker path. Treat Nawa Captcha as **cost-raising friction**, layered with rate limits, account lockout, `assessRisk` and monitoring of `onEvent` solve rates. No CAPTCHA, including this one, is proof of humanity.
 
-**Type-specific strength.** The drag, rotate, multi-select, tap, order and draw types are moderate (raster images, decoys, random styling, combinatorial or continuous answers). The single-choice types (`odd-one-out`, `odd-rotation`, `biggest`, `shadow-pick`, `pattern`, `clock`) and `hold`, `count`, `dice` have a blind-guess rate between 1 in 4 and 1 in 16 (see the tables), so they get one attempt and are not on the default ladder; use them for low-risk forms or inside a `steps: 2` chain. `math` is low assurance (OCR-able). `pow` proves CPU spent, not humanity. `accessible` is machine-readable by design, so it carries a PoW tax and is visible in the pass token (`typ`). Every type is a picture a computer-vision model could learn to read: that is a cost, not a wall. Sensitive routes can restrict `allowedTypes` (the .NET `NawaGuardChallengeTypes.LowAssurance` list helps), require `minSteps`, or ask for a second factor when `typ` is `accessible` or `pow`.
+**Type-specific strength.** The drag, rotate, multi-select, tap, order and draw types are moderate (raster images, decoys, random styling, combinatorial or continuous answers). The single-choice types (`odd-one-out`, `odd-rotation`, `biggest`, `shadow-pick`, `pattern`, `clock`) and `hold`, `count`, `dice` have a blind-guess rate between 1 in 4 and 1 in 16 (see the tables), so they get one attempt and are not on the default ladder; use them for low-risk forms or inside a `steps: 2` chain. `math` is low assurance (OCR-able). `pow` proves CPU spent, not humanity. `accessible` is machine-readable by design, so it carries a PoW tax and is visible in the pass token (`typ`). Every type is a picture a computer-vision model could learn to read: that is a cost, not a wall. Sensitive routes can restrict `allowedTypes` (the .NET `NawaCaptchaChallengeTypes.LowAssurance` list helps), require `minSteps`, or ask for a second factor when `typ` is `accessible` or `pow`.
 
 **Selection is server-side.** The browser's `types` hint can only narrow the configured allow-list, so it can steer a visitor among the types you allowed but never to one you did not. If you don't want visitors to pick the easiest allowed type, set `clientNarrowing: false`.
 
@@ -621,20 +645,20 @@ The store interface has two atomic primitives (`setIfAbsent`, `increment`) plus 
 
 ## Integrate into mashroo3hub
 
-mashroo3hub currently runs its own 3×3 "board" captcha. On the client that's `ui-recaptcha` plus `LoginCaptchaDialogComponent` and the `login-recoth` dialog. On the server it's `LoginCaptchaService`, `LoginCaptchaGate` and the `RequestLoginOtp` board branch. Nawa Guard maps onto it without breaking the onion rules, in five steps.
+mashroo3hub currently runs its own 3×3 "board" captcha. On the client that's `ui-recaptcha` plus `LoginCaptchaDialogComponent` and the `login-recoth` dialog. On the server it's `LoginCaptchaService`, `LoginCaptchaGate` and the `RequestLoginOtp` board branch. Nawa Captcha maps onto it without breaking the onion rules, in five steps.
 
 **1. Run the challenge service as a sidecar.** Challenge generation is Node-only, so add a tiny service and serve it under the same origin as the API at `/captcha`, through the reverse proxy and the Angular dev `proxy.conf`:
 
 ```js
-// captcha/server.mjs  (docker-compose service "captcha", NAWA_GUARD_SECRET from the same secret store as the API)
+// captcha/server.mjs  (docker-compose service "captcha", NAWA_CAPTCHA_SECRET from the same secret store as the API)
 import express from 'express';
-import { createNawaGuard, nodeRedisStore } from '@nawa-guard/server';
-import { nawaGuardExpress } from '@nawa-guard/server/express';
+import { createNawaCaptcha, nodeRedisStore } from '@nawa-captcha/server';
+import { nawaCaptchaExpress } from '@nawa-captcha/server/express';
 import { createClient } from 'redis';
 
 const redis = await createClient({ url: process.env.REDIS_URL }).connect();
-const guard = createNawaGuard({
-  secret: process.env.NAWA_GUARD_SECRET,
+const guard = createNawaCaptcha({
+  secret: process.env.NAWA_CAPTCHA_SECRET,
   siteKeys: ['mashroo3hub-web'],
   actions: ['login', 'login-otp', 'password-reset', 'social'],   // = LoginCaptchaPurpose
   bind: 'ip',                       // the API sees the same client IP through the proxy
@@ -642,7 +666,7 @@ const guard = createNawaGuard({
 });
 const app = express();
 app.set('trust proxy', 1);
-app.use('/captcha', express.json({ limit: '32kb' }), nawaGuardExpress(guard));
+app.use('/captcha', express.json({ limit: '32kb' }), nawaCaptchaExpress(guard));
 app.listen(8080);
 ```
 
@@ -650,17 +674,17 @@ app.listen(8080);
 
 ```ts
 // login-captcha-dialog.component.ts
-imports: [..., NawaGuardComponent],
+imports: [..., NawaCaptchaComponent],
 protected readonly action = computed(() => ({ otp: 'login-otp', password: 'login', reset: 'password-reset', social: 'social' })[this.purpose()]);
 protected readonly captcha = new FormControl('', { nonNullable: true });
 // template:
-// <nawa-guard-captcha [formControl]="captcha" siteKey="mashroo3hub-web" [action]="action()" [lang]="i18n.lang()"
+// <nawa-captcha [formControl]="captcha" siteKey="mashroo3hub-web" [action]="action()" [lang]="i18n.lang()"
 //                     (verified)="confirmed.emit({ token: $event.token })" />
 ```
 
-`LoginCaptchaProof` becomes `{ token: string }`. In `AuthApiService.wireCaptcha()`, send `captchaToken` only and drop `captchaKind`/`captchaMove`, or set an `X-Nawa-Guard-Token` header from an interceptor. The local `createCaptchaPuzzle` fallback, the `chooseGame` picker and `isCorrectCaptchaMove` are no longer needed. On `CP0003`/`CP0001`, call `this.captcha.reset()` to get a fresh challenge. This replaces `captchaReload`.
+`LoginCaptchaProof` becomes `{ token: string }`. In `AuthApiService.wireCaptcha()`, send `captchaToken` only and drop `captchaKind`/`captchaMove`, or set an `X-Nawa-Captcha-Token` header from an interceptor. The local `createCaptchaPuzzle` fallback, the `chooseGame` picker and `isCorrectCaptchaMove` are no longer needed. On `CP0003`/`CP0001`, call `this.captcha.reset()` to get a fresh challenge. This replaces `captchaReload`.
 
-**3. Update the .NET API while keeping the onion layering.** Application keeps owning the abstraction, and Infrastructure implements it with `NawaGuard.AspNetCore`:
+**3. Update the .NET API while keeping the onion layering.** Application keeps owning the abstraction, and Infrastructure implements it with `NawaCaptcha.AspNetCore`:
 
 ```csharp
 // mashroo3hub.Application/Common/Interfaces/IHumanCheck.cs
@@ -669,28 +693,28 @@ public interface IHumanCheck
     Task<CaptchaVerifyStatus> VerifyAsync(string? passToken, string action, string? clientIp, string? userAgent);
 }
 
-// mashroo3hub.Infrastructure/Notifications/NawaGuardHumanCheck.cs
-public sealed class NawaGuardHumanCheck(INawaGuardVerifier verifier) : IHumanCheck
+// mashroo3hub.Infrastructure/Notifications/NawaCaptchaHumanCheck.cs
+public sealed class NawaCaptchaHumanCheck(INawaCaptchaVerifier verifier) : IHumanCheck
 {
     public async Task<CaptchaVerifyStatus> VerifyAsync(string? token, string action, string? ip, string? ua)
     {
-        var r = await verifier.VerifyAsync(token, action, new NawaGuardClient(ip, ua));
+        var r = await verifier.VerifyAsync(token, action, new NawaCaptchaClient(ip, ua));
         return r.Success ? CaptchaVerifyStatus.Success
-             : r.Error is NawaGuardError.Expired or NawaGuardError.Replayed or NawaGuardError.MissingToken ? CaptchaVerifyStatus.Expired
+             : r.Error is NawaCaptchaError.Expired or NawaCaptchaError.Replayed or NawaCaptchaError.MissingToken ? CaptchaVerifyStatus.Expired
              : CaptchaVerifyStatus.Invalid;
     }
 }
 
 // mashroo3hub.Infrastructure/Common/DependencyInjection.cs
-services.AddSingleton<INawaGuardReplayStore>(sp => new DelegateReplayStore(async (key, ttl, _) =>
+services.AddSingleton<INawaCaptchaReplayStore>(sp => new DelegateReplayStore(async (key, ttl, _) =>
     await sp.GetRequiredService<ICacheManager>().Increment(key, ttl) == 1));   // INCR is atomic
-services.AddNawaGuard(configuration.GetSection("NawaGuard"));
-services.AddScoped<IHumanCheck, NawaGuardHumanCheck>();
+services.AddNawaCaptcha(configuration.GetSection("NawaCaptcha"));
+services.AddScoped<IHumanCheck, NawaCaptchaHumanCheck>();
 ```
 
 In `LoginCaptchaGate.EnsureAsync`, replace `captcha.VerifyAsync(token, wire, move, clientKey)` with `humanCheck.VerifyAsync(token, action, clientKey, userAgent)`. Keep the existing behaviour around it: an empty token with an `allowResendGrant` grant still passes, `CP0002` is returned when the token is missing, and the existing `CP0001`/`CP0003` mapping stays. `UsersController` already sets `ClientKey` from `RemoteIpAddress`. Add `UserAgent` the same way if you choose `bind: 'ip+ua'`, and call `app.UseForwardedHeaders()` when running behind the proxy. The board-issuing branch of `RequestLoginOtp` (`IsBoardRequest`) and `CaptchaKind`/`CaptchaMove` are no longer needed. `GrantResendAsync` and `GrantSocialAsync` can stay as they are: they are server-side grants issued *after* a successful check.
 
-**4. Configuration.** Set `NawaGuard__Secret` (API) and `NAWA_GUARD_SECRET` (sidecar) to the same value. Use a new secret, not `JWT:JwtSigningKey`. Optionally set `NawaGuard__ExpectedSiteKey=mashroo3hub-web`, and `NawaGuard__AllowedTypes` to exclude `pow` for password reset.
+**4. Configuration.** Set `NawaCaptcha__Secret` (API) and `NAWA_CAPTCHA_SECRET` (sidecar) to the same value. Use a new secret, not `JWT:JwtSigningKey`. Optionally set `NawaCaptcha__ExpectedSiteKey=mashroo3hub-web`, and `NawaCaptcha__AllowedTypes` to exclude `pow` for password reset.
 
 **5. Mobile (Expo).** The Web Component needs a DOM. In React Native, host it in a `WebView` page served from `/captcha/widget`, or build a native screen for the `accessible` + `pow` types against the same two endpoints.
 
@@ -710,36 +734,36 @@ npm run check:contrast  # WCAG 2.2 AA check of every widget theme palette (fails
 npm run fixture:dotnet  # regenerate the Node→.NET interop fixture
 ```
 
-The demo serves a gallery of every type (grouped, with a language toggle and a dark theme), a protected HTML form (`perAction.login` picks one of three puzzles at random), a two-step checkout (`steps: 2`, verified with `minSteps: 2`) and a protected JSON API (header). It runs under a strict CSP. Set `NAWA_GUARD_SECRET` to keep tokens valid across restarts.
+The demo serves a gallery of every type (grouped, with a language toggle and a dark theme), a protected HTML form (`perAction.login` picks one of three puzzles at random), a two-step checkout (`steps: 2`, verified with `minSteps: 2`) and a protected JSON API (header). It runs under a strict CSP. Set `NAWA_CAPTCHA_SECRET` to keep tokens valid across restarts.
 
 To look at the site locally: `npm run build:site`, then serve `site/` with any static file server. Generated files (`site/assets/`) are not committed; the Pages workflow builds them.
 
 ## Background: what earlier implementations taught us
 
-Nawa Guard comes from two in-house captchas (mashroo3hub, and a similar one in the Dada project). Kept from them: server-issued boards, take-before-check single redemption ("timeout-or-duplicate"), IP binding, a minimum solve time, issue-rate limiting and logging of suspicious solves (now the `onEvent` hook). Fixed:
+Nawa Captcha comes from two in-house captchas (mashroo3hub, and a similar one in the Dada project). Kept from them: server-issued boards, take-before-check single redemption ("timeout-or-duplicate"), IP binding, a minimum solve time, issue-rate limiting and logging of suspicious solves (now the `onEvent` hook). Fixed:
 
-- **The solution was computable from the payload.** Boards were sent as data (`cells`, `values`, `target`). An odd-one-out, biggest or arrow-odd answer is one line of script, and screen-reader labels named every shape. Nawa Guard sends only rendered pixels.
+- **The solution was computable from the payload.** Boards were sent as data (`cells`, `values`, `target`). An odd-one-out, biggest or arrow-odd answer is one line of script, and screen-reader labels named every shape. Nawa Captcha sends only rendered pixels.
 - **The client picked the game,** so an attacker could always choose the easiest one. Here the server chooses through the adaptive ladder.
 - **A blind guess passed about 11% of the time** (9 cells, one tap). The default ladder now uses continuous or combinatorial answers, with tolerances, attempt caps and trajectory checks. The few single-choice types that remain (opt-in) are documented with their guess rates and limited to one attempt.
-- **The sealing key was derived from the JWT signing key.** Nawa Guard uses a dedicated secret, purpose-separated HKDF keys and kid rotation.
+- **The sealing key was derived from the JWT signing key.** Nawa Captcha uses a dedicated secret, purpose-separated HKDF keys and kid rotation.
 - **Puzzle logic lived on the client** (a local generator, `isCorrectCaptchaMove`). Here the client has no puzzle logic at all.
 - **Every board required server state.** Here challenges are stateless sealed tokens, and only one-time IDs and counters are stored.
 - **There was no non-visual alternative and no interaction analysis.** Both are added.
 
 ## العربية: ملخص
 
-**Nawa Guard (نوى غارد)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Nawa UI. تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال، وتحدٍّ صوتي يولّده الخادم (أرقام منطوقة بالإنجليزية أو عدّ النغمات الحادّة للعربية) مع ضوضاء خلفية وعدد محدود من مرات التشغيل وبلا نص مكتوب.
+**Nawa Captcha (نوى كابتشا)** مكتبة CAPTCHA مفتوحة المصدر من عائلة «نوى»، منفصلة عن مكتبة Orca UI (Nawa UI سابقًا)، وكان اسمها سابقًا Nawa Guard (تبقى الأسماء القديمة تعمل مؤقتًا كأسماء بديلة). تعرض أكثر من ثلاثين نوعًا من الألغاز يولّدها الخادم صورًا: سحب قطعة اللغز إلى مكانها، وتدوير الصورة أو الشيء حتى يعتدل، والسحب إلى الظل، وأحجية من أربع قطع، واختيار الأشكال أو الألوان المطابقة، وقراءة الساعة، والتماثل، ومطابقة الأزواج، والنقر على الأرقام أو الحروف بالترتيب، وترتيب البطاقات والقصص المصورة، وتوصيل النقاط والمتاهة، والعمليات الحسابية والنرد. وفيها إثبات عمل غير مرئي، وتحدٍّ نصي ميسّر لمستخدمي قارئات الشاشة بأكثر من خمسين قالب سؤال، وتحدٍّ صوتي يولّده الخادم (أرقام منطوقة بالإنجليزية أو عدّ النغمات الحادّة للعربية) مع ضوضاء خلفية وعدد محدود من مرات التشغيل وبلا نص مكتوب.
 
 - **أنت تختار الألغاز:** لغز واحد أو اثنان أو عدة ألغاز عبر `types`، مع أوزان وطريقة اختيار (`random` أو `sequence` أو `adaptive`) وإعدادات لكل إجراء (`perAction`)، ويمكن طلب لغزين أو ثلاثة متتالية (`steps`). خاصية `types` في الأداة تضيّق القائمة فقط ولا توسّعها أبدًا. ويدعم ASP.NET Core ذلك عبر `AllowedTypes` و`ActionAllowedTypes` و`MinSteps`.
-- **عرض حي:** [الملعب التفاعلي](https://oriebalzyuot96.github.io/nawa-guard/#playground) يشغّل المحرك الحقيقي داخل المتصفح (وضع العرض فقط)، ويمكن تشغيل خادم Node التجريبي على [StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-guard).
+- **عرض حي:** [الملعب التفاعلي](https://oriebalzyuot96.github.io/nawa-captcha/#playground) يشغّل المحرك الحقيقي داخل المتصفح (وضع العرض فقط)، ويمكن تشغيل خادم Node التجريبي على [StackBlitz](https://stackblitz.com/github/oriebalzyuot96/nawa-captcha).
 
 - **لا ثقة بالمتصفح:** الحل مختوم داخل الرمز بتشفير AES-256-GCM ولا يصل إلى العميل أبدًا، وكل التحقق يجري على الخادم.
-- **رمز عبور (Pass token)** موقّع بـ HMAC، قصير العمر، يُستخدم مرة واحدة فقط، ومقيّد بالإجراء (مثل `login`) ويمكن ربطه بعنوان IP والمتصفح. يتحقق منه الخادم الخلفي محليًا عبر `verifyPassToken` في Node أو `INawaGuardVerifier` و`[RequireNawaGuard]` في ASP.NET Core. التنسيق موثّق ومتوافق بين المنصتين ومختبر بينهما.
+- **رمز عبور (Pass token)** موقّع بـ HMAC، قصير العمر، يُستخدم مرة واحدة فقط، ومقيّد بالإجراء (مثل `login`) ويمكن ربطه بعنوان IP والمتصفح. يتحقق منه الخادم الخلفي محليًا عبر `verifyPassToken` في Node أو `INawaCaptchaVerifier` و`[RequireNawaCaptcha]` في ASP.NET Core. التنسيق موثّق ومتوافق بين المنصتين ومختبر بينهما.
 - **حماية إضافية:** تحديد المعدل، وصعوبة تتكيف بعد الإخفاقات، وحد للمحاولات، وحد أدنى لزمن الحل، وتحليل حركة المؤشر لرفض السحب الآلي المستقيم، وتدوير المفاتيح عبر معرّف `kid`.
 - **إتاحة كاملة:** كل لغز يعمل بالفأرة واللمس ولوحة المفاتيح، ويدعم العربية والإنجليزية مع اتجاه RTL، ويحترم تقليل الحركة ووضع الألوان القسرية.
 - **تصميم وأنماط:** بطاقة زجاجية بعمق ثلاثي الأبعاد وحركة خفيفة تتوقف مع تقليل الحركة، وستة أنماط (`orca` و`midnight` و`aurora` و`sand` و`ocean` و`mono`) بوضعين فاتح وداكن مع تباين عالٍ، وكلها مفحوصة وفق WCAG 2.2 AA. تلتقط الأداة رموز تصميم Orca UI (`--oc-*`) تلقائيًا وتبقى رموز Nawa UI القديمة (`--nw-*`) مدعومة.
 - **صوت اختياري:** مؤثرات قصيرة مولّدة عبر Web Audio، متوقفة افتراضيًا، لا تعمل قبل تفاعل المستخدم، مع زر سماعة يُحفظ اختياره وشريط لمستوى الصوت وكتم على مستوى التطبيق.
-- **التكامل:** مكوّن ويب `<nawa-guard>` مع أغلفة React وVue وSvelte وAngular (مع ControlValueAccessor للنماذج التفاعلية). يشرح قسم «Integrate into mashroo3hub» أعلاه خطوات دمجه في نافذة تسجيل الدخول وفي نقاط .NET الحالية.
+- **التكامل:** مكوّن ويب `<nawa-captcha>` مع أغلفة React وVue وSvelte وAngular (مع ControlValueAccessor للنماذج التفاعلية). يشرح قسم «Integrate into mashroo3hub» أعلاه خطوات دمجه في نافذة تسجيل الدخول وفي نقاط .NET الحالية.
 - **حدود صريحة:** الكابتشا تزيد كلفة الهجوم ولا تمنعه نهائيًا. المهاجم المصمم قد يستخدم الرؤية الحاسوبية أو حلّالين بشريين، لذلك اجمعها مع تحديد المعدل وقفل الحسابات والمراقبة.
 
 ## License

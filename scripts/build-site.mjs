@@ -13,7 +13,7 @@ const serverSrc = join(root, 'packages', 'server', 'src');
 
 /** Swap the Node platform layer for the dependency-free browser one. */
 const browserPrimitives = {
-  name: 'nawa-guard-browser-primitives',
+  name: 'nawa-captcha-browser-primitives',
   setup(b) {
     b.onResolve({ filter: /\/primitives\.js$/ }, (args) =>
       args.importer.startsWith(serverSrc) ? { path: join(serverSrc, 'primitives.browser.ts') } : undefined,

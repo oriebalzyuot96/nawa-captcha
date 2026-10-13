@@ -1,13 +1,13 @@
 import { audioView } from './audio-view.js';
 import { h, icon } from './dom.js';
-import { SoundEngine, isNawaGuardMuted, type Cue } from './sound.js';
+import { SoundEngine, isNawaCaptchaMuted, type Cue } from './sound.js';
 import { t, type Lang, type StringKey } from './strings.js';
 import { STYLES } from './styles.js';
 import { isPreset, resolveTheme } from './themes.js';
 import { accessibleView, gridView, mathView, orderView, pathView, powView, rotateView, sliderView, type PuzzleView, type ViewHost } from './views.js';
 import { dragView, holdView, pairsView, swapView, tapsView } from './views-extra.js';
 
-export interface NawaGuardVerifiedDetail {
+export interface NawaCaptchaVerifiedDetail {
   /** The pass token to send to your backend. */
   readonly token: string;
   /** Milliseconds until the pass token expires. */
@@ -15,7 +15,7 @@ export interface NawaGuardVerifiedDetail {
   readonly type: string;
 }
 
-export interface NawaGuardErrorDetail {
+export interface NawaCaptchaErrorDetail {
   readonly error: 'network' | 'rate-limited' | 'config';
 }
 
@@ -64,21 +64,24 @@ function sharedSheet(): CSSStyleSheet {
 
 /** Lets the module be imported during SSR (Angular Universal, Next, SvelteKit) without a DOM. */
 const Base: typeof HTMLElement = typeof HTMLElement === 'undefined' ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
-const DEFAULT_FIELD = 'nawa-guard-token';
+const DEFAULT_FIELD = 'nawa-captcha-token';
+/** Deprecated names kept working for this release (Nawa Guard was renamed to Nawa Captcha). */
+export const LEGACY_TAG_NAME = 'nawa-guard';
+const LEGACY_FIELD = 'nawa-guard-token';
 
 const media = (q: string): MediaQueryList | undefined => (typeof matchMedia === 'function' ? matchMedia(q) : undefined);
 const offValue = (v: string | null): boolean => v !== null && /^(off|false|0|no)$/i.test(v.trim());
 
 /**
- * <nawa-guard site-key="…" endpoint="/captcha" action="login" lang="ar|en" name="nawa-guard-token"
+ * <nawa-captcha site-key="…" endpoint="/captcha" action="login" lang="ar|en" name="nawa-captcha-token"
  *             theme="auto|orca|midnight|aurora|sand|ocean|mono|light|dark|high-contrast"
  *             appearance="auto|light|dark|high-contrast" sound volume="0.6" muted>
  *
  * Fetches a challenge from your server, renders it, and on success writes the pass token into a
  * hidden <input> (light DOM, so it submits with the surrounding form) and fires
- * `nawa-guard:verified`. The widget never sees a solution: it only reports what the user did.
+ * `nawa-captcha:verified`. The widget never sees a solution: it only reports what the user did.
  */
-export class NawaGuardElement extends Base {
+export class NawaCaptchaElement extends Base {
   static get observedAttributes(): string[] {
     return ['lang', 'site-key', 'endpoint', 'action', 'name', 'type', 'types', 'theme', 'appearance', 'sound', 'volume', 'muted', 'dir'];
   }
@@ -266,7 +269,7 @@ export class NawaGuardElement extends Base {
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (oldValue === newValue || !this.isConnected) return;
     if (name === 'name') {
-      this.#input?.setAttribute('name', newValue || DEFAULT_FIELD);
+      this.#input?.setAttribute('name', newValue || this.#defaultField);
       return;
     }
     if (name === 'theme' || name === 'appearance') {
@@ -315,9 +318,9 @@ export class NawaGuardElement extends Base {
     if (this.#input?.isConnected) return;
     const input = document.createElement('input');
     input.type = 'hidden';
-    input.name = this.getAttribute('name') || DEFAULT_FIELD;
+    input.name = this.getAttribute('name') || this.#defaultField;
     input.value = this.#token;
-    input.setAttribute('data-nawa-guard', '');
+    input.setAttribute('data-nawa-captcha', '');
     this.append(input);
     this.#input = input;
   }
@@ -345,7 +348,7 @@ export class NawaGuardElement extends Base {
 
   #applySound(): void {
     const on = this.#sound.enabled;
-    const muted = this.#sound.muted || isNawaGuardMuted();
+    const muted = this.#sound.muted || isNawaCaptchaMuted();
     const label = muted ? this.#t('soundMuted') : this.#t(on ? 'soundOff' : 'soundOn');
     this.#soundBtn.replaceChildren(icon(on && !muted ? 'sound-on' : 'sound-off'));
     this.#soundBtn.setAttribute('aria-pressed', String(on && !muted));
@@ -449,8 +452,15 @@ export class NawaGuardElement extends Base {
     if (this.#input) this.#input.value = token;
   }
 
+  /** The deprecated <nawa-guard> tag keeps its old default field name. */
+  get #defaultField(): string {
+    return this.localName === LEGACY_TAG_NAME ? LEGACY_FIELD : DEFAULT_FIELD;
+  }
+
   #emit<T>(name: string, detail: T): void {
     this.dispatchEvent(new CustomEvent<T>(name, { detail, bubbles: true, composed: true }));
+    // Deprecated: the pre-rename event names (nawa-guard:*) still fire for this release.
+    this.dispatchEvent(new CustomEvent<T>(name.replace(/^nawa-captcha:/, 'nawa-guard:'), { detail, bubbles: true, composed: true }));
   }
 
   async #api(path: string, payload: unknown, signal: AbortSignal): Promise<ApiResult> {
@@ -636,10 +646,10 @@ export class NawaGuardElement extends Base {
     this.#setToken(token);
     this.#showDone(true);
     this.#cue('success');
-    this.#emit<NawaGuardVerifiedDetail>('nawa-guard:verified', { token, expiresInMs, type });
+    this.#emit<NawaCaptchaVerifiedDetail>('nawa-captcha:verified', { token, expiresInMs, type });
     this.#timer = setTimeout(() => {
       this.#setToken('');
-      this.#emit('nawa-guard:expired', {});
+      this.#emit('nawa-captcha:expired', {});
       void this.#load(false, this.#t('expired'));
     }, Math.max(5_000, expiresInMs - 5_000));
   }
@@ -664,7 +674,7 @@ export class NawaGuardElement extends Base {
     this.#setStatus(this.#t('success'), 'success');
   }
 
-  #fail(error: NawaGuardErrorDetail['error']): void {
+  #fail(error: NawaCaptchaErrorDetail['error']): void {
     this.#busy = false;
     this.#view = undefined;
     this.#body.classList.remove('verifying');
@@ -677,17 +687,28 @@ export class NawaGuardElement extends Base {
     this.#body.replaceChildren(h('div', { class: 'error-box' }, h('span', { class: 'err-icon', 'aria-hidden': 'true' }, icon('alert')), h('span', {}, this.#t(key)), h('div', { class: 'row' }, retry)));
     this.#cue('error');
     this.#setStatus(this.#t(key), 'error');
-    this.#emit<NawaGuardErrorDetail>('nawa-guard:error', { error });
+    this.#emit<NawaCaptchaErrorDetail>('nawa-captcha:error', { error });
   }
 }
 
+/** @deprecated The <nawa-guard> tag: use <nawa-captcha>. Same element, old default field name. */
+export class NawaGuardLegacyElement extends NawaCaptchaElement {}
+
 declare global {
   interface HTMLElementTagNameMap {
-    'nawa-guard': NawaGuardElement;
+    'nawa-captcha': NawaCaptchaElement;
+    /** @deprecated use 'nawa-captcha' */
+    'nawa-guard': NawaCaptchaElement;
   }
   interface HTMLElementEventMap {
-    'nawa-guard:verified': CustomEvent<NawaGuardVerifiedDetail>;
+    'nawa-captcha:verified': CustomEvent<NawaCaptchaVerifiedDetail>;
+    'nawa-captcha:expired': CustomEvent<Record<string, never>>;
+    'nawa-captcha:error': CustomEvent<NawaCaptchaErrorDetail>;
+    /** @deprecated use 'nawa-captcha:verified' */
+    'nawa-guard:verified': CustomEvent<NawaCaptchaVerifiedDetail>;
+    /** @deprecated use 'nawa-captcha:expired' */
     'nawa-guard:expired': CustomEvent<Record<string, never>>;
-    'nawa-guard:error': CustomEvent<NawaGuardErrorDetail>;
+    /** @deprecated use 'nawa-captcha:error' */
+    'nawa-guard:error': CustomEvent<NawaCaptchaErrorDetail>;
   }
 }

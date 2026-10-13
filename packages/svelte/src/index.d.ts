@@ -1,9 +1,9 @@
 import type { Component } from 'svelte';
-import type { NawaGuardErrorDetail, NawaGuardVerifiedDetail } from '@nawa-guard/widget';
+import type { NawaCaptchaErrorDetail, NawaCaptchaVerifiedDetail } from '@nawa-captcha/widget';
 
-export type { NawaGuardErrorDetail, NawaGuardVerifiedDetail };
+export type { NawaCaptchaErrorDetail, NawaCaptchaVerifiedDetail };
 
-export interface NawaGuardProps {
+export interface NawaCaptchaProps {
   siteKey?: string;
   endpoint?: string;
   action?: string;
@@ -19,9 +19,13 @@ export interface NawaGuardProps {
   volume?: number;
   muted?: boolean;
   token?: string;
-  onverified?: (detail: NawaGuardVerifiedDetail) => void;
+  onverified?: (detail: NawaCaptchaVerifiedDetail) => void;
   onexpired?: () => void;
-  onerror?: (detail: NawaGuardErrorDetail) => void;
+  onerror?: (detail: NawaCaptchaErrorDetail) => void;
 }
 
-export declare const NawaGuard: Component<NawaGuardProps, { reset(): void }, 'token'>;
+export declare const NawaCaptcha: Component<NawaCaptchaProps, { reset(): void }, 'token'>;
+/** @deprecated Renamed to {@link NawaCaptcha} (Nawa Guard is now Nawa Captcha). */
+export declare const NawaGuard: typeof NawaCaptcha;
+/** @deprecated Renamed to NawaCaptchaProps. */
+export type NawaGuardProps = NawaCaptchaProps;

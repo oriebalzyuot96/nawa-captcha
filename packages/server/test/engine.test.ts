@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MemoryStore, createNawaGuard, signPassToken, solvePow, verifyPassToken, type GuardEvent } from '../src/index.js';
+import { MemoryStore, createNawaCaptcha, signPassToken, solvePow, verifyPassToken, type GuardEvent } from '../src/index.js';
 import { CLIENT, SECRET, issue, setup } from './helpers.js';
 
 async function solvedPass(ctx = setup({ powBits: 8 }), action = 'login') {
@@ -154,7 +154,7 @@ describe('pass tokens', () => {
   it('rejects missing and forged tokens', async () => {
     expect(await verifyPassToken(undefined, { secret: SECRET, expectedAction: 'login' })).toEqual({ ok: false, error: 'missing-token' });
     const { guard } = setup();
-    const forged = signPassToken(createNawaGuard({ secret: 'attacker-secret-0123456789-abcdefghijk' }).keys, {
+    const forged = signPassToken(createNawaCaptcha({ secret: 'attacker-secret-0123456789-abcdefghijk' }).keys, {
       v: 1, jti: 'x', sk: 'default', act: 'login', typ: 'slider', lvl: 0, iat: 1_800_000_000, exp: 1_800_000_100, cbm: 'none',
     });
     expect(await guard.verifyPassToken(forged, { expectedAction: 'login' })).toEqual({ ok: false, error: 'bad-signature' });

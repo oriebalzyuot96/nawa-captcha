@@ -7,15 +7,15 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <RootNamespace>NawaGuard.AspNetCore</RootNamespace>
-    <PackageId>NawaGuard.AspNetCore</PackageId>
+    <RootNamespace>NawaCaptcha.AspNetCore</RootNamespace>
+    <PackageId>NawaCaptcha.AspNetCore</PackageId>
     <Version>0.1.0</Version>
-    <Description>Server-side verification of Nawa Guard pass tokens for ASP.NET Core: INawaGuardVerifier, [RequireNawaGuard] and minimal-API endpoint filters.</Description>
+    <Description>Server-side verification of Nawa Captcha pass tokens for ASP.NET Core: INawaCaptchaVerifier, [RequireNawaCaptcha] and minimal-API endpoint filters.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>captcha;recaptcha-alternative;hcaptcha-alternative;self-hosted;accessible;puzzle-captcha;bot-protection;anti-spam;aspnetcore;dotnet</PackageTags>
     <Authors>oriebalzyuot96</Authors>
-    <PackageProjectUrl>https://oriebalzyuot96.github.io/nawa-guard/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/oriebalzyuot96/nawa-guard</RepositoryUrl>
+    <PackageProjectUrl>https://oriebalzyuot96.github.io/nawa-captcha/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oriebalzyuot96/nawa-captcha</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

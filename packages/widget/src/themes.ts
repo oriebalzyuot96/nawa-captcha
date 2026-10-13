@@ -1,10 +1,11 @@
 /*
- * Theme presets for <nawa-guard>. Every preset has a light and a dark palette; high contrast is
+ * Theme presets for <nawa-captcha>. Every preset has a light and a dark palette; high contrast is
  * its own pair. All text/UI pairs are checked against WCAG 2.2 AA by `npm run check:contrast`
  * (and the widget test suite), which fails CI on any failing pair.
  *
  * Resolution order for each colour (first defined wins):
- *   --nawa-guard-*            per-widget override (CSS custom property on the element or an ancestor)
+ *   --nawa-captcha-*          per-widget override (CSS custom property on the element or an ancestor;
+ *                             the pre-rename --nawa-guard-* names still work)
  *   explicit preset           theme="midnight" etc., or the high-contrast palette
  *   --oc-*                    Orca UI design tokens (inherited from the page)
  *   --nw-*                    legacy Nawa UI tokens (Orca UI's previous name)
@@ -200,7 +201,7 @@ export function themeCss(): string {
   out.push(`.ng[data-contrast="high"][data-scheme="light"]{${paletteVars(PALETTES['high-contrast'].light, '_t')}}`);
   out.push(`.ng[data-contrast="high"][data-scheme="dark"]{${paletteVars(PALETTES['high-contrast'].dark, '_t')}}`);
   // The resolved tokens.
-  const resolve = TOKENS.map(([, name]) => `--_${name}:var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name})))));`).join('');
+  const resolve = TOKENS.map(([, name]) => `--_${name}:var(--nawa-captcha-${name},var(--nawa-guard-${name},var(--_t-${name},var(--oc-${name},var(--nw-${name},var(--_d-${name}))))));`).join('');
   out.push(`.ng{${resolve}}`);
   return out.join('\n');
 }

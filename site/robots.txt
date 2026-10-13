@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://oriebalzyuot96.github.io/nawa-guard/sitemap.xml
+Sitemap: https://oriebalzyuot96.github.io/nawa-captcha/sitemap.xml

@@ -101,7 +101,7 @@ export function scatter(rng: Rng, count: number, box: { x0: number; y0: number; 
     }
     if (out.length === count) return out;
   }
-  throw new Error('nawa-guard: could not place points');
+  throw new Error('nawa-captcha: could not place points');
 }
 
 /**
