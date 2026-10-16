@@ -395,6 +395,24 @@ app.MapPost("/api/contact", Handler).RequireNawaCaptcha("contact");</code></pre>
       </div>
     </section>
 
+    <section class="block" aria-labelledby="versions-h" id="versions">
+      <div class="wrap">
+        <h2 id="versions-h">Supported versions</h2>
+        <table>
+          <thead><tr><th scope="col">Part</th><th scope="col">Supported versions</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Node server (<code>nawa-captcha</code>)</th><td>Node 18 and up, zero runtime dependencies, Express adapter included</td></tr>
+            <tr><th scope="row">React</th><td>18 and 19</td></tr>
+            <tr><th scope="row">Vue</th><td>3.3 and up</td></tr>
+            <tr><th scope="row">Svelte</th><td>5</td></tr>
+            <tr><th scope="row">Angular</th><td>18 and up (standalone component and reactive forms)</td></tr>
+            <tr><th scope="row">Plain HTML or any framework</th><td><code>@nawa-captcha/widget</code>, a Web Component with no framework needed</td></tr>
+            <tr><th scope="row">ASP.NET Core</th><td><code>NawaCaptcha.AspNetCore</code> on .NET 8</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="block" aria-labelledby="compare" id="compare">
       <div class="wrap">
         <h2>Nawa Captcha vs reCAPTCHA, hCaptcha and Turnstile</h2>

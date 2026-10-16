@@ -31,6 +31,18 @@ It also looks the part: a layered, glass-like card with depth and subtle motion,
 | [`dotnet/`](dotnet) `NawaCaptcha.AspNetCore` | .NET 8 package with `INawaCaptchaVerifier`, `[RequireNawaCaptcha]`, `.RequireNawaCaptcha()` and `AddNawaCaptcha()`. |
 | [`demo/`](demo) | Express demo with every puzzle type, a protected form and a protected JSON API. |
 
+### Supported versions
+
+| Part | Supported versions |
+|---|---|
+| Node server (`nawa-captcha`, `@nawa-captcha/server`) | Node 18 and up, zero runtime dependencies, Express adapter included |
+| React | 18 and 19 |
+| Vue | 3.3 and up |
+| Svelte | 5 |
+| Angular | 18 and up (standalone component and reactive forms) |
+| Plain HTML or any framework | `@nawa-captcha/widget`, a Web Component with no framework needed |
+| ASP.NET Core | `NawaCaptcha.AspNetCore` on .NET 8 |
+
 ## Renamed from Nawa Guard
 
 This project was called **Nawa Guard** until this release. Everything is now **Nawa Captcha**, and the old names keep working as **deprecated aliases** for this release (they will be removed in a later one):
