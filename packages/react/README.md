@@ -12,7 +12,7 @@ This package: React component and hook.
 
 ## Install
 
-> **Coming to npm.** `@nawa-captcha/react` is published once the `@nawa-captcha` npm organisation exists. Until then, build it from the [repository](https://github.com/oriebalzyuot96/nawa-captcha) (`npm install && npm run build`, then `npm pack -w @nawa-captcha/react`).
+> **On npm:** `npm i @nawa-captcha/react`, or `npm i nawa-captcha` for everything in one package.
 
 ```bash
 npm i @nawa-captcha/react

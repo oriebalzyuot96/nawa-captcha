@@ -367,14 +367,11 @@
     <section class="block" aria-labelledby="install-h" id="install">
       <div class="wrap">
         <h2 id="install-h">Install</h2>
-        <div class="note"><strong>Coming to npm and NuGet.</strong> The packages are published under the <code>@nawa-captcha</code> scope (and <code>NawaCaptcha.AspNetCore</code>) once the organisation is set up. Until then, build them from source:
-          <pre><code>git clone https://github.com/oriebalzyuot96/nawa-captcha.git
-cd nawa-captcha && npm install && npm run build
-npm pack -w @nawa-captcha/server -w @nawa-captcha/widget   # → .tgz files you can npm install</code></pre></div>
-        <p>When published, npm, yarn, pnpm and bun all work:</p>
-        <pre><code>npm i @nawa-captcha/server @nawa-captcha/widget
-yarn add @nawa-captcha/react      # or @nawa-captcha/vue, @nawa-captcha/svelte, @nawa-captcha/angular
-dotnet add package NawaCaptcha.AspNetCore</code></pre>
+        <div class="note"><strong>On npm.</strong> Install everything in one package, or only the parts you need. The ASP.NET Core package is not on NuGet yet: build it from the <a href="https://github.com/oriebalzyuot96/nawa-captcha/tree/main/dotnet">dotnet folder</a>.</div>
+        <p>npm, yarn, pnpm and bun all work:</p>
+        <pre><code>npm i nawa-captcha                # server, widget and every framework wrapper
+npm i @nawa-captcha/server @nawa-captcha/widget
+yarn add @nawa-captcha/react      # or @nawa-captcha/vue, @nawa-captcha/svelte, @nawa-captcha/angular</code></pre>
         <p style="margin-top:1rem">Server (Express) — choose your puzzles:</p>
         <pre><code>import { createNawaCaptcha } from '@nawa-captcha/server';
 import { nawaCaptchaExpress, requireCaptcha } from '@nawa-captcha/server/express';

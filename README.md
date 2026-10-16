@@ -10,7 +10,7 @@
 npm i @nawa-captcha/server @nawa-captcha/widget    # or: yarn add / pnpm add
 ```
 
-> **Coming to npm.** The packages will be published under the `@nawa-captcha` scope (and `NawaCaptcha.AspNetCore` on NuGet) once the organisation exists; `npm view @nawa-captcha/server` does not find them yet. Until then, build from source: `git clone https://github.com/oriebalzyuot96/nawa-captcha.git && cd nawa-captcha && npm install && npm run build`, then `npm pack -w @nawa-captcha/server -w @nawa-captcha/widget` and install the `.tgz` files (or use a workspace / `file:` dependency).
+> **On npm.** `npm i nawa-captcha` installs everything in one package. The parts are also published on their own: `@nawa-captcha/server`, `@nawa-captcha/widget`, `@nawa-captcha/react`, `@nawa-captcha/vue`, `@nawa-captcha/svelte` and `@nawa-captcha/angular`. The ASP.NET Core package `NawaCaptcha.AspNetCore` is not on NuGet yet; build it from [`dotnet/`](dotnet).
 
 **Nawa Captcha** (formerly **Nawa Guard**, see [Renamed from Nawa Guard](#renamed-from-nawa-guard)) is an open-source, privacy-friendly puzzle CAPTCHA from the Nawa family (a separate project from the Pelagic UI component library, formerly Nawa UI). It's designed around three ideas:
 

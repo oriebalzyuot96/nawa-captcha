@@ -13,7 +13,7 @@ This package: Framework-agnostic web component.
 
 ## Install
 
-> **Coming to npm.** `@nawa-captcha/widget` is published once the `@nawa-captcha` npm organisation exists. Until then, build it from the [repository](https://github.com/oriebalzyuot96/nawa-captcha) (`npm install && npm run build`, then `npm pack -w @nawa-captcha/widget`).
+> **On npm:** `npm i @nawa-captcha/widget`, or `npm i nawa-captcha` for everything in one package.
 
 ```bash
 npm i @nawa-captcha/widget
