@@ -7,8 +7,8 @@
     "start": "node server.mjs"
   },
   "dependencies": {
-    "@nawa-captcha/server": "0.1.0",
-    "@nawa-captcha/widget": "0.1.0",
+    "@nawa-captcha/server": "0.1.1",
+    "@nawa-captcha/widget": "0.1.1",
     "express": "^5.1.0"
   }
 }
